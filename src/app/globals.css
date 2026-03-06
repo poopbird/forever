@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-ink antialiased;
+    font-family: 'Lato', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-2.5
+           bg-rose-deep text-white font-sans text-sm font-medium tracking-wide
+           rounded-full hover:bg-rose-medium transition-colors duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-6 py-2.5
+           bg-transparent text-ink-light font-sans text-sm tracking-wide
+           rounded-full border border-rose-100 hover:bg-cream-dark
+           transition-colors duration-200;
+  }
+
+  /* ── Form elements ── */
+  .form-label {
+    @apply font-sans text-sm font-medium text-ink;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-2.5 rounded-xl border border-rose-100 bg-white
+           font-sans text-sm text-ink placeholder:text-ink-light/50
+           focus:outline-none focus:ring-2 focus:ring-rose-medium/30
+           focus:border-rose-medium transition-colors duration-150;
+  }
+
+  /* ── Timeline ── */
+  .timeline-line {
+    @apply absolute left-1/2 -translate-x-1/2 w-px top-0 bottom-0;
+    background: linear-gradient(to bottom, #F2C4CE, #C9964A 50%, #F2C4CE);
+  }
+}
