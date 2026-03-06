@@ -48,8 +48,19 @@
   }
 
   /* ── Timeline ── */
+  /* Line is on the far left, aligned with the dot area */
   .timeline-line {
-    @apply absolute left-1/2 -translate-x-1/2 w-px top-0 bottom-0;
+    @apply absolute w-px top-0 bottom-0;
+    left: 20px; /* centre of the w-10 dot column */
     background: linear-gradient(to bottom, #F2C4CE, #C9964A 50%, #F2C4CE);
+  }
+
+  /* Card strip — horizontal scroll with hidden scrollbar */
+  .timeline-strip {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .timeline-strip::-webkit-scrollbar {
+    display: none;
   }
 }

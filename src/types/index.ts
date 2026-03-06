@@ -5,6 +5,8 @@ export interface Memory {
   date: string;
   caption: string;
   media_url: string;
+  /** All uploaded photos for this memory (includes media_url as first entry) */
+  media_urls?: string[];
   media_type: 'photo' | 'video';
   location_name?: string | null;
   lat?: number | null;

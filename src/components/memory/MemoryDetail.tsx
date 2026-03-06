@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import ReactionBar from '@/components/guest/ReactionBar';
 import CommentSection from '@/components/guest/CommentSection';
@@ -12,6 +13,29 @@ interface MemoryDetailProps {
 }
 
 export default function MemoryDetail({ memory, onClose }: MemoryDetailProps) {
+  // Collect all photos — prefer media_urls, fall back to single media_url
+  const allPhotos: string[] = (
+    memory.media_urls?.length
+      ? memory.media_urls
+      : memory.media_url
+        ? [memory.media_url]
+        : []
+  ).filter(Boolean);
+
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+
+  const hasMultiple = allPhotos.length > 1;
+
+  function prev() {
+    setDirection(-1);
+    setPhotoIdx(i => (i - 1 + allPhotos.length) % allPhotos.length);
+  }
+  function next() {
+    setDirection(1);
+    setPhotoIdx(i => (i + 1) % allPhotos.length);
+  }
+
   const date = new Date(memory.date).toLocaleDateString('en-GB', {
     weekday: 'long',
     day: 'numeric',
@@ -45,16 +69,112 @@ export default function MemoryDetail({ memory, onClose }: MemoryDetailProps) {
           ✕
         </button>
 
-        {/* Media */}
-        {memory.media_type === 'photo' && memory.media_url && (
-          <div className="relative h-72 w-full">
-            <Image
-              src={memory.media_url}
-              alt={memory.caption}
-              fill
-              className="object-cover rounded-t-3xl"
-              sizes="(max-width: 768px) 100vw, 672px"
-            />
+        {/* ── Photo carousel ── */}
+        {memory.media_type === 'photo' && allPhotos.length > 0 && (
+          <div className="relative h-80 w-full overflow-hidden rounded-t-3xl bg-cream-dark">
+            <AnimatePresence initial={false} custom={direction}>
+              <motion.div
+                key={photoIdx}
+                custom={direction}
+                variants={{
+                  enter:  (d: number) => ({ x: d * 80, opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit:   (d: number) => ({ x: d * -80, opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.32, ease: 'easeInOut' }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={allPhotos[photoIdx]}
+                  alt={`${memory.caption} — photo ${photoIdx + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 672px"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Prev / Next arrows */}
+            {hasMultiple && (
+              <>
+                <button
+                  onClick={prev}
+                  aria-label="Previous photo"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10
+                             w-9 h-9 rounded-full bg-black/35 hover:bg-black/55
+                             text-white text-lg flex items-center justify-center
+                             transition backdrop-blur-sm"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={next}
+                  aria-label="Next photo"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10
+                             w-9 h-9 rounded-full bg-black/35 hover:bg-black/55
+                             text-white text-lg flex items-center justify-center
+                             transition backdrop-blur-sm"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            {/* Dot indicators */}
+            {hasMultiple && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10
+                              flex gap-1.5 items-center">
+                {allPhotos.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setDirection(i > photoIdx ? 1 : -1); setPhotoIdx(i); }}
+                    aria-label={`Go to photo ${i + 1}`}
+                    className={`rounded-full transition-all duration-200
+                      ${i === photoIdx
+                        ? 'w-4 h-2 bg-white'
+                        : 'w-2 h-2 bg-white/50 hover:bg-white/75'
+                      }`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Photo count badge */}
+            {hasMultiple && (
+              <span className="absolute top-3 left-3 z-10
+                               font-sans text-[11px] font-semibold text-white/90
+                               bg-black/35 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                {photoIdx + 1} / {allPhotos.length}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Thumbnail strip ── */}
+        {hasMultiple && (
+          <div className="flex gap-2 px-6 pt-4 overflow-x-auto timeline-strip">
+            {allPhotos.map((url, i) => (
+              <button
+                key={i}
+                onClick={() => { setDirection(i > photoIdx ? 1 : -1); setPhotoIdx(i); }}
+                className={`flex-none relative w-14 h-14 rounded-xl overflow-hidden transition-all duration-200
+                  ${i === photoIdx
+                    ? 'ring-2 ring-rose-deep ring-offset-1 ring-offset-cream scale-105'
+                    : 'opacity-60 hover:opacity-90'
+                  }`}
+              >
+                <Image
+                  src={url}
+                  alt={`Thumbnail ${i + 1}`}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
+              </button>
+            ))}
           </div>
         )}
 
