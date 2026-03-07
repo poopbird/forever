@@ -13,6 +13,8 @@ export interface Memory {
   lng?: number | null;
   show_on_map: boolean;
   milestone_label?: string | null;
+  /** Emoji shown as the timeline dot for this memory e.g. "❤️", "✈️" */
+  dot_emoji?: string | null;
 }
 
 export interface Comment {

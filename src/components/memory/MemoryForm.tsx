@@ -38,6 +38,7 @@ export default function MemoryForm({ memory, onClose }: MemoryFormProps) {
   const [lng,            setLng]            = useState<number | undefined>(memory?.lng ?? undefined);
   const [showOnMap,      setShowOnMap]      = useState(memory?.show_on_map    ?? true);
   const [milestoneLabel, setMilestoneLabel] = useState(memory?.milestone_label ?? '');
+  const [dotEmoji,       setDotEmoji]       = useState(memory?.dot_emoji      ?? '');
 
   const [exifLoading, setExifLoading] = useState(false);
   const [submitting,  setSubmitting]  = useState(false);
@@ -127,6 +128,7 @@ export default function MemoryForm({ memory, onClose }: MemoryFormProps) {
         lng:             lng  ?? null,
         show_on_map:     showOnMap,
         milestone_label: milestoneLabel.trim() || null,
+        dot_emoji:       dotEmoji || null,
       };
 
       const res = await fetch(
@@ -326,6 +328,39 @@ export default function MemoryForm({ memory, onClose }: MemoryFormProps) {
             placeholder="e.g. First Holiday, Got a Dog, Engaged 🎉"
           />
         </label>
+
+        {/* ── Dot icon ── */}
+        <div className="mb-4">
+          <span className="form-label block mb-2">Timeline dot icon</span>
+          <div className="flex flex-wrap gap-2">
+            {['❤️','💛','⭐','📷','✈️','💍','🌸','🏠','🎉','🐾','🎂','🌊'].map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => setDotEmoji(dotEmoji === emoji ? '' : emoji)}
+                className={`w-9 h-9 rounded-full text-lg flex items-center justify-center border-2 transition-colors ${
+                  dotEmoji === emoji
+                    ? 'border-rose-deep bg-rose-blush/40'
+                    : 'border-rose-100 hover:border-rose-medium'
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+          {dotEmoji && (
+            <button
+              type="button"
+              onClick={() => setDotEmoji('')}
+              className="text-xs text-ink-light mt-2 underline underline-offset-2"
+            >
+              Clear selection
+            </button>
+          )}
+          <p className="text-xs text-ink-light/60 mt-1 font-sans">
+            Shown on the timeline dot for this memory
+          </p>
+        </div>
 
         {/* ── Show on map ── */}
         <label className="flex items-center gap-2 mb-6 cursor-pointer select-none">

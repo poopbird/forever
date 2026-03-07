@@ -173,6 +173,11 @@ export default function StackedTimelineEntry({ memories, onSingleClick, onStackC
       <div className="relative flex-none w-10 flex items-center justify-center">
         {milestone?.milestone_label ? (
           <MilestoneMarker label={milestone.milestone_label} />
+        ) : mainMemory.dot_emoji ? (
+          <div className="w-8 h-8 rounded-full bg-cream border-2 border-rose-100 shadow-md
+                          flex items-center justify-center text-base leading-none">
+            {mainMemory.dot_emoji}
+          </div>
         ) : (
           <div className="w-3.5 h-3.5 rounded-full bg-rose-deep border-[3px] border-cream shadow-md" />
         )}
@@ -253,7 +258,8 @@ export default function StackedTimelineEntry({ memories, onSingleClick, onStackC
                   </p>
                   {extras.length > 0 && !hovered && (
                     <p className="font-sans text-[10px] text-white/70 italic">
-                      hover to explore {extras.length} more ↔
+                      <span className="hidden sm:inline">hover to explore {extras.length} more ↔</span>
+                      <span className="sm:hidden">tap to see all ↔</span>
                     </p>
                   )}
                 </div>
