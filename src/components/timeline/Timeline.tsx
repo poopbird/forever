@@ -7,23 +7,57 @@ import TimelineSparkles from './TimelineSparkles';
 import TimelineJumpNav from './TimelineJumpNav';
 import MonthGroupModal from './MonthGroupModal';
 import MemoryDetail from '@/components/memory/MemoryDetail';
-import MemoryForm from '@/components/memory/MemoryForm';
+import MemoryEditModal from '@/components/memory/MemoryEditModal';
+import BulkMemoryUpload from '@/components/memory/BulkMemoryUpload';
 import type { Memory } from '@/types';
 
 interface TimelineProps {
   memories: Memory[];
+  /** When true, hides add / edit controls (used in public guest view) */
+  readOnly?: boolean;
 }
 
 type TimelineItem =
   | { type: 'year'; year: string }
   | { type: 'month'; key: string; memories: Memory[] };
 
-export default function Timeline({ memories }: TimelineProps) {
-  const [selected, setSelected] = useState<Memory | null>(null);
-  const [groupOpen, setGroupOpen] = useState<Memory[] | null>(null);
-  const [showForm, setShowForm] = useState(false);
+export default function Timeline({ memories: initialMemories, readOnly = false }: TimelineProps) {
+  // Local copy so we can optimistically update / remove memories
+  const [memories, setMemories] = useState<Memory[]>(initialMemories);
 
-  // Group memories by YYYY-MM, each group sorted most recent first
+  const [selected,  setSelected]  = useState<Memory | null>(null);
+  const [editing,   setEditing]   = useState<Memory | null>(null);
+  const [groupOpen, setGroupOpen] = useState<Memory[] | null>(null);
+  const [showForm,  setShowForm]  = useState(false);
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
+  function handleMemoryDeleted(id: string) {
+    setMemories(prev => prev.filter(m => m.id !== id));
+    setGroupOpen(prev => {
+      if (!prev) return null;
+      const updated = prev.filter(m => m.id !== id);
+      return updated.length > 0 ? updated : null;
+    });
+    setEditing(null);
+    setSelected(null);
+  }
+
+  function handleMemorySaved(updated: Memory) {
+    setMemories(prev => prev.map(m => m.id === updated.id ? updated : m));
+    // Refresh group modal if the memory was in it
+    setGroupOpen(prev => {
+      if (!prev) return null;
+      return prev.map(m => m.id === updated.id ? updated : m);
+    });
+  }
+
+  function handleOpenEdit(memory: Memory) {
+    setSelected(null);   // close detail modal first
+    setEditing(memory);
+  }
+
+  // ── Group memories by YYYY-MM ────────────────────────────────────────────────
   const monthGroups = useMemo(() => {
     const groups = new Map<string, Memory[]>();
     for (const memory of memories) {
@@ -37,7 +71,7 @@ export default function Timeline({ memories }: TimelineProps) {
     return Array.from(groups.entries());
   }, [memories]);
 
-  // Build a flat list interleaved with year-chapter markers
+  // ── Build flat item list interleaved with year-chapter markers ───────────────
   const { items, years } = useMemo(() => {
     const result: TimelineItem[] = [];
     const yearList: string[] = [];
@@ -54,6 +88,7 @@ export default function Timeline({ memories }: TimelineProps) {
     return { items: result, years: yearList };
   }, [monthGroups]);
 
+  // ── Empty state ─────────────────────────────────────────────────────────────
   if (memories.length === 0) {
     return (
       <>
@@ -62,20 +97,24 @@ export default function Timeline({ memories }: TimelineProps) {
           <p className="font-sans text-sm mb-8 opacity-70">
             Add your first memory to get started.
           </p>
-          <button onClick={() => setShowForm(true)} className="btn-primary">
-            Add the first memory
-          </button>
+          {!readOnly && (
+            <button onClick={() => setShowForm(true)} className="btn-primary">
+              Add the first memory
+            </button>
+          )}
         </div>
-        <AnimatePresence>
-          {showForm && <MemoryForm onClose={() => setShowForm(false)} />}
-        </AnimatePresence>
+        {!readOnly && (
+          <AnimatePresence>
+            {showForm && <BulkMemoryUpload onClose={() => setShowForm(false)} />}
+          </AnimatePresence>
+        )}
       </>
     );
   }
 
   return (
     <>
-      {/* Year jump navigation — only rendered when memories span multiple years */}
+      {/* Year jump navigation */}
       <TimelineJumpNav years={years} />
 
       <div className="relative">
@@ -139,11 +178,13 @@ export default function Timeline({ memories }: TimelineProps) {
         </ol>
       </div>
 
-      <div className="text-center mt-16">
-        <button onClick={() => setShowForm(true)} className="btn-primary">
-          + Add a Memory
-        </button>
-      </div>
+      {!readOnly && (
+        <div className="text-center mt-16">
+          <button onClick={() => setShowForm(true)} className="btn-primary">
+            + Add a Memory
+          </button>
+        </div>
+      )}
 
       {/* Group modal — all memories in a month */}
       <AnimatePresence>
@@ -159,14 +200,32 @@ export default function Timeline({ memories }: TimelineProps) {
       {/* Memory detail modal */}
       <AnimatePresence>
         {selected && (
-          <MemoryDetail memory={selected} onClose={() => setSelected(null)} />
+          <MemoryDetail
+            memory={selected}
+            onClose={() => setSelected(null)}
+            onEdit={readOnly ? undefined : handleOpenEdit}
+          />
         )}
       </AnimatePresence>
 
-      {/* Add memory form */}
+      {/* Memory edit modal */}
       <AnimatePresence>
-        {showForm && <MemoryForm onClose={() => setShowForm(false)} />}
+        {editing && (
+          <MemoryEditModal
+            memory={editing}
+            onClose={() => setEditing(null)}
+            onSaved={handleMemorySaved}
+            onDeleted={handleMemoryDeleted}
+          />
+        )}
       </AnimatePresence>
+
+      {/* Add memory — bulk upload (one card per photo) */}
+      {!readOnly && (
+        <AnimatePresence>
+          {showForm && <BulkMemoryUpload onClose={() => setShowForm(false)} />}
+        </AnimatePresence>
+      )}
     </>
   );
 }

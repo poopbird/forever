@@ -63,4 +63,38 @@
   .timeline-strip::-webkit-scrollbar {
     display: none;
   }
+
+  /* ── Film Reel ── */
+  /* Sprocket hole strip — repeating circular perforations */
+  .sprocket-strip {
+    background-color: #1c1610;
+    background-image: radial-gradient(
+      circle 5.5px at 14px 50%,
+      #0d0b08 100%,
+      transparent 100%
+    );
+    background-size: 28px 100%;
+    background-repeat: repeat-x;
+  }
+
+  /* Film grain texture overlay */
+  .film-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* Film reel scroll strip — hidden scrollbar */
+  .film-strip {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+  }
+  .film-strip:active {
+    cursor: grabbing;
+  }
+  .film-strip::-webkit-scrollbar {
+    display: none;
+  }
 }

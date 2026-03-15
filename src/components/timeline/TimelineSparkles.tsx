@@ -20,6 +20,11 @@ function sr(seed: number) {
   return x - Math.floor(x);
 }
 
+// Round to 4dp — matches browser CSS precision so SSR HTML and client hydration agree
+function r4(n: number): number {
+  return Math.round(n * 10_000) / 10_000;
+}
+
 // ─── Build ambient sparkles once (stable across renders) ──────────────────
 interface AmbientSparkle {
   id: number;
@@ -34,14 +39,14 @@ interface AmbientSparkle {
 
 function buildAmbient(count: number): AmbientSparkle[] {
   return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    x: sr(i * 7)  * 68 - 10,     // –10 … +58 px (straddles the line at x=20)
-    y: sr(i * 13) * 100,
-    size: 7 + sr(i * 3)  * 11,
-    color: COLORS[i % COLORS.length],
-    delay: sr(i * 5)  * 4,
-    duration: 1.6 + sr(i * 11) * 2.4,
-    char: CHARS[i % CHARS.length],
+    id:       i,
+    x:        r4(sr(i * 7)  * 68 - 10),   // –10 … +58 px (straddles the line at x=20)
+    y:        r4(sr(i * 13) * 100),
+    size:     r4(7 + sr(i * 3)  * 11),
+    color:    COLORS[i % COLORS.length],
+    delay:    r4(sr(i * 5)  * 4),
+    duration: r4(1.6 + sr(i * 11) * 2.4),
+    char:     CHARS[i % CHARS.length],
   }));
 }
 

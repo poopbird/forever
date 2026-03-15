@@ -1,3 +1,21 @@
+export interface Couple {
+  id: string;
+  name: string;
+  start_date: string | null;
+  bio: string | null;
+  cover_photo_url: string | null;
+  cover_video_url: string | null;
+  created_at: string;
+}
+
+export interface Invite {
+  id: string;
+  couple_id: string;
+  token: string;
+  accepted: boolean;
+  created_at: string;
+}
+
 export interface Memory {
   id: string;
   created_at: string;
@@ -15,6 +33,8 @@ export interface Memory {
   milestone_label?: string | null;
   /** Emoji shown as the timeline dot for this memory e.g. "❤️", "✈️" */
   dot_emoji?: string | null;
+  /** Optimistic-lock version — incremented on every PATCH */
+  version?: number;
 }
 
 export interface Comment {

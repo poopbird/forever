@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portrait Photo Handling — Forever</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF8F0;
+    --cream-dark: #F5EDE0;
+    --rose-deep: #7B1E3C;
+    --rose-medium: #A83258;
+    --rose-blush: #FDE8ED;
+    --gold: #C9964A;
+    --ink: #3D2C2C;
+    --ink-light: #6B4F4F;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #16100e;
+    font-family: 'Lato', sans-serif;
+    color: var(--ink);
+    padding: 40px 0 80px;
+  }
+
+  /* ── Page chrome ─────────────────────────── */
+  .page-title {
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 0 40px;
+  }
+  .page-title h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .page-title p {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(253,248,240,0.35);
+  }
+
+  /* ── Comparison columns ──────────────────── */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  .compare-col {
+    background: var(--cream);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .compare-label {
+    padding: 14px 20px 12px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid rgba(201,150,74,0.15);
+  }
+  .compare-label .verdict {
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 3px;
+    font-weight: 700;
+  }
+  .compare-label h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.92rem;
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+  .compare-label p {
+    font-size: 0.68rem;
+    color: var(--ink-light);
+    margin-top: 3px;
+    line-height: 1.4;
+    opacity: 0.75;
+  }
+
+  .compare-body {
+    padding: 20px;
+    background: var(--cream);
+  }
+
+  /* ── OPTION A: Blurred fill ──────────────── */
+
+  /* Hero container — fixed landscape height */
+  .hero-frame {
+    width: 100%;
+    height: 340px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Blurred background layer — same image, scaled to fill, blurred */
+  .blur-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(22px) brightness(0.45) saturate(1.4);
+    transform: scale(1.1);
+  }
+
+  /* Actual photo — natural aspect ratio, centred over blur */
+  .photo-natural {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-natural .img-ph {
+    /* Portrait: narrower, natural ratio */
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+  .photo-natural .img-ph.portrait {
+    height: 100%;
+    width: 55%;  /* 9:16 portrait in landscape frame */
+  }
+  .photo-natural .img-ph.landscape {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Caption overlay */
+  .blur-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(15,8,10,0.85) 0%, transparent 60%);
+    padding: 28px 24px 20px;
+    z-index: 2;
+  }
+  .blur-overlay .eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232,201,123,0.8);
+    margin-bottom: 6px;
+  }
+  .blur-overlay .quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+  .blur-overlay .loc {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.45);
+    margin-top: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── OPTION B: Adaptive height ───────────── */
+
+  .adaptive-frame {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .adaptive-frame.portrait-frame {
+    /* let portrait photo show naturally */
+    aspect-ratio: 9/14;
+  }
+  .adaptive-frame.landscape-frame {
+    aspect-ratio: 4/3;
+  }
+
+  .adaptive-frame .img-ph {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .adaptive-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(15,8,10,0.8) 0%, transparent 55%);
+    padding: 24px 18px 16px;
+  }
+  .adaptive-overlay .quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.88rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+  .adaptive-overlay .date {
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-top: 4px;
+  }
+
+  /* Mixed month label */
+  .rhythm-note {
+    margin-top: 12px;
+    font-size: 0.65rem;
+    color: var(--ink-light);
+    opacity: 0.6;
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* ── OPTION C: Portrait-smart grid ──────── */
+
+  .smart-grid {
+    display: grid;
+    gap: 5px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* 2 portrait photos side by side */
+  .smart-grid.two-portrait {
+    grid-template-columns: 1fr 1fr;
+    height: 280px;
+  }
+
+  /* 1 portrait + 2 landscape stacked */
+  .smart-grid.portrait-plus-two {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: 300px;
+  }
+  .smart-grid.portrait-plus-two .portrait-main {
+    grid-row: span 2;
+  }
+
+  /* 3 portrait photos */
+  .smart-grid.three-portrait {
+    grid-template-columns: 1fr 1fr 1fr;
+    height: 240px;
+  }
+
+  .smart-cell {
+    position: relative;
+    overflow: hidden;
+  }
+  .smart-cell .img-ph {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .smart-cell:hover .img-ph {
+    transform: scale(1.04);
+  }
+  .smart-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(15,8,10,0.75) 0%, transparent 50%);
+    padding: 14px 12px 10px;
+  }
+  .smart-overlay .caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+  .smart-overlay .sdate {
+    font-size: 0.57rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-top: 2px;
+  }
+
+  /* Image gradient placeholders */
+  .ph-rose    { background: linear-gradient(160deg, #f5c6d0 0%, #d8809a 100%); }
+  .ph-dusk    { background: linear-gradient(160deg, #b090b0 0%, #6a4878 100%); }
+  .ph-ocean   { background: linear-gradient(160deg, #80b8d0 0%, #3a6888 100%); }
+  .ph-forest  { background: linear-gradient(160deg, #90c898 0%, #4a7855 100%); }
+  .ph-gold    { background: linear-gradient(160deg, #e8c060 0%, #b07820 100%); }
+  .ph-sunset  { background: linear-gradient(160deg, #f0a060 0%, #c04820 100%); }
+  .ph-night   { background: linear-gradient(160deg, #607090 0%, #283040 100%); }
+  .ph-blush   { background: linear-gradient(160deg, #fde8ed 0%, #e898b0 100%); }
+  .ph-warm    { background: linear-gradient(160deg, #e8c898 0%, #c08050 100%); }
+  .ph-lavender{ background: linear-gradient(160deg, #d0b8e8 0%, #9070c0 100%); }
+
+  /* ── Section dividers ────────────────────── */
+  .section-divider {
+    text-align: center;
+    margin: 44px 0 36px;
+    color: rgba(253,248,240,0.2);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* ── Bottom: real app behaviour note ────── */
+  .approach-note {
+    max-width: 680px;
+    margin: 52px auto 0;
+    padding: 28px 36px;
+    background: rgba(253,248,240,0.05);
+    border: 1px solid rgba(201,150,74,0.2);
+    border-radius: 16px;
+    text-align: center;
+  }
+  .approach-note h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .approach-note p {
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: rgba(253,248,240,0.45);
+    letter-spacing: 0.02em;
+  }
+  .approach-note .rec {
+    display: inline-block;
+    margin-top: 16px;
+    background: rgba(201,150,74,0.15);
+    border: 1px solid rgba(201,150,74,0.3);
+    color: var(--gold);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>How Portrait Phone Photos Are Handled</h1>
+  <p>Three approaches — same portrait photo, three different results</p>
+</div>
+
+<div class="compare-grid">
+
+  <!-- ═══════════════════════════════
+       OPTION A: Blurred fill
+  ═══════════════════════════════ -->
+  <div class="compare-col">
+    <div class="compare-label">
+      <div class="verdict">✓ Recommended</div>
+      <h3>A — Blurred Fill Background</h3>
+      <p>Full photo visible. Blur from same image fills the frame. Nothing is cut off.</p>
+    </div>
+    <div class="compare-body">
+
+      <!-- Portrait photo in landscape hero — blur fill -->
+      <div class="hero-frame">
+        <div class="blur-bg" style="background-image: linear-gradient(160deg, #f5c6d0 0%, #d8809a 60%, #7B1E3C 100%);"></div>
+        <div class="photo-natural">
+          <!-- Portrait image centered, full height -->
+          <div class="img-ph portrait ph-rose" style="height:100%;width:55%;border-radius:2px;"></div>
+        </div>
+        <div class="blur-overlay">
+          <div class="eyebrow">March 2023 · Paris</div>
+          <div class="quote">"She said yes before he even finished the question"</div>
+          <div class="loc">📍 Pont Alexandre III</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; font-size:0.72rem; color:var(--ink-light); line-height:1.6;">
+        <strong style="color:var(--ink);">How it works:</strong> The portrait photo sits at full height. The empty sides are filled with the same image — blurred and darkened — so no black bars appear. The full photo is always visible.
+      </div>
+
+      <!-- Show it also works with landscape -->
+      <div style="margin-top:16px; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); opacity:0.7; margin-bottom:8px;">
+        Also works with landscape photos ↓
+      </div>
+      <div class="hero-frame" style="height:200px;">
+        <div class="blur-bg" style="background-image: linear-gradient(160deg, #80b8d0 0%, #3a6888 100%);"></div>
+        <div class="photo-natural">
+          <div class="img-ph landscape ph-ocean"></div>
+        </div>
+        <div class="blur-overlay" style="padding:16px 20px 14px;">
+          <div class="eyebrow">June 2022 · Bali</div>
+          <div class="quote" style="font-size:0.88rem;">"Chasing sunsets on the other side of the world"</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       OPTION B: Adaptive height
+  ═══════════════════════════════ -->
+  <div class="compare-col">
+    <div class="compare-label">
+      <div class="verdict" style="color:var(--ink-light);">⚠ Trade-off</div>
+      <h3>B — Adaptive Height</h3>
+      <p>Container grows to fit the photo's natural ratio. Full photo visible, but inconsistent page rhythm.</p>
+    </div>
+    <div class="compare-body">
+
+      <!-- Portrait frame — tall container -->
+      <div class="adaptive-frame portrait-frame">
+        <div class="img-ph ph-rose" style="width:100%;height:100%;"></div>
+        <div class="adaptive-overlay">
+          <div class="quote">"She said yes before he even finished the question"</div>
+          <div class="date">March 2023 · Paris</div>
+        </div>
+      </div>
+
+      <p class="rhythm-note">↑ Portrait photo (9:16) — tall frame</p>
+
+      <div style="margin-top:14px;">
+        <div class="adaptive-frame landscape-frame">
+          <div class="img-ph ph-ocean" style="width:100%;height:100%;"></div>
+          <div class="adaptive-overlay">
+            <div class="quote">"Chasing sunsets on the other side of the world"</div>
+            <div class="date">June 2022 · Bali</div>
+          </div>
+        </div>
+        <p class="rhythm-note">↑ Landscape photo (4:3) — shorter frame</p>
+      </div>
+
+      <div style="margin-top:14px; font-size:0.72rem; color:var(--ink-light); line-height:1.6;">
+        <strong style="color:var(--ink);">Trade-off:</strong> Every photo shows in full, but the page height bounces unpredictably between entries. Mixed months feel inconsistent.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       OPTION C: Portrait-smart grid
+  ═══════════════════════════════ -->
+  <div class="compare-col">
+    <div class="compare-label">
+      <div class="verdict" style="color:var(--rose-medium);">✓ Also good</div>
+      <h3>C — Smart Tiled Grid</h3>
+      <p>Portrait photos placed in portrait-shaped tiles. Layout auto-selects based on orientations.</p>
+    </div>
+    <div class="compare-body">
+
+      <!-- 2 portrait photos side by side -->
+      <div style="font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); opacity:0.6; margin-bottom:8px;">2 portrait photos</div>
+      <div class="smart-grid two-portrait">
+        <div class="smart-cell">
+          <div class="img-ph ph-rose" style="width:100%;height:100%;"></div>
+          <div class="smart-overlay">
+            <div class="caption">The proposal moment</div>
+            <div class="sdate">Mar 2023</div>
+          </div>
+        </div>
+        <div class="smart-cell">
+          <div class="img-ph ph-dusk" style="width:100%;height:100%;"></div>
+          <div class="smart-overlay">
+            <div class="caption">Right after she said yes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1 portrait + 2 landscape stacked -->
+      <div style="font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); opacity:0.6; margin: 14px 0 8px;">1 portrait + 2 landscape</div>
+      <div class="smart-grid portrait-plus-two">
+        <div class="smart-cell portrait-main">
+          <div class="img-ph ph-blush" style="width:100%;height:100%;"></div>
+          <div class="smart-overlay">
+            <div class="caption">Engagement shoot</div>
+            <div class="sdate">May 2023</div>
+          </div>
+        </div>
+        <div class="smart-cell">
+          <div class="img-ph ph-gold" style="width:100%;height:100%;"></div>
+          <div class="smart-overlay">
+            <div class="caption">Centennial Park</div>
+          </div>
+        </div>
+        <div class="smart-cell">
+          <div class="img-ph ph-sunset" style="width:100%;height:100%;"></div>
+          <div class="smart-overlay">
+            <div class="caption">Golden hour</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px; font-size:0.72rem; color:var(--ink-light); line-height:1.6;">
+        <strong style="color:var(--ink);">How it works:</strong> The layout engine checks each photo's aspect ratio, then picks a grid template that fits. Portrait photos always get portrait-shaped tiles.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom recommendation -->
+<div class="approach-note" style="margin: 52px 32px 0; max-width:680px; margin-left:auto; margin-right:auto;">
+  <h4>Recommended: A + C together</h4>
+  <p>
+    For single-photo entries — use <strong style="color:rgba(253,248,240,0.7);">blur fill (A)</strong>: always looks intentional, never broken.<br>
+    For multi-photo months — use <strong style="color:rgba(253,248,240,0.7);">smart tiled grid (C)</strong>: portrait tiles for portrait photos, landscape tiles for landscape.<br><br>
+    The photo orientation is read automatically from the image dimensions once loaded. No manual input needed from the couple.
+  </p>
+  <div class="rec">Detect orientation → pick layout automatically</div>
+</div>
+
+</body>
+</html>

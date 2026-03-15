@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Design Previews — Forever</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF8F0;
+    --cream-dark: #F5EDE0;
+    --rose-deep: #7B1E3C;
+    --rose-medium: #A83258;
+    --rose-blush: #FDE8ED;
+    --gold: #C9964A;
+    --gold-light: #E8C97B;
+    --ink: #3D2C2C;
+    --ink-light: #6B4F4F;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1210;
+    font-family: 'Lato', sans-serif;
+    color: var(--ink);
+    padding: 48px 24px 80px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--cream);
+    letter-spacing: 0.01em;
+    margin-bottom: 8px;
+  }
+
+  .page-header p {
+    color: rgba(253,248,240,0.5);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .option-card {
+    background: var(--cream);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  }
+
+  .option-label {
+    padding: 16px 24px 14px;
+    background: var(--cream-dark);
+    border-bottom: 1px solid rgba(201,150,74,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .option-label .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+
+  .option-label h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--rose-deep);
+    font-style: italic;
+  }
+
+  .option-label .tag {
+    margin-left: auto;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    opacity: 0.7;
+  }
+
+  .preview-area {
+    padding: 28px 24px;
+    min-height: 420px;
+    position: relative;
+    overflow: hidden;
+  }
+
+
+  /* ═══════════════════════════════════════════
+     OPTION 1 — SCRAPBOOK / PINNED WALL
+  ═══════════════════════════════════════════ */
+  .scrapbook {
+    background: #f4ede0;
+    background-image:
+      radial-gradient(circle at 20% 80%, rgba(242,208,216,0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(201,150,74,0.1) 0%, transparent 40%);
+  }
+
+  .year-tape {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .tape-strip {
+    background: rgba(232,201,123,0.7);
+    padding: 3px 14px;
+    font-family: 'Caveat', cursive;
+    font-size: 0.9rem;
+    color: var(--rose-deep);
+    transform: rotate(-0.5deg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    letter-spacing: 0.05em;
+  }
+
+  .tape-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(201,150,74,0.3), transparent);
+  }
+
+  .polaroid-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    padding-bottom: 8px;
+  }
+
+  .polaroid {
+    background: white;
+    padding: 8px 8px 28px;
+    box-shadow: 0 6px 20px rgba(61,44,44,0.18), 0 1px 3px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .polaroid:nth-child(1) { transform: rotate(-3.2deg); }
+  .polaroid:nth-child(2) { transform: rotate(1.8deg); margin-bottom: 12px; z-index: 2; }
+  .polaroid:nth-child(3) { transform: rotate(-1.1deg); }
+  .polaroid:nth-child(4) { transform: rotate(2.6deg); margin-bottom: 4px; }
+
+  .polaroid-img {
+    width: 110px;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .polaroid-img-placeholder {
+    width: 110px;
+    height: 90px;
+    display: block;
+  }
+
+  .polaroid-caption {
+    position: absolute;
+    bottom: 6px;
+    left: 0; right: 0;
+    text-align: center;
+    font-family: 'Caveat', cursive;
+    font-size: 0.72rem;
+    color: #5a4040;
+    padding: 0 6px;
+  }
+
+  .pin {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #e05555, #c03030);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    z-index: 10;
+  }
+
+  .scrapbook-row2 {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-top: 14px;
+  }
+
+  .sticky-note {
+    background: #fef9c3;
+    padding: 10px 12px;
+    font-family: 'Caveat', cursive;
+    font-size: 0.78rem;
+    color: #5a4828;
+    transform: rotate(1.5deg);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+    width: 110px;
+    line-height: 1.5;
+  }
+
+  .washi-tape {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    width: 60px;
+    height: 18px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(242,208,216,0.8) 0px,
+      rgba(242,208,216,0.8) 6px,
+      rgba(248,220,228,0.6) 6px,
+      rgba(248,220,228,0.6) 12px
+    );
+    transform: rotate(-8deg);
+    opacity: 0.9;
+  }
+
+
+  /* ═══════════════════════════════════════════
+     OPTION 2 — FULL-BLEED VERTICAL PHOTO STORY
+  ═══════════════════════════════════════════ */
+  .editorial {
+    background: #faf7f2;
+    padding: 0;
+  }
+
+  .editorial-year {
+    padding: 18px 28px 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .editorial-year-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: rgba(201,150,74,0.18);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .editorial-year-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(201,150,74,0.35), transparent);
+  }
+
+  .editorial-entry {
+    position: relative;
+    margin-bottom: 2px;
+  }
+
+  .editorial-entry-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .editorial-entry-img-placeholder {
+    width: 100%;
+    height: 200px;
+    display: block;
+  }
+
+  .editorial-entry-right {
+    width: 100%;
+    height: 160px;
+    display: block;
+  }
+
+  .editorial-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(30,15,15,0.75) 0%, rgba(30,15,15,0.1) 55%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 18px 28px;
+  }
+
+  .editorial-date {
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(253,248,240,0.65);
+    margin-bottom: 4px;
+    font-family: 'Lato', sans-serif;
+  }
+
+  .editorial-caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+
+  .editorial-location {
+    font-size: 0.65rem;
+    color: rgba(253,248,240,0.55);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+
+  .editorial-small-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .editorial-small-entry {
+    position: relative;
+  }
+
+  .editorial-small-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(30,15,15,0.7) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px 14px;
+  }
+
+  .editorial-small-caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+
+
+  /* ═══════════════════════════════════════════
+     OPTION 3 — ADVENTURE MAP TIMELINE
+  ═══════════════════════════════════════════ */
+  .adventure {
+    background: #f0ece3;
+    background-image:
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9964a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    position: relative;
+  }
+
+  .map-path-container {
+    position: relative;
+    padding: 0 20px;
+  }
+
+  .map-path-svg {
+    position: absolute;
+    left: 48px;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    height: 100%;
+  }
+
+  .map-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-left: 60px;
+    position: relative;
+  }
+
+  .map-year-flag {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    margin-top: 4px;
+    margin-left: -46px;
+  }
+
+  .map-flag {
+    background: var(--rose-deep);
+    color: white;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    padding: 4px 12px 4px 8px;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+    font-style: italic;
+  }
+
+  .map-entry {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .map-entry.right {
+    flex-direction: row-reverse;
+    margin-left: -60px;
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .map-pin {
+    width: 22px;
+    height: 22px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    margin-top: 6px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .map-pin.milestone { background: var(--gold); }
+  .map-pin.regular { background: var(--rose-medium); }
+
+  .map-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(61,44,44,0.12);
+    flex: 1;
+    max-width: 220px;
+  }
+
+  .map-card-img {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .map-card-img-placeholder {
+    width: 100%;
+    height: 80px;
+    display: block;
+  }
+
+  .map-card-body {
+    padding: 8px 10px;
+  }
+
+  .map-card-date {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2px;
+  }
+
+  .map-card-caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.75rem;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+
+  .map-card-location {
+    font-size: 0.6rem;
+    color: var(--ink-light);
+    margin-top: 3px;
+    opacity: 0.7;
+  }
+
+  .map-mini-map {
+    width: 100%;
+    height: 44px;
+    background:
+      radial-gradient(circle at 30% 60%, rgba(201,150,74,0.15) 0%, transparent 50%),
+      linear-gradient(135deg, #e8f0e8 0%, #d4e8d4 100%);
+    position: relative;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: rgba(61,44,44,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .map-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rose-deep);
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 2px rgba(123,30,60,0.2);
+  }
+
+
+  /* ═══════════════════════════════════════════
+     OPTION 4 — MASONRY PHOTO WALL
+  ═══════════════════════════════════════════ */
+  .masonry {
+    background: #1c1512;
+  }
+
+  .masonry-year-header {
+    padding: 10px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .masonry-year-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    font-style: italic;
+    letter-spacing: 0.04em;
+  }
+
+  .masonry-year-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(201,150,74,0.4), transparent);
+  }
+
+  .masonry-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto;
+    gap: 4px;
+  }
+
+  .masonry-tile {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .masonry-tile img,
+  .masonry-tile .img-ph {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .masonry-tile:hover img,
+  .masonry-tile:hover .img-ph {
+    transform: scale(1.04);
+  }
+
+  .masonry-tile-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(20,10,10,0.8) 0%, transparent 55%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+  }
+
+  .masonry-tile:hover .masonry-tile-overlay {
+    opacity: 1;
+  }
+
+  .masonry-tile-caption {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: white;
+    line-height: 1.3;
+  }
+
+  .masonry-tile-date {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .masonry-tile.tall { grid-row: span 2; }
+  .masonry-tile.wide { grid-column: span 2; }
+
+  /* Gradient image placeholders */
+  .ph-warm    { background: linear-gradient(135deg, #e8c5a0 0%, #d4926a 100%); }
+  .ph-rose    { background: linear-gradient(135deg, #f5c6d0 0%, #e8a0b0 100%); }
+  .ph-dusk    { background: linear-gradient(135deg, #a0789a 0%, #6a4878 100%); }
+  .ph-ocean   { background: linear-gradient(135deg, #7ab8c8 0%, #4a7890 100%); }
+  .ph-forest  { background: linear-gradient(135deg, #8ab890 0%, #5a8862 100%); }
+  .ph-gold    { background: linear-gradient(135deg, #e8c060 0%, #c89030 100%); }
+  .ph-sunset  { background: linear-gradient(135deg, #f0a060 0%, #c85030 100%); }
+  .ph-night   { background: linear-gradient(135deg, #506080 0%, #283848 100%); }
+  .ph-blush   { background: linear-gradient(135deg, #fde8ed 0%, #f0b8c8 100%); }
+  .ph-lavender{ background: linear-gradient(135deg, #d0b8e8 0%, #a888c8 100%); }
+
+  /* SVG path for adventure map */
+  .adventure-path {
+    fill: none;
+    stroke: var(--rose-medium);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Timeline Design Options</h1>
+  <p>Choose your aesthetic direction for the walk down memory lane</p>
+</div>
+
+<div class="options-grid">
+
+  <!-- ══════════════════════════════════════
+       OPTION 1: SCRAPBOOK
+  ══════════════════════════════════════ -->
+  <div class="option-card">
+    <div class="option-label">
+      <span class="num">01</span>
+      <h2>Scrapbook &amp; Pinned Wall</h2>
+      <span class="tag">Nostalgic · Warm</span>
+    </div>
+    <div class="preview-area scrapbook">
+      <div class="washi-tape"></div>
+
+      <div class="year-tape">
+        <div class="tape-strip">2022</div>
+        <div class="tape-line"></div>
+      </div>
+
+      <div class="polaroid-row">
+        <div class="polaroid" style="position:relative;">
+          <div class="pin"></div>
+          <div class="polaroid-img-placeholder ph-ocean" style="width:110px;height:90px;"></div>
+          <div class="polaroid-caption">First trip together ✈</div>
+        </div>
+        <div class="polaroid" style="position:relative;">
+          <div class="pin" style="background:radial-gradient(circle at 35% 35%, #55a055, #306030);"></div>
+          <div class="polaroid-img-placeholder ph-forest" style="width:110px;height:90px;"></div>
+          <div class="polaroid-caption">Hiking the peak 🌲</div>
+        </div>
+        <div class="polaroid" style="position:relative;">
+          <div class="pin" style="background:radial-gradient(circle at 35% 35%, #c9964a, #9a6828);"></div>
+          <div class="polaroid-img-placeholder ph-sunset" style="width:110px;height:90px;"></div>
+          <div class="polaroid-caption">Sunset picnic 🌅</div>
+        </div>
+      </div>
+
+      <div class="scrapbook-row2">
+        <div class="sticky-note">
+          "The moment I knew this was forever..." 💛
+        </div>
+        <div class="polaroid" style="position:relative; margin-top:8px; transform: rotate(2deg);">
+          <div class="pin" style="background:radial-gradient(circle at 35% 35%, #a855a8, #783078); top:-7px;"></div>
+          <div class="polaroid-img-placeholder ph-dusk" style="width:130px;height:100px;"></div>
+          <div class="polaroid-caption">That magical night ✨</div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <div class="year-tape">
+          <div class="tape-strip">2023</div>
+          <div class="tape-line"></div>
+        </div>
+        <div class="polaroid-row">
+          <div class="polaroid" style="transform: rotate(-1.5deg); position:relative;">
+            <div class="pin"></div>
+            <div class="polaroid-img-placeholder ph-rose" style="width:110px;height:90px;"></div>
+            <div class="polaroid-caption">He proposed!! 💍</div>
+          </div>
+          <div class="polaroid" style="transform: rotate(3deg); margin-bottom:6px; position:relative;">
+            <div class="pin" style="background:radial-gradient(circle at 35% 35%, #c9964a, #9a6828);"></div>
+            <div class="polaroid-img-placeholder ph-gold" style="width:110px;height:90px;"></div>
+            <div class="polaroid-caption">Engagement shoot 📸</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       OPTION 2: EDITORIAL PHOTO STORY
+  ══════════════════════════════════════ -->
+  <div class="option-card">
+    <div class="option-label">
+      <span class="num">02</span>
+      <h2>Full-Bleed Photo Story</h2>
+      <span class="tag">Cinematic · Editorial</span>
+    </div>
+    <div class="preview-area editorial" style="padding:0; background:#faf7f2;">
+
+      <div class="editorial-year" style="padding:14px 24px 8px;">
+        <div class="editorial-year-num">2022</div>
+        <div class="editorial-year-line"></div>
+      </div>
+
+      <div class="editorial-entry">
+        <div class="editorial-entry-img-placeholder ph-ocean" style="width:100%;height:170px;display:block;"></div>
+        <div class="editorial-overlay">
+          <div class="editorial-date">June 2022 · Bali, Indonesia</div>
+          <div class="editorial-caption">"Our first adventure,<br>chasing the horizon together"</div>
+        </div>
+      </div>
+
+      <div class="editorial-small-row">
+        <div class="editorial-small-entry">
+          <div style="width:100%;height:115px;" class="ph-forest"></div>
+          <div class="editorial-small-overlay">
+            <div class="editorial-small-caption">"Summit sunrise"</div>
+            <div class="editorial-date" style="color:rgba(255,255,255,0.5);margin-top:2px;">Aug 2022</div>
+          </div>
+        </div>
+        <div class="editorial-small-entry">
+          <div style="width:100%;height:115px;" class="ph-sunset"></div>
+          <div class="editorial-small-overlay">
+            <div class="editorial-small-caption">"Golden hour, always"</div>
+            <div class="editorial-date" style="color:rgba(255,255,255,0.5);margin-top:2px;">Oct 2022</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="editorial-year" style="padding:12px 24px 8px;">
+        <div class="editorial-year-num" style="font-size:3rem;">2023</div>
+        <div class="editorial-year-line"></div>
+      </div>
+
+      <div class="editorial-entry">
+        <div class="ph-rose" style="width:100%;height:130px;"></div>
+        <div class="editorial-overlay">
+          <div class="editorial-date">March 2023 · Paris, France</div>
+          <div class="editorial-caption">"He asked, she said<br>a thousand times yes"</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       OPTION 3: ADVENTURE MAP
+  ══════════════════════════════════════ -->
+  <div class="option-card">
+    <div class="option-label">
+      <span class="num">03</span>
+      <h2>Adventure Map Timeline</h2>
+      <span class="tag">Wanderlust · Unique</span>
+    </div>
+    <div class="preview-area adventure">
+      <div style="position:relative;">
+
+        <!-- Winding SVG path -->
+        <svg style="position:absolute;left:32px;top:0;width:28px;height:100%;overflow:visible;z-index:1;" viewBox="0 0 28 600" preserveAspectRatio="none">
+          <path class="adventure-path" d="M14,0 C14,40 4,60 14,100 C24,140 14,160 14,200 C14,240 4,260 14,300 C24,340 14,360 14,400 C14,440 4,460 14,500 C24,540 14,560 14,600"/>
+        </svg>
+
+        <div style="padding-left:60px;">
+
+          <!-- Year flag -->
+          <div class="map-year-flag" style="margin-left:-46px;">
+            <div class="map-flag">2022</div>
+          </div>
+
+          <!-- Entry 1 -->
+          <div class="map-entry" style="margin-bottom:18px;">
+            <div class="map-pin milestone" style="margin-left:-36px;margin-right:14px;flex-shrink:0;"></div>
+            <div class="map-card" style="max-width:none;flex:1;">
+              <div class="ph-ocean map-card-img-placeholder" style="width:100%;height:80px;"></div>
+              <div class="map-card-body">
+                <div class="map-card-date">Jun 2022 · Bali 🌴</div>
+                <div class="map-card-caption">First adventure abroad together</div>
+                <div class="map-mini-map">
+                  <div class="map-dot"></div>
+                  📍 map
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Entry 2 -->
+          <div class="map-entry" style="margin-bottom:18px;">
+            <div class="map-pin regular" style="margin-left:-36px;margin-right:14px;flex-shrink:0;"></div>
+            <div class="map-card" style="max-width:none;flex:1;">
+              <div class="ph-forest map-card-img-placeholder" style="width:100%;height:80px;"></div>
+              <div class="map-card-body">
+                <div class="map-card-date">Aug 2022 · Blue Mountains</div>
+                <div class="map-card-caption">Summit sunrise hike</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Year flag -->
+          <div class="map-year-flag" style="margin-left:-46px;">
+            <div class="map-flag">2023</div>
+          </div>
+
+          <!-- Entry 3 — milestone -->
+          <div class="map-entry" style="margin-bottom:12px;">
+            <div class="map-pin milestone" style="margin-left:-36px;margin-right:14px;flex-shrink:0;"></div>
+            <div class="map-card" style="max-width:none;flex:1;">
+              <div class="ph-rose map-card-img-placeholder" style="width:100%;height:80px;"></div>
+              <div class="map-card-body">
+                <div class="map-card-date" style="color:var(--rose-deep);">💍 Engagement · Paris</div>
+                <div class="map-card-caption">He got down on one knee at sunset</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       OPTION 4: MASONRY WALL
+  ══════════════════════════════════════ -->
+  <div class="option-card">
+    <div class="option-label">
+      <span class="num">04</span>
+      <h2>Masonry Photo Wall</h2>
+      <span class="tag">Gallery · Modern</span>
+    </div>
+    <div class="preview-area masonry" style="padding:16px 16px 12px;">
+
+      <div class="masonry-year-header">
+        <div class="masonry-year-num">2022</div>
+        <div class="masonry-year-rule"></div>
+        <span style="font-size:0.65rem;color:rgba(201,150,74,0.5);letter-spacing:0.1em;text-transform:uppercase;">8 memories</span>
+      </div>
+
+      <div class="masonry-grid" style="margin-bottom:4px;">
+        <div class="masonry-tile tall" style="height:200px;">
+          <div class="img-ph ph-ocean" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">First trip together</div>
+            <div class="masonry-tile-date">Jun 2022</div>
+          </div>
+        </div>
+        <div class="masonry-tile" style="height:98px;">
+          <div class="img-ph ph-forest" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Summit hike</div>
+          </div>
+        </div>
+        <div class="masonry-tile" style="height:98px;">
+          <div class="img-ph ph-sunset" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Sunset picnic</div>
+          </div>
+        </div>
+        <div class="masonry-tile wide" style="height:98px;">
+          <div class="img-ph ph-gold" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Road trip north coast</div>
+            <div class="masonry-tile-date">Dec 2022</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="masonry-year-header" style="padding-top:12px;">
+        <div class="masonry-year-num">2023</div>
+        <div class="masonry-year-rule"></div>
+        <span style="font-size:0.65rem;color:rgba(201,150,74,0.5);letter-spacing:0.1em;text-transform:uppercase;">12 memories</span>
+      </div>
+
+      <div class="masonry-grid">
+        <div class="masonry-tile wide" style="height:100px;">
+          <div class="img-ph ph-rose" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">💍 He proposed in Paris</div>
+            <div class="masonry-tile-date">Mar 2023</div>
+          </div>
+        </div>
+        <div class="masonry-tile tall" style="height:200px;">
+          <div class="img-ph ph-dusk" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Engagement shoot</div>
+          </div>
+        </div>
+        <div class="masonry-tile" style="height:96px;">
+          <div class="img-ph ph-lavender" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Wedding planning</div>
+          </div>
+        </div>
+        <div class="masonry-tile" style="height:96px;">
+          <div class="img-ph ph-night" style="height:100%;"></div>
+          <div class="masonry-tile-overlay">
+            <div class="masonry-tile-caption">Midnight walk</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;margin-top:48px;color:rgba(253,248,240,0.3);font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;">
+  Forever · Timeline Design Options · 2026
+</div>
+
+</body>
+</html>

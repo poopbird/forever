@@ -10,9 +10,11 @@ import type { Memory } from '@/types';
 interface MemoryDetailProps {
   memory: Memory;
   onClose: () => void;
+  /** When provided, shows an ✏️ edit button (hidden in read-only / guest view) */
+  onEdit?: (memory: Memory) => void;
 }
 
-export default function MemoryDetail({ memory, onClose }: MemoryDetailProps) {
+export default function MemoryDetail({ memory, onClose, onEdit }: MemoryDetailProps) {
   // Collect all photos — prefer media_urls, fall back to single media_url
   const allPhotos: string[] = (
     memory.media_urls?.length
@@ -22,7 +24,7 @@ export default function MemoryDetail({ memory, onClose }: MemoryDetailProps) {
         : []
   ).filter(Boolean);
 
-  const [photoIdx, setPhotoIdx] = useState(0);
+  const [photoIdx,  setPhotoIdx]  = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
 
   const hasMultiple = allPhotos.length > 1;
@@ -59,15 +61,29 @@ export default function MemoryDetail({ memory, onClose }: MemoryDetailProps) {
         onClick={(e) => e.stopPropagation()}
         className="relative bg-cream w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl shadow-2xl"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center
-                     rounded-full bg-white/80 hover:bg-white text-ink shadow transition"
-        >
-          ✕
-        </button>
+        {/* Top-right controls: Edit + Close */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(memory)}
+              aria-label="Edit memory"
+              title="Edit memory"
+              className="w-8 h-8 flex items-center justify-center rounded-full
+                         bg-white/80 hover:bg-white text-ink/60 hover:text-ink
+                         shadow transition text-sm"
+            >
+              ✏️
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="w-8 h-8 flex items-center justify-center
+                       rounded-full bg-white/80 hover:bg-white text-ink shadow transition"
+          >
+            ✕
+          </button>
+        </div>
 
         {/* ── Photo carousel ── */}
         {memory.media_type === 'photo' && allPhotos.length > 0 && (
