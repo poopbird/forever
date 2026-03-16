@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactionCounts } from '@/types';
 
 const EMOJIS = ['❤️', '😍', '😂', '😢', '🎉', '🙏'];
@@ -29,6 +29,7 @@ export default function ReactionBar({ memoryId }: ReactionBarProps) {
   const [counts, setCounts] = useState<ReactionCounts>({});
   const [myReactions, setMyReactions] = useState<LocalReactions>({});
   const [loading, setLoading] = useState(true);
+  const pendingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     setMyReactions(readLocal(memoryId));
@@ -39,33 +40,41 @@ export default function ReactionBar({ memoryId }: ReactionBarProps) {
   }, [memoryId]);
 
   async function react(emoji: string) {
-    const alreadyReactedId = myReactions[emoji];
+    // Ignore rapid clicks while a request for this emoji is in flight
+    if (pendingRef.current.has(emoji)) return;
+    pendingRef.current.add(emoji);
 
-    if (alreadyReactedId) {
-      // Toggle OFF — optimistic decrement
-      setCounts((prev) => ({ ...prev, [emoji]: Math.max((prev[emoji] ?? 1) - 1, 0) }));
-      const next = { ...myReactions };
-      delete next[emoji];
-      setMyReactions(next);
-      writeLocal(memoryId, next);
+    try {
+      const alreadyReactedId = myReactions[emoji];
 
-      await fetch(`/api/reactions?id=${alreadyReactedId}`, { method: 'DELETE' });
-    } else {
-      // Toggle ON — optimistic increment
-      setCounts((prev) => ({ ...prev, [emoji]: (prev[emoji] ?? 0) + 1 }));
-
-      const res = await fetch('/api/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memory_id: memoryId, emoji }),
-      });
-
-      if (res.ok) {
-        const row = await res.json();
-        const next = { ...myReactions, [emoji]: row.id };
+      if (alreadyReactedId) {
+        // Toggle OFF — optimistic decrement
+        setCounts((prev) => ({ ...prev, [emoji]: Math.max((prev[emoji] ?? 1) - 1, 0) }));
+        const next = { ...myReactions };
+        delete next[emoji];
         setMyReactions(next);
         writeLocal(memoryId, next);
+
+        await fetch(`/api/reactions?id=${alreadyReactedId}`, { method: 'DELETE' });
+      } else {
+        // Toggle ON — optimistic increment
+        setCounts((prev) => ({ ...prev, [emoji]: (prev[emoji] ?? 0) + 1 }));
+
+        const res = await fetch('/api/reactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memory_id: memoryId, emoji }),
+        });
+
+        if (res.ok) {
+          const row = await res.json();
+          const next = { ...myReactions, [emoji]: row.id };
+          setMyReactions(next);
+          writeLocal(memoryId, next);
+        }
       }
+    } finally {
+      pendingRef.current.delete(emoji);
     }
   }
 
