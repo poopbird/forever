@@ -60,7 +60,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // ── Kiosk / Presentation Mode ──────────────────────────────────────────────
   // Activated via ?kiosk=true — designed for projector display at a wedding
   if (kiosk === 'true') {
-    return <KioskMode memories={memories} coupleName={couple.name} />;
+    return <KioskMode memories={memories} coupleName={couple.name} coupleId={params.coupleId} />;
   }
 
   // ── Normal guest view ──────────────────────────────────────────────────────

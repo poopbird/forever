@@ -11,9 +11,10 @@ const TRANSITION_S = 1.2; // crossfade duration
 interface KioskModeProps {
   memories: Memory[];
   coupleName: string | null;
+  coupleId: string;
 }
 
-export default function KioskMode({ memories, coupleName }: KioskModeProps) {
+export default function KioskMode({ memories, coupleName, coupleId }: KioskModeProps) {
   const slides = memories.filter(m => m.media_type === 'photo' && m.media_url);
 
   const [idx, setIdx] = useState(0);
@@ -73,7 +74,7 @@ export default function KioskMode({ memories, coupleName }: KioskModeProps) {
     return (
       <div className="fixed inset-0 bg-black flex flex-col items-center justify-center gap-4 z-[9999]">
         <p className="font-serif text-white/50 text-2xl">No photos to display</p>
-        <a href="." className="font-sans text-sm text-white/30 hover:text-white/60 transition underline">
+        <a href={`/view/${coupleId}`} className="font-sans text-sm text-white/30 hover:text-white/60 transition underline">
           ← Back to site
         </a>
       </div>
@@ -146,7 +147,7 @@ export default function KioskMode({ memories, coupleName }: KioskModeProps) {
             {paused ? '▶' : '⏸'}
           </button>
           <a
-            href="."
+            href={`/view/${coupleId}`}
             aria-label="Exit kiosk"
             className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm
                        text-white flex items-center justify-center transition text-sm font-sans"
