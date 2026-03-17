@@ -25,7 +25,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // Fetch couple profile
   const { data: couple } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city, rsvp_enabled')
     .eq('id', coupleId)
     .single();
 
@@ -60,7 +60,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // ── Kiosk / Presentation Mode ──────────────────────────────────────────────
   // Activated via ?kiosk=true — designed for projector display at a wedding
   if (kiosk === 'true') {
-    return <KioskMode memories={memories} coupleName={couple.name} coupleId={params.coupleId} />;
+    return <KioskMode memories={memories} coupleName={couple.name} coupleId={coupleId} />;
   }
 
   // ── Normal guest view ──────────────────────────────────────────────────────
