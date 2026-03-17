@@ -141,6 +141,8 @@ export default function FaqAccordion({ faqs }: FaqAccordionProps) {
                           lineHeight:  1.8,
                           padding:     '0 22px 20px',
                           whiteSpace:  'pre-wrap',
+                          wordBreak:   'break-word',
+                          overflowWrap: 'anywhere',
                         }}>
                           {faq.answer || <em style={{ opacity: 0.4 }}>Answer coming soon…</em>}
                         </p>

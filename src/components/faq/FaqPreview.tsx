@@ -72,12 +72,14 @@ export default function FaqPreview({ faqs, coupleId, totalCount }: FaqPreviewPro
               {faq.question}
             </p>
             <p style={{
-              fontFamily: '"Lato", sans-serif',
-              fontSize:   'clamp(0.84rem, 1.8vw, 0.93rem)',
-              color:      'rgba(240,220,200,0.58)',
-              lineHeight: 1.75,
-              margin:     0,
-              whiteSpace: 'pre-wrap',
+              fontFamily:   '"Lato", sans-serif',
+              fontSize:     'clamp(0.84rem, 1.8vw, 0.93rem)',
+              color:        'rgba(240,220,200,0.58)',
+              lineHeight:   1.75,
+              margin:       0,
+              whiteSpace:   'pre-wrap',
+              wordBreak:    'break-word',
+              overflowWrap: 'anywhere',
             }}>
               {faq.answer || <em style={{ opacity: 0.4 }}>Coming soon…</em>}
             </p>
