@@ -55,6 +55,31 @@ export interface Reaction {
 /** Emoji → count map returned by GET /api/reactions */
 export type ReactionCounts = Record<string, number>;
 
+export type RsvpStatus = 'pending' | 'attending' | 'declined';
+export type DietaryPreset = 'none' | 'vegetarian' | 'vegan' | 'halal' | 'kosher' | 'gluten-free';
+
+export interface RsvpGuest {
+  id: string;
+  couple_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  token: string;
+  plus_one_invited: boolean;
+  rsvp_status: RsvpStatus;
+  plus_one_attending: boolean | null;
+  plus_one_name: string | null;
+  dietary_preset: DietaryPreset | null;
+  dietary_notes: string | null;
+  plus_one_dietary_preset: DietaryPreset | null;
+  plus_one_dietary_notes: string | null;
+  responded_at: string | null;
+  created_at: string;
+  invite_sent_at: string | null;
+  reminder_sent_at: string | null;
+  whatsapp_sent_at: string | null;
+}
+
 /** Raw data extracted from a photo's EXIF headers */
 export interface ExifData {
   date?: Date;

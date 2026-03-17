@@ -243,6 +243,8 @@ function FloatingInvitation({
   weddingCity,
   readOnly,
   onSaveDetails,
+  rsvpEnabled,
+  coupleId,
 }: {
   coupleName:     string;
   visible:        boolean;
@@ -251,6 +253,8 @@ function FloatingInvitation({
   weddingCity?:   string | null;
   readOnly?:      boolean;
   onSaveDetails?: (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string }) => Promise<void>;
+  rsvpEnabled?:   boolean;
+  coupleId?:      string;
 }) {
   const [saving, setSaving] = useState(false);
 
@@ -337,6 +341,32 @@ function FloatingInvitation({
         and begin our forever together.
       </p>
 
+      {/* RSVP button */}
+      {rsvpEnabled && coupleId && (
+        <div style={{ marginBottom: 28 }}>
+          <a
+            href={`/rsvp/lookup?couple_id=${coupleId}`}
+            style={{
+              display:       'inline-block',
+              fontFamily:    '"Lato", sans-serif',
+              fontSize:      '0.72rem',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              color:         'rgba(201,150,74,0.92)',
+              border:        '1px solid rgba(201,150,74,0.42)',
+              borderRadius:  '100px',
+              padding:       '10px 28px',
+              background:    'rgba(201,150,74,0.09)',
+              backdropFilter: 'blur(8px)',
+              textDecoration: 'none',
+              transition:    'background 0.2s',
+            }}
+          >
+            ✦ &nbsp; RSVP
+          </a>
+        </div>
+      )}
+
       {/* Wedding details — floating type, no box */}
       <div>
         <p style={{
@@ -404,6 +434,8 @@ interface Props {
   weddingVenue?: string | null;
   weddingCity?:  string | null;
   readOnly?:     boolean;
+  coupleId?:     string;
+  rsvpEnabled?:  boolean;
 }
 
 export default function PolaroidHighlights({
@@ -414,6 +446,8 @@ export default function PolaroidHighlights({
   weddingVenue: weddingVenueProp = null,
   weddingCity:  weddingCityProp  = null,
   readOnly = false,
+  coupleId,
+  rsvpEnabled = false,
 }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [showPicker, setShowPicker]           = useState(false);
@@ -545,6 +579,8 @@ export default function PolaroidHighlights({
             weddingCity={weddingCity || null}
             readOnly={readOnly}
             onSaveDetails={readOnly ? undefined : handleSaveDetails}
+            rsvpEnabled={rsvpEnabled}
+            coupleId={coupleId}
           />
 
           {/* ── Progress dots ── */}

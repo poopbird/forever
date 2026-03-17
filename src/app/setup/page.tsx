@@ -19,6 +19,16 @@ export default function SetupPage() {
     setSaving(true);
     setError('');
 
+    // Ensure a couple row exists (POST is idempotent — safe to call even if already created)
+    const postRes = await fetch('/api/couples', { method: 'POST' });
+    if (!postRes.ok) {
+      const body = await postRes.json().catch(() => ({}));
+      setError(body.error ?? 'Something went wrong. Please try again.');
+      setSaving(false);
+      return;
+    }
+
+    // Now update with the user-entered details
     const res = await fetch('/api/couples', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

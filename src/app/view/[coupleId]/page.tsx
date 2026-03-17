@@ -87,6 +87,8 @@ export default async function PublicView({ params, searchParams }: Params) {
         weddingVenue={couple.wedding_venue ?? null}
         weddingCity={couple.wedding_city ?? null}
         readOnly
+        coupleId={coupleId}
+        rsvpEnabled={couple.rsvp_enabled ?? false}
       />
 
       <section id="timeline">

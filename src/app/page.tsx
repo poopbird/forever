@@ -93,6 +93,8 @@ export default async function HomePage() {
         weddingDate={profile.wedding_date ?? null}
         weddingVenue={profile.wedding_venue ?? null}
         weddingCity={profile.wedding_city ?? null}
+        coupleId={coupleId}
+        rsvpEnabled={profile.rsvp_enabled ?? false}
       />
 
       <section id="timeline">

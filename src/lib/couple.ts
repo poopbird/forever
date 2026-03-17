@@ -10,6 +10,9 @@ export interface CoupleProfile {
   wedding_date: string | null;
   wedding_venue: string | null;
   wedding_city: string | null;
+  // RSVP fields — only present after migration 0010_rsvp.sql has been run
+  rsvp_enabled?: boolean;
+  rsvp_locked_at?: string | null;
 }
 
 /** Returns the couple_id for a given auth user, or null if they have no couple. */
@@ -29,6 +32,25 @@ export async function getCoupleProfile(coupleId: string): Promise<CoupleProfile 
   const { data } = await supabase
     .from('couples')
     .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city')
+    .eq('id', coupleId)
+    .single();
+  return data ?? null;
+}
+
+/**
+ * Fetches RSVP-specific fields (requires migration 0010_rsvp.sql).
+ * Called only from pages/components that use RSVP functionality.
+ */
+export async function getRsvpSettings(coupleId: string): Promise<{
+  rsvp_enabled: boolean;
+  rsvp_locked_at: string | null;
+  reminder_days_before: number | null;
+  invite_message_template: string | null;
+} | null> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('couples')
+    .select('rsvp_enabled, rsvp_locked_at, reminder_days_before, invite_message_template')
     .eq('id', coupleId)
     .single();
   return data ?? null;

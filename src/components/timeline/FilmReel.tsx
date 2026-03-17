@@ -336,18 +336,8 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
           </button>
         </div>
 
-        {/* ── Film scrubber — thumbnail strip ── */}
-        <FilmScrubber
-          memories={frameItems.map(fi => fi.memory)}
-          activeIdx={activeIdx}
-          onSelect={idx => {
-            stopAutoPlay();
-            scrollToFrameIdx(idx);
-          }}
-        />
-
         {/* ── Continue button — prominent escape hatch to scroll past the reel ── */}
-        <div className="flex flex-col items-center gap-2 pb-10 pt-4">
+        <div className="flex flex-col items-center gap-2 pb-4">
           <span
             className="font-mono uppercase tracking-[0.3em]"
             style={{ fontSize: 9, color: 'rgba(201,150,74,0.35)' }}
@@ -377,6 +367,16 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
             <span>Continue</span>
           </a>
         </div>
+
+        {/* ── Film scrubber — thumbnail strip ── */}
+        <FilmScrubber
+          memories={frameItems.map(fi => fi.memory)}
+          activeIdx={activeIdx}
+          onSelect={idx => {
+            stopAutoPlay();
+            scrollToFrameIdx(idx);
+          }}
+        />
 
         {/* ── Add memory (couple only) ── */}
         {!readOnly && (

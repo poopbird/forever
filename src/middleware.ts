@@ -6,6 +6,7 @@ import type { NextRequest } from 'next/server';
 const PUBLIC_PREFIXES = [
   '/auth',        // login, signup, invite, callback
   '/view',        // public shareable guest pages
+  '/rsvp',        // guest RSVP form + lookup (token-based, no auth)
   '/_next',
   '/favicon.ico',
 ];
