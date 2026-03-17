@@ -4,8 +4,6 @@ import { Resend } from 'resend';
 import { render } from '@react-email/components';
 import ReminderEmail from '@/emails/ReminderEmail';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 /**
  * GET /api/cron/rsvp-reminder
  * Called daily by Vercel Cron (vercel.json: "0 8 * * *").
@@ -18,6 +16,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const resend  = new Resend(process.env.RESEND_API_KEY);
   const admin   = createAdminClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
   const today   = new Date();

@@ -6,8 +6,6 @@ import { Resend } from 'resend';
 import { render } from '@react-email/components';
 import InviteEmail from '@/emails/InviteEmail';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function substituteVars(
   template: string,
   vars: Record<string, string>,
@@ -35,7 +33,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'guestIds required' }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  const resend  = new Resend(process.env.RESEND_API_KEY);
+  const admin   = createAdminClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
   // Fetch couple profile

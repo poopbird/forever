@@ -5,8 +5,6 @@ import { render } from '@react-email/components';
 import ConfirmationEmail from '@/emails/ConfirmationEmail';
 import { googleCalendarLink } from '@/lib/calendarLink';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 /** POST /api/email/confirmation — public; called from RSVP form after successful submit */
 export async function POST(request: Request) {
   let body: { token: string };
@@ -16,6 +14,7 @@ export async function POST(request: Request) {
   const { token } = body;
   if (!token) return NextResponse.json({ error: 'token required' }, { status: 400 });
 
+  const resend  = new Resend(process.env.RESEND_API_KEY);
   const admin   = createAdminClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
