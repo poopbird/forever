@@ -28,7 +28,7 @@ export async function GET(request: Request) {
   const { data } = await adminSupabase
     .from('couples').select(column).eq('id', coupleId).single();
 
-  return NextResponse.json({ value: (data as Record<string, unknown>)?.[column] ?? null });
+  return NextResponse.json({ value: (data as unknown as Record<string, unknown>)?.[column] ?? null });
 }
 
 /** POST /api/config  body: { key, value } */
