@@ -1,0 +1,9 @@
+{
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/cron/rsvp-reminder",
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
