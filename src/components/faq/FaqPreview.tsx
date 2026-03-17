@@ -2,12 +2,13 @@ import Link from 'next/link';
 import type { FaqItem } from './FaqAccordion';
 
 interface FaqPreviewProps {
-  faqs:     FaqItem[];
-  coupleId: string;
+  faqs:       FaqItem[];
+  coupleId:   string;
   totalCount: number;
+  isOwner?:   boolean;
 }
 
-export default function FaqPreview({ faqs, coupleId, totalCount }: FaqPreviewProps) {
+export default function FaqPreview({ faqs, coupleId, totalCount, isOwner = false }: FaqPreviewProps) {
   if (faqs.length === 0) return null;
 
   const remaining = totalCount - faqs.length;
@@ -90,7 +91,7 @@ export default function FaqPreview({ faqs, coupleId, totalCount }: FaqPreviewPro
       {/* View all link */}
       <div style={{ textAlign: 'center' }}>
         <Link
-          href={`/view/${coupleId}/faq`}
+          href={`/view/${coupleId}/faq${isOwner ? '?back=home' : ''}`}
           style={{
             display:       'inline-flex',
             alignItems:    'center',

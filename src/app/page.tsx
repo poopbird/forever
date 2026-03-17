@@ -112,6 +112,7 @@ export default async function HomePage() {
           faqs={previewFaqs}
           coupleId={coupleId}
           totalCount={allFaqs.length}
+          isOwner
         />
       )}
     </main>

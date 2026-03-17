@@ -6,10 +6,12 @@ import type { FaqItem }      from '@/components/faq/FaqAccordion';
 
 export const revalidate = 60;
 
-type Params = { params: Promise<{ coupleId: string }> };
+type Params = { params: Promise<{ coupleId: string }>; searchParams: Promise<{ back?: string }> };
 
-export default async function FaqPage({ params }: Params) {
+export default async function FaqPage({ params, searchParams }: Params) {
   const { coupleId } = await params;
+  const { back } = await searchParams;
+  const backHref = back === 'home' ? '/' : `/view/${coupleId}`;
   const admin = createAdminClient();
 
   const [{ data: couple }, { data: faqs }] = await Promise.all([
@@ -34,7 +36,7 @@ export default async function FaqPage({ params }: Params) {
         {/* Back link */}
         <div style={{ marginBottom: 40 }}>
           <Link
-            href={`/view/${coupleId}`}
+            href={backHref}
             style={{
               fontFamily:    '"Lato", sans-serif',
               fontSize:      '0.68rem',
