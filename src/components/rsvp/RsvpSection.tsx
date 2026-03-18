@@ -336,6 +336,34 @@ export default function RsvpSection({
     }
   }
 
+  // ── Patch a single guest field (optimistic) ───────────────────────────────
+  async function patchGuest(id: string, fields: Record<string, unknown>) {
+    setGuests(prev => prev.map(g => g.id === id ? { ...g, ...fields } : g));
+    const res = await fetch(`/api/rsvp/guests/${id}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(fields),
+    });
+    if (res.ok) {
+      const updated: RsvpGuest = await res.json();
+      setGuests(prev => prev.map(g => g.id === id ? updated : g));
+    }
+  }
+
+  // ── Bulk mark selected guests as attending ────────────────────────────────
+  async function markSelectedAttending() {
+    const ids = Array.from(selected);
+    setGuests(prev => prev.map(g => ids.includes(g.id) ? { ...g, rsvp_status: 'attending' as const } : g));
+    await Promise.all(ids.map(id =>
+      fetch(`/api/rsvp/guests/${id}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ rsvp_status: 'attending' }),
+      })
+    ));
+    setSelected(new Set());
+  }
+
   // ── Copy link ──────────────────────────────────────────────────────────────
   async function copyLink(token: string) {
     await navigator.clipboard.writeText(`${siteUrl}/rsvp/${token}`);
@@ -595,9 +623,14 @@ export default function RsvpSection({
           <h3 className="font-serif text-base text-ink">Guest list</h3>
           <div className="flex items-center gap-2">
             {selected.size > 0 && (
-              <button onClick={openSendModal} className="btn-primary text-sm">
-                ✉ Send invite ({selected.size})
-              </button>
+              <>
+                <button onClick={markSelectedAttending} className="btn-ghost text-sm">
+                  ✓ Mark attending ({selected.size})
+                </button>
+                <button onClick={openSendModal} className="btn-primary text-sm">
+                  ✉ Send invite ({selected.size})
+                </button>
+              </>
             )}
             {guests.length > 0 && (
               <button onClick={exportCsv} className="btn-ghost text-sm">
@@ -844,9 +877,25 @@ export default function RsvpSection({
                         }
                       </td>
 
-                      {/* RSVP status pill */}
+                      {/* RSVP status — inline editable */}
                       <td className="px-3 py-2">
-                        <StatusPill status={g.rsvp_status} />
+                        {(() => {
+                          const s = g.rsvp_status;
+                          const bg    = s === 'attending' ? 'rgba(45,138,78,0.12)'  : s === 'declined' ? 'rgba(123,30,60,0.1)'  : 'rgba(201,150,74,0.12)';
+                          const color = s === 'attending' ? '#2D8A4E'               : s === 'declined' ? '#7B1E3C'               : '#9a7840';
+                          return (
+                            <select
+                              value={s}
+                              onChange={e => patchGuest(g.id, { rsvp_status: e.target.value })}
+                              className="font-mono text-xs rounded-full px-2 py-0.5 cursor-pointer outline-none border-0"
+                              style={{ background: bg, color, appearance: 'none', WebkitAppearance: 'none' }}
+                            >
+                              <option value="pending">pending</option>
+                              <option value="attending">attending</option>
+                              <option value="declined">declined</option>
+                            </select>
+                          );
+                        })()}
                       </td>
 
                       {/* Guest dietary */}
@@ -859,17 +908,30 @@ export default function RsvpSection({
                         })()}
                       </td>
 
-                      {/* +1 Status pill */}
+                      {/* +1 Status — inline editable */}
                       <td className="px-3 py-2 text-xs">
                         {!g.plus_one_invited ? (
                           <span className="text-ink-light">N/A</span>
-                        ) : g.plus_one_attending === true ? (
-                          <StatusPill status="attending" />
-                        ) : g.plus_one_attending === false ? (
-                          <StatusPill status="declined" />
-                        ) : (
-                          <span className="text-ink-light">—</span>
-                        )}
+                        ) : (() => {
+                          const val = g.plus_one_attending === true ? 'attending' : g.plus_one_attending === false ? 'declined' : 'pending';
+                          const bg    = val === 'attending' ? 'rgba(45,138,78,0.12)'  : val === 'declined' ? 'rgba(123,30,60,0.1)'  : 'rgba(201,150,74,0.12)';
+                          const color = val === 'attending' ? '#2D8A4E'               : val === 'declined' ? '#7B1E3C'               : '#9a7840';
+                          return (
+                            <select
+                              value={val}
+                              onChange={e => {
+                                const v = e.target.value;
+                                patchGuest(g.id, { plus_one_attending: v === 'attending' ? true : v === 'declined' ? false : null });
+                              }}
+                              className="font-mono text-xs rounded-full px-2 py-0.5 cursor-pointer outline-none border-0"
+                              style={{ background: bg, color, appearance: 'none', WebkitAppearance: 'none' }}
+                            >
+                              <option value="pending">—</option>
+                              <option value="attending">attending</option>
+                              <option value="declined">declined</option>
+                            </select>
+                          );
+                        })()}
                       </td>
 
                       {/* +1 Name */}
