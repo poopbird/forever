@@ -48,14 +48,12 @@ export async function getRsvpSettings(coupleId: string): Promise<{
   rsvp_locked_at: string | null;
   reminder_days_before: number | null;
   invite_message_template: string | null;
-  wedding_time_start: string | null;
-  wedding_time_end: string | null;
   calendar_description: string | null;
 } | null> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('couples')
-    .select('rsvp_enabled, rsvp_locked_at, reminder_days_before, invite_message_template, wedding_time_start, wedding_time_end, calendar_description')
+    .select('rsvp_enabled, rsvp_locked_at, reminder_days_before, invite_message_template, calendar_description')
     .eq('id', coupleId)
     .single();
   return data ?? null;

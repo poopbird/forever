@@ -14,11 +14,19 @@ interface Props {
 export default function ProfileClient({ profile, shareUrl }: Props) {
   const router = useRouter();
 
-  const [name,      setName]      = useState(profile.name);
-  const [startDate, setStartDate] = useState(profile.start_date ?? '');
-  const [bio,       setBio]       = useState(profile.bio ?? '');
-  const [saving,    setSaving]    = useState(false);
-  const [saveMsg,   setSaveMsg]   = useState('');
+  const [name,          setName]          = useState(profile.name);
+  const [startDate,     setStartDate]     = useState(profile.start_date ?? '');
+  const [bio,           setBio]           = useState(profile.bio ?? '');
+  const [saving,        setSaving]        = useState(false);
+  const [saveMsg,       setSaveMsg]       = useState('');
+
+  const [weddingDate,   setWeddingDate]   = useState(profile.wedding_date ?? '');
+  const [weddingVenue,  setWeddingVenue]  = useState(profile.wedding_venue ?? '');
+  const [weddingCity,   setWeddingCity]   = useState(profile.wedding_city ?? '');
+  const [timeStart,     setTimeStart]     = useState(profile.wedding_time_start?.slice(0,5) ?? '');
+  const [timeEnd,       setTimeEnd]       = useState(profile.wedding_time_end?.slice(0,5) ?? '');
+  const [weddingSaving, setWeddingSaving] = useState(false);
+  const [weddingMsg,    setWeddingMsg]    = useState('');
 
   const [inviteLink, setInviteLink] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -34,6 +42,25 @@ export default function ProfileClient({ profile, shareUrl }: Props) {
     });
     setSaving(false);
     setSaveMsg(res.ok ? '✓ Saved' : '✗ Save failed — try again');
+    if (res.ok) router.refresh();
+  }
+
+  async function handleSaveWeddingDetails(e: React.FormEvent) {
+    e.preventDefault();
+    setWeddingSaving(true); setWeddingMsg('');
+    const res = await fetch('/api/couples', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        wedding_date:        weddingDate  || null,
+        wedding_venue:       weddingVenue || null,
+        wedding_city:        weddingCity  || null,
+        wedding_time_start:  timeStart    || null,
+        wedding_time_end:    timeEnd      || null,
+      }),
+    });
+    setWeddingSaving(false);
+    setWeddingMsg(res.ok ? '✓ Saved' : '✗ Save failed — try again');
     if (res.ok) router.refresh();
   }
 
@@ -82,6 +109,53 @@ export default function ProfileClient({ profile, shareUrl }: Props) {
               <span className="font-sans text-sm"
                 style={{ color: saveMsg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>
                 {saveMsg}
+              </span>
+            )}
+          </div>
+        </form>
+      </section>
+
+      {/* Wedding details */}
+      <section className="bg-white rounded-2xl shadow-sm p-6">
+        <h2 className="font-serif text-xl text-ink mb-5">Wedding details</h2>
+        <form onSubmit={handleSaveWeddingDetails} className="flex flex-col gap-4">
+          <div>
+            <label className="form-label block mb-1.5">Wedding date</label>
+            <input type="date" className="form-input" value={weddingDate}
+              onChange={e => setWeddingDate(e.target.value)} />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="form-label block mb-1.5">Ceremony start</label>
+              <input type="time" className="form-input" value={timeStart}
+                onChange={e => setTimeStart(e.target.value)} />
+            </div>
+            <div className="flex-1">
+              <label className="form-label block mb-1.5">Ceremony end</label>
+              <input type="time" className="form-input" value={timeEnd}
+                onChange={e => setTimeEnd(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className="form-label block mb-1.5">Venue</label>
+            <input type="text" className="form-input" value={weddingVenue}
+              onChange={e => setWeddingVenue(e.target.value)}
+              placeholder="Conrad Hotel" />
+          </div>
+          <div>
+            <label className="form-label block mb-1.5">City</label>
+            <input type="text" className="form-input" value={weddingCity}
+              onChange={e => setWeddingCity(e.target.value)}
+              placeholder="Singapore" />
+          </div>
+          <div className="flex items-center gap-4">
+            <button type="submit" disabled={weddingSaving} className="btn-primary">
+              {weddingSaving ? 'Saving…' : 'Save details'}
+            </button>
+            {weddingMsg && (
+              <span className="font-sans text-sm"
+                style={{ color: weddingMsg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>
+                {weddingMsg}
               </span>
             )}
           </div>

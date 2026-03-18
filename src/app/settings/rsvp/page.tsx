@@ -27,8 +27,6 @@ export default async function RsvpSettingsPage() {
           rsvpLockedAt={rsvp?.rsvp_locked_at ?? null}
           reminderDaysBefore={rsvp?.reminder_days_before ?? null}
           inviteMessageTemplate={rsvp?.invite_message_template ?? null}
-          weddingTimeStart={rsvp?.wedding_time_start ?? null}
-          weddingTimeEnd={rsvp?.wedding_time_end ?? null}
           calendarDescription={rsvp?.calendar_description ?? null}
           siteUrl={siteUrl}
         />

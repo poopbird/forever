@@ -203,33 +203,63 @@ function EditableField({
   placeholder,
   onSave,
   style,
+  type = 'text',
+  displayValue,
 }: {
-  value:       string;
-  placeholder: string;
-  onSave:      (v: string) => void;
-  style?:      React.CSSProperties;
+  value:         string;
+  placeholder:   string;
+  onSave:        (v: string) => void;
+  style?:        React.CSSProperties;
+  type?:         'text' | 'date' | 'time';
+  displayValue?: string; // formatted display text (used for dates)
 }) {
-  const [local, setLocal] = useState(value);
+  const [editing, setEditing] = useState(false);
+  const [local,   setLocal]   = useState(value);
   useEffect(() => setLocal(value), [value]);
+
+  const baseStyle: React.CSSProperties = {
+    background:  'transparent',
+    border:      'none',
+    outline:     'none',
+    textAlign:   'center',
+    width:       '100%',
+    cursor:      'text',
+    caretColor:  'rgba(201,150,74,0.8)',
+    ...style,
+  };
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        style={{
+          ...baseStyle,
+          borderBottom: local ? 'none' : '1px dashed rgba(201,150,74,0.4)',
+          display:      'block',
+          padding:      0,
+        }}
+      >
+        {local
+          ? <span style={style}>{displayValue ?? local}</span>
+          : <span style={{ ...style, opacity: 0.38 }}>{placeholder}</span>
+        }
+      </button>
+    );
+  }
 
   return (
     <input
+      type={type}
+      autoFocus
       value={local}
       onChange={e => setLocal(e.target.value)}
-      onBlur={() => onSave(local)}
-      onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-      placeholder={placeholder}
-      style={{
-        background:        'transparent',
-        border:            'none',
-        borderBottom:      local ? 'none' : '1px dashed rgba(201,150,74,0.4)',
-        outline:           'none',
-        textAlign:         'center',
-        width:             '100%',
-        cursor:            'text',
-        caretColor:        'rgba(201,150,74,0.8)',
-        ...style,
+      onBlur={() => { setEditing(false); onSave(local); }}
+      onKeyDown={e => {
+        if (e.key === 'Enter')  (e.target as HTMLInputElement).blur();
+        if (e.key === 'Escape') { setLocal(value); setEditing(false); }
       }}
+      placeholder={placeholder}
+      style={{ ...baseStyle, borderBottom: '1px dashed rgba(201,150,74,0.4)' }}
     />
   );
 }
@@ -256,7 +286,7 @@ function FloatingInvitation({
   weddingVenue?:    string | null;
   weddingCity?:     string | null;
   readOnly?:        boolean;
-  onSaveDetails?: (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string }) => Promise<void>;
+  onSaveDetails?: (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) => Promise<void>;
   rsvpEnabled?:     boolean;
   coupleId?:        string;
 }) {
@@ -269,7 +299,7 @@ function FloatingInvitation({
     finally { setSaving(false); }
   }
 
-  const hasDetails = weddingDate || weddingVenue || weddingCity;
+  const hasDetails = weddingDate || weddingTimeStart || weddingVenue || weddingCity;
 
   return (
     <motion.div
@@ -406,11 +436,35 @@ function FloatingInvitation({
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <EditableField
+              type="date"
               value={weddingDate ?? ''}
-              placeholder="Date  (e.g. Saturday, 14 June 2025)"
+              displayValue={weddingDate
+                ? new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                : ''}
+              placeholder="Wedding date"
               onSave={v => handleSave('wedding_date', v)}
               style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2 }}
             />
+            {/* Time start + end side by side */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <EditableField
+                type="time"
+                value={weddingTimeStart?.slice(0,5) ?? ''}
+                placeholder="Start"
+                onSave={v => handleSave('wedding_time_start', v)}
+                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2, width: 'auto', minWidth: 60 }}
+              />
+              {(weddingTimeStart || weddingTimeEnd) && (
+                <span style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.5)' }}>–</span>
+              )}
+              <EditableField
+                type="time"
+                value={weddingTimeEnd?.slice(0,5) ?? ''}
+                placeholder="End"
+                onSave={v => handleSave('wedding_time_end', v)}
+                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2, width: 'auto', minWidth: 60 }}
+              />
+            </div>
             <EditableField
               value={weddingVenue ?? ''}
               placeholder="Venue name"
@@ -501,10 +555,12 @@ export default function PolaroidHighlights({
     setShowPicker(false);
   }, []);
 
-  async function handleSaveDetails(fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string }) {
-    if (fields.wedding_date  !== undefined) setWeddingDate(fields.wedding_date);
-    if (fields.wedding_venue !== undefined) setWeddingVenue(fields.wedding_venue);
-    if (fields.wedding_city  !== undefined) setWeddingCity(fields.wedding_city);
+  async function handleSaveDetails(fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) {
+    if (fields.wedding_date       !== undefined) setWeddingDate(fields.wedding_date);
+    if (fields.wedding_venue      !== undefined) setWeddingVenue(fields.wedding_venue);
+    if (fields.wedding_city       !== undefined) setWeddingCity(fields.wedding_city);
+    if (fields.wedding_time_start !== undefined) setWeddingTimeStart(fields.wedding_time_start);
+    if (fields.wedding_time_end   !== undefined) setWeddingTimeEnd(fields.wedding_time_end);
     await fetch('/api/couples', {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
