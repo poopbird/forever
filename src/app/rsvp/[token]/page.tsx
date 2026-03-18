@@ -14,7 +14,7 @@ export default async function RsvpPage({ params }: Props) {
 
   const { data: guest } = await admin
     .from('rsvp_guests')
-    .select('*, couples(name, wedding_date, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at)')
+    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at)')
     .eq('token', token)
     .single();
 
@@ -23,6 +23,8 @@ export default async function RsvpPage({ params }: Props) {
   const couple = guest.couples as {
     name: string;
     wedding_date: string | null;
+    wedding_time_start: string | null;
+    wedding_time_end: string | null;
     wedding_venue: string | null;
     wedding_city: string | null;
     rsvp_enabled: boolean;
@@ -62,6 +64,11 @@ export default async function RsvpPage({ params }: Props) {
                 ? new Date(couple.wedding_date + 'T00:00:00').toLocaleDateString('en-GB', {
                     day: 'numeric', month: 'long', year: 'numeric',
                   })
+                : null,
+              couple.wedding_time_start
+                ? couple.wedding_time_end
+                  ? `${couple.wedding_time_start.slice(0,5)} – ${couple.wedding_time_end.slice(0,5)}`
+                  : couple.wedding_time_start.slice(0,5)
                 : null,
               couple.wedding_venue,
               couple.wedding_city,

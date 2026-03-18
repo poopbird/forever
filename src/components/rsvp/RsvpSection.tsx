@@ -18,6 +18,9 @@ interface Props {
   rsvpLockedAt:           string | null;
   reminderDaysBefore:     number | null;
   inviteMessageTemplate:  string | null;
+  weddingTimeStart:       string | null;
+  weddingTimeEnd:         string | null;
+  calendarDescription:    string | null;
   siteUrl:                string;
 }
 
@@ -84,13 +87,19 @@ export default function RsvpSection({
   rsvpLockedAt: initialLocked,
   reminderDaysBefore: initialReminderDays,
   inviteMessageTemplate: initialTemplate,
+  weddingTimeStart: initialTimeStart,
+  weddingTimeEnd: initialTimeEnd,
+  calendarDescription: initialCalendarDesc,
   siteUrl,
 }: Props) {
-  const [enabled,      setEnabled]      = useState(initialEnabled);
-  const [lockedAt,     setLockedAt]     = useState(initialLocked ?? '');
-  const [reminderDays, setReminderDays] = useState<string>(initialReminderDays?.toString() ?? '');
-  const [msgTemplate,  setMsgTemplate]  = useState(initialTemplate ?? DEFAULT_TEMPLATE);
-  const [showPreview,  setShowPreview]  = useState(false);
+  const [enabled,          setEnabled]          = useState(initialEnabled);
+  const [lockedAt,         setLockedAt]         = useState(initialLocked ?? '');
+  const [reminderDays,     setReminderDays]     = useState<string>(initialReminderDays?.toString() ?? '');
+  const [msgTemplate,      setMsgTemplate]      = useState(initialTemplate ?? DEFAULT_TEMPLATE);
+  const [showPreview,      setShowPreview]      = useState(false);
+  const [timeStart,        setTimeStart]        = useState(initialTimeStart?.slice(0,5) ?? '');
+  const [timeEnd,          setTimeEnd]          = useState(initialTimeEnd?.slice(0,5) ?? '');
+  const [calendarDesc,     setCalendarDesc]     = useState(initialCalendarDesc ?? '');
   const msgTemplateRef = useRef<HTMLTextAreaElement>(null);
   const [guests,    setGuests]    = useState<RsvpGuest[]>([]);
   const [loading,   setLoading]   = useState(true);
@@ -164,6 +173,9 @@ export default function RsvpSection({
         rsvp_locked_at:           lockedAt || null,
         reminder_days_before:     reminderDays ? parseInt(reminderDays, 10) : null,
         invite_message_template:  msgTemplate.trim() || null,
+        wedding_time_start:       timeStart || null,
+        wedding_time_end:         timeEnd   || null,
+        calendar_description:     calendarDesc.trim() || null,
       }),
     });
     setSaving(false);
@@ -534,6 +546,50 @@ export default function RsvpSection({
           <p className="font-sans text-xs text-ink-light mt-1">
             Pending guests with an email or phone will be reminded automatically.
           </p>
+        </div>
+
+        {/* ── Wedding time ── */}
+        <div>
+          <label className={labelCls}>Ceremony time (24-hour)</label>
+          <p className="font-sans text-xs text-ink-light -mt-1 mb-2">
+            Shown on the RSVP form and invitation card. Also used for calendar events.
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="font-sans text-xs text-ink-light">Start</span>
+              <input
+                type="time"
+                className={inputCls + ' w-36'}
+                value={timeStart}
+                onChange={e => setTimeStart(e.target.value)}
+              />
+            </div>
+            <span className="font-sans text-sm text-ink-light mt-5">–</span>
+            <div className="flex flex-col gap-1">
+              <span className="font-sans text-xs text-ink-light">End</span>
+              <input
+                type="time"
+                className={inputCls + ' w-36'}
+                value={timeEnd}
+                onChange={e => setTimeEnd(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Calendar event description ── */}
+        <div>
+          <label className={labelCls}>Calendar event description</label>
+          <p className="font-sans text-xs text-ink-light -mt-1 mb-2">
+            Shown inside the calendar event guests save from the confirmation email. Leave blank to use a default message with your Forever page link.
+          </p>
+          <textarea
+            className={inputCls + ' font-sans text-sm resize-none'}
+            rows={4}
+            value={calendarDesc}
+            onChange={e => setCalendarDesc(e.target.value)}
+            placeholder={`You're attending [Couple Name]'s wedding!\n\nBrowse our story: [your Forever link]`}
+          />
         </div>
 
         {/* ── Invite message template ── */}

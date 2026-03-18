@@ -10,6 +10,8 @@ export interface CoupleProfile {
   wedding_date: string | null;
   wedding_venue: string | null;
   wedding_city: string | null;
+  wedding_time_start: string | null;
+  wedding_time_end: string | null;
   // RSVP fields — only present after migration 0010_rsvp.sql has been run
   rsvp_enabled?: boolean;
   rsvp_locked_at?: string | null;
@@ -31,7 +33,7 @@ export async function getCoupleProfile(coupleId: string): Promise<CoupleProfile 
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city, wedding_time_start, wedding_time_end')
     .eq('id', coupleId)
     .single();
   return data ?? null;
@@ -46,11 +48,14 @@ export async function getRsvpSettings(coupleId: string): Promise<{
   rsvp_locked_at: string | null;
   reminder_days_before: number | null;
   invite_message_template: string | null;
+  wedding_time_start: string | null;
+  wedding_time_end: string | null;
+  calendar_description: string | null;
 } | null> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('couples')
-    .select('rsvp_enabled, rsvp_locked_at, reminder_days_before, invite_message_template')
+    .select('rsvp_enabled, rsvp_locked_at, reminder_days_before, invite_message_template, wedding_time_start, wedding_time_end, calendar_description')
     .eq('id', coupleId)
     .single();
   return data ?? null;

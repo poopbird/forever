@@ -5,8 +5,9 @@ import { NextResponse } from 'next/server';
 
 const ALLOWED_PROFILE_FIELDS = new Set([
   'name', 'start_date', 'bio', 'cover_photo_url', 'cover_video_url',
-  'wedding_date', 'wedding_venue', 'wedding_city',
+  'wedding_date', 'wedding_venue', 'wedding_city', 'wedding_time_start', 'wedding_time_end',
   'rsvp_enabled', 'rsvp_locked_at', 'reminder_days_before', 'invite_message_template',
+  'calendar_description',
 ]);
 
 /** POST /api/couples — called by signup page to create a new couple + membership */

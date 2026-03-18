@@ -25,7 +25,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // Fetch couple profile
   const { data: couple } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city, rsvp_enabled')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled')
     .eq('id', coupleId)
     .single();
 
@@ -84,6 +84,8 @@ export default async function PublicView({ params, searchParams }: Params) {
         allMemories={memories}
         coupleName={couple.name}
         weddingDate={couple.wedding_date ?? null}
+        weddingTimeStart={couple.wedding_time_start ?? null}
+        weddingTimeEnd={couple.wedding_time_end ?? null}
         weddingVenue={couple.wedding_venue ?? null}
         weddingCity={couple.wedding_city ?? null}
         readOnly

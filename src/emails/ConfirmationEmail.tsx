@@ -19,6 +19,7 @@ interface Props {
   plusOneDietary?: string | null;
   changeLink:      string;
   calendarLink?:   string | null;
+  icsLink?:        string | null;
   weddingDate?:    string | null;
   weddingVenue?:   string | null;
   weddingCity?:    string | null;
@@ -27,7 +28,7 @@ interface Props {
 export default function ConfirmationEmail({
   coupleName, guestName, rsvpStatus, dietaryPreset, dietaryNotes,
   plusOneAttending, plusOneName, plusOneDietary,
-  changeLink, calendarLink, weddingDate, weddingVenue, weddingCity,
+  changeLink, calendarLink, icsLink, weddingDate, weddingVenue, weddingCity,
 }: Props) {
   const attending  = rsvpStatus === 'attending';
   const statusText = attending ? '🎉 You\'re attending!' : 'You\'ve declined';
@@ -107,12 +108,29 @@ export default function ConfirmationEmail({
           </Section>
 
           {/* Add to calendar — attending only */}
-          {attending && calendarLink && (
+          {attending && (calendarLink || icsLink) && (
             <Section style={{ marginBottom: 20 }}>
-              <Link href={calendarLink}
-                style={{ display: 'inline-block', background: 'rgba(201,150,74,0.12)', color: '#C9964A', fontFamily: 'monospace', fontSize: 12, padding: '10px 24px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(201,150,74,0.3)' }}>
-                📅 Add to Google Calendar
-              </Link>
+              <Text style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(201,150,74,0.4)', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Save the date
+              </Text>
+              <Row>
+                {calendarLink && (
+                  <Column style={{ paddingRight: 8 }}>
+                    <Link href={calendarLink}
+                      style={{ display: 'inline-block', background: 'rgba(201,150,74,0.12)', color: '#C9964A', fontFamily: 'monospace', fontSize: 12, padding: '10px 20px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(201,150,74,0.3)' }}>
+                      📅 Google Calendar
+                    </Link>
+                  </Column>
+                )}
+                {icsLink && (
+                  <Column>
+                    <Link href={icsLink}
+                      style={{ display: 'inline-block', background: 'rgba(201,150,74,0.12)', color: '#C9964A', fontFamily: 'monospace', fontSize: 12, padding: '10px 20px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(201,150,74,0.3)' }}>
+                      🍎 Apple / Outlook
+                    </Link>
+                  </Column>
+                )}
+              </Row>
             </Section>
           )}
 

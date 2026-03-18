@@ -239,6 +239,8 @@ function FloatingInvitation({
   coupleName,
   visible,
   weddingDate,
+  weddingTimeStart,
+  weddingTimeEnd,
   weddingVenue,
   weddingCity,
   readOnly,
@@ -246,15 +248,17 @@ function FloatingInvitation({
   rsvpEnabled,
   coupleId,
 }: {
-  coupleName:     string;
-  visible:        boolean;
-  weddingDate?:   string | null;
-  weddingVenue?:  string | null;
-  weddingCity?:   string | null;
-  readOnly?:      boolean;
+  coupleName:       string;
+  visible:          boolean;
+  weddingDate?:     string | null;
+  weddingTimeStart?: string | null;
+  weddingTimeEnd?:  string | null;
+  weddingVenue?:    string | null;
+  weddingCity?:     string | null;
+  readOnly?:        boolean;
   onSaveDetails?: (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string }) => Promise<void>;
-  rsvpEnabled?:   boolean;
-  coupleId?:      string;
+  rsvpEnabled?:     boolean;
+  coupleId?:        string;
 }) {
   const [saving, setSaving] = useState(false);
 
@@ -386,6 +390,12 @@ function FloatingInvitation({
             {hasDetails ? (
               <>
                 {weddingDate  && <p>{weddingDate}</p>}
+                {(weddingTimeStart) && (
+                  <p>
+                    {weddingTimeStart.slice(0,5)}
+                    {weddingTimeEnd ? ` – ${weddingTimeEnd.slice(0,5)}` : ''}
+                  </p>
+                )}
                 {weddingVenue && <p>{weddingVenue}</p>}
                 {weddingCity  && <p>{weddingCity}</p>}
               </>
@@ -427,24 +437,28 @@ function FloatingInvitation({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 interface Props {
-  highlights:    Memory[];
-  allMemories:   Memory[];
-  coupleName:    string;
-  weddingDate?:  string | null;
-  weddingVenue?: string | null;
-  weddingCity?:  string | null;
-  readOnly?:     boolean;
-  coupleId?:     string;
-  rsvpEnabled?:  boolean;
+  highlights:         Memory[];
+  allMemories:        Memory[];
+  coupleName:         string;
+  weddingDate?:       string | null;
+  weddingTimeStart?:  string | null;
+  weddingTimeEnd?:    string | null;
+  weddingVenue?:      string | null;
+  weddingCity?:       string | null;
+  readOnly?:          boolean;
+  coupleId?:          string;
+  rsvpEnabled?:       boolean;
 }
 
 export default function PolaroidHighlights({
   highlights,
   allMemories,
   coupleName,
-  weddingDate:  weddingDateProp  = null,
-  weddingVenue: weddingVenueProp = null,
-  weddingCity:  weddingCityProp  = null,
+  weddingDate:      weddingDateProp      = null,
+  weddingTimeStart: weddingTimeStartProp = null,
+  weddingTimeEnd:   weddingTimeEndProp   = null,
+  weddingVenue:     weddingVenueProp     = null,
+  weddingCity:      weddingCityProp      = null,
   readOnly = false,
   coupleId,
   rsvpEnabled = false,
@@ -454,14 +468,18 @@ export default function PolaroidHighlights({
   const [localHighlights, setLocalHighlights] = useState<Memory[]>(highlights);
   const [scrollProg, setScrollProg]           = useState(0);
 
-  const [weddingDate,  setWeddingDate]  = useState(weddingDateProp  ?? '');
-  const [weddingVenue, setWeddingVenue] = useState(weddingVenueProp ?? '');
-  const [weddingCity,  setWeddingCity]  = useState(weddingCityProp  ?? '');
+  const [weddingDate,      setWeddingDate]      = useState(weddingDateProp      ?? '');
+  const [weddingTimeStart, setWeddingTimeStart] = useState(weddingTimeStartProp ?? '');
+  const [weddingTimeEnd,   setWeddingTimeEnd]   = useState(weddingTimeEndProp   ?? '');
+  const [weddingVenue,     setWeddingVenue]     = useState(weddingVenueProp     ?? '');
+  const [weddingCity,      setWeddingCity]      = useState(weddingCityProp      ?? '');
 
   useEffect(() => { setLocalHighlights(highlights); }, [highlights]);
-  useEffect(() => { setWeddingDate(weddingDateProp   ?? ''); }, [weddingDateProp]);
-  useEffect(() => { setWeddingVenue(weddingVenueProp ?? ''); }, [weddingVenueProp]);
-  useEffect(() => { setWeddingCity(weddingCityProp   ?? ''); }, [weddingCityProp]);
+  useEffect(() => { setWeddingDate(weddingDateProp         ?? ''); }, [weddingDateProp]);
+  useEffect(() => { setWeddingTimeStart(weddingTimeStartProp ?? ''); }, [weddingTimeStartProp]);
+  useEffect(() => { setWeddingTimeEnd(weddingTimeEndProp     ?? ''); }, [weddingTimeEndProp]);
+  useEffect(() => { setWeddingVenue(weddingVenueProp       ?? ''); }, [weddingVenueProp]);
+  useEffect(() => { setWeddingCity(weddingCityProp         ?? ''); }, [weddingCityProp]);
 
   const { scrollYProgress } = useScroll({
     target:  sectionRef,
@@ -575,6 +593,8 @@ export default function PolaroidHighlights({
             coupleName={coupleName}
             visible={invitationVisible}
             weddingDate={weddingDate || null}
+            weddingTimeStart={weddingTimeStart || null}
+            weddingTimeEnd={weddingTimeEnd || null}
             weddingVenue={weddingVenue || null}
             weddingCity={weddingCity || null}
             readOnly={readOnly}

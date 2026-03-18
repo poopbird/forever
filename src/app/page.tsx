@@ -91,6 +91,8 @@ export default async function HomePage() {
         allMemories={memories}
         coupleName={profile.name}
         weddingDate={profile.wedding_date ?? null}
+        weddingTimeStart={profile.wedding_time_start ?? null}
+        weddingTimeEnd={profile.wedding_time_end ?? null}
         weddingVenue={profile.wedding_venue ?? null}
         weddingCity={profile.wedding_city ?? null}
         coupleId={coupleId}
