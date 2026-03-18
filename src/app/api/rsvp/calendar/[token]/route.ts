@@ -24,7 +24,7 @@ export async function GET(
     return NextResponse.json({ error: 'Not attending' }, { status: 403 });
   }
 
-  const couple = guest.couples as {
+  const couple = guest.couples as unknown as {
     name:                 string;
     wedding_date:         string | null;
     wedding_time_start:   string | null;
