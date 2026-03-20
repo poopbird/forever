@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import ReactionBar from '@/components/guest/ReactionBar';
 import CommentSection from '@/components/guest/CommentSection';
-import type { Memory } from '@/types';
+import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
 import { storageUrl } from '@/lib/storageUrl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -280,12 +280,59 @@ function PolaroidGrid({
 interface AlbumSectionProps {
   memories: Memory[];
   readOnly?: boolean;
+  albumConfigs?: CoupleAlbum[];
+  albumMemoryRows?: AlbumMemoryRow[];
+  albumMode?: string;
 }
 
-export default function AlbumSection({ memories, readOnly }: AlbumSectionProps) {
+export default function AlbumSection({ memories, readOnly, albumConfigs, albumMemoryRows, albumMode }: AlbumSectionProps) {
   // ── Build albums ────────────────────────────────────────────────────────────
   const albums = useMemo<AlbumWithMemories[]>(() => {
-    const configs = buildAlbumsFromMemories(memories);
+    let configs: Omit<AlbumConfig, never>[];
+
+    if (albumConfigs && albumConfigs.length > 0) {
+      // Use saved album configurations
+      const isFreeform = albumMode === 'freeform';
+      const memIdToAlbum: Record<string, string> = {};
+      if (isFreeform && albumMemoryRows) {
+        for (const row of albumMemoryRows) memIdToAlbum[row.memory_id] = row.album_id;
+      }
+
+      return albumConfigs
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((cfg, i) => {
+          let mems: Memory[];
+          if (isFreeform) {
+            mems = memories.filter(m => memIdToAlbum[m.id] === cfg.id);
+          } else {
+            mems = filterMemoriesForAlbum(memories, {
+              ...cfg,
+              id: cfg.id, label: cfg.label, cover_photo_url: cfg.cover_photo_url,
+              sort_order: cfg.sort_order,
+            });
+          }
+          // Hide empty freeform albums
+          if (isFreeform && mems.length === 0) return null;
+
+          const photoMems = mems.filter(m => m.media_url && m.media_type === 'photo');
+          return {
+            id:         cfg.id,
+            label:      cfg.label,
+            date_start: cfg.date_start,
+            date_end:   cfg.date_end,
+            cover_photo_url: cfg.cover_photo_url,
+            sort_order: cfg.sort_order,
+            memories:   mems,
+            coverPhoto: cfg.cover_photo_url ?? photoMems[photoMems.length - 1]?.media_url ?? null,
+            palette:    LEATHER_PALETTES[i % LEATHER_PALETTES.length],
+            floatAnim:  FLOAT_ANIMS[i % FLOAT_ANIMS.length],
+          } as AlbumWithMemories;
+        })
+        .filter((a): a is AlbumWithMemories => a !== null);
+    }
+
+    // Fallback: auto-generate from memories
+    configs = buildAlbumsFromMemories(memories);
     return configs.map((cfg, i) => {
       const mems = filterMemoriesForAlbum(memories, cfg);
       const photoMems = mems.filter(m => m.media_url && m.media_type === 'photo');
@@ -297,7 +344,7 @@ export default function AlbumSection({ memories, readOnly }: AlbumSectionProps) 
         floatAnim: FLOAT_ANIMS[i % FLOAT_ANIMS.length],
       };
     });
-  }, [memories]);
+  }, [memories, albumConfigs, albumMemoryRows, albumMode]);
 
   // ── Album open state ────────────────────────────────────────────────────────
   const [openIdx,        setOpenIdx]        = useState<number | null>(null);

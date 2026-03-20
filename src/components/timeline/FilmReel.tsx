@@ -12,7 +12,6 @@ import FilmLeader   from './FilmLeader';
 import FilmScrubber from './FilmScrubber';
 import MemoryDetail    from '@/components/memory/MemoryDetail';
 import MemoryEditModal from '@/components/memory/MemoryEditModal';
-import BulkMemoryUpload from '@/components/memory/BulkMemoryUpload';
 import type { Memory } from '@/types';
 
 // ── Reel item types ──────────────────────────────────────────────────────────
@@ -50,7 +49,6 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
   const [isPlaying,   setIsPlaying]   = useState(false);
   const [selected,    setSelected]    = useState<Memory | null>(null);
   const [editing,     setEditing]     = useState<Memory | null>(null);
-  const [showUpload,  setShowUpload]  = useState(false);
 
   const sectionRef    = useRef<HTMLElement>(null);
   const scrollRef     = useRef<HTMLDivElement>(null);
@@ -212,23 +210,6 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
         <p className="font-serif text-2xl" style={{ color: 'rgba(232,213,176,0.55)' }}>
           Your story begins here.
         </p>
-        {!readOnly && (
-          <button
-            onClick={() => setShowUpload(true)}
-            className="font-mono text-xs tracking-widest uppercase px-6 py-2.5 rounded-full"
-            style={{
-              border: '1px solid rgba(201,150,74,0.4)',
-              color:  'rgba(201,150,74,0.8)',
-            }}
-          >
-            + Add the first memory
-          </button>
-        )}
-        {!readOnly && (
-          <AnimatePresence>
-            {showUpload && <BulkMemoryUpload onClose={() => setShowUpload(false)} />}
-          </AnimatePresence>
-        )}
       </section>
     );
   }
@@ -378,23 +359,6 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
           }}
         />
 
-        {/* ── Add memory (couple only) ── */}
-        {!readOnly && (
-          <div className="text-center py-10">
-            <button
-              onClick={() => setShowUpload(true)}
-              className="font-mono uppercase tracking-widest rounded-full transition-all duration-300"
-              style={{
-                fontSize: 11,
-                padding:  '9px 20px',
-                border:   '1px solid rgba(201,150,74,0.28)',
-                color:    'rgba(201,150,74,0.55)',
-              }}
-            >
-              + Add Memory
-            </button>
-          </div>
-        )}
       </section>
 
       {/* ── Modals (high z-index, sit above everything) ── */}
@@ -419,11 +383,6 @@ export default function FilmReel({ memories: initialMemories, readOnly = false }
         )}
       </AnimatePresence>
 
-      {!readOnly && (
-        <AnimatePresence>
-          {showUpload && <BulkMemoryUpload onClose={() => setShowUpload(false)} />}
-        </AnimatePresence>
-      )}
     </>
   );
 }

@@ -80,6 +80,23 @@ export interface RsvpGuest {
   whatsapp_sent_at: string | null;
 }
 
+export interface CoupleAlbum {
+  id: string;
+  couple_id: string;
+  label: string;
+  caption: string | null;
+  cover_photo_url: string | null;
+  date_start: string | null;
+  date_end: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface AlbumMemoryRow {
+  album_id: string;
+  memory_id: string;
+}
+
 /** Raw data extracted from a photo's EXIF headers */
 export interface ExifData {
   date?: Date;

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Memories & Albums — Settings Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&family=Dancing+Script:wght@500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0f0c09;
+    color: #e8dfc8;
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 780px; margin: 0 auto; }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    font-style: italic;
+    color: #f5f0e8;
+    margin-bottom: 6px;
+  }
+  .page-subtitle {
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: #7a6040;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  /* ── Section card ── */
+  .card {
+    background: #1a150f;
+    border: 1px solid rgba(201,150,74,0.12);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #c9964a;
+    margin-bottom: 20px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #c9964a, #a87830);
+    color: #0f0c09;
+  }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost {
+    background: rgba(201,150,74,0.08);
+    color: #c9964a;
+    border: 1px solid rgba(201,150,74,0.2);
+  }
+  .btn-ghost:hover { background: rgba(201,150,74,0.14); }
+  .btn-danger {
+    background: rgba(180,60,60,0.1);
+    color: #c06060;
+    border: 1px solid rgba(180,60,60,0.2);
+  }
+  .btn-danger:hover { background: rgba(180,60,60,0.18); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ── Mode toggle ── */
+  .mode-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,150,74,0.15);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  .mode-btn {
+    padding: 9px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    color: #7a6040;
+    background: transparent;
+    font-family: 'Lato', sans-serif;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, #c9964a, #a87830);
+    color: #0f0c09;
+  }
+
+  /* ── Memory grid ── */
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+    margin-top: 16px;
+  }
+  .memory-thumb {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: #2a1f14;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .memory-thumb:hover { border-color: rgba(201,150,74,0.5); }
+  .memory-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .memory-thumb .thumb-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.15s;
+    font-size: 16px;
+  }
+  .memory-thumb:hover .thumb-overlay { opacity: 1; }
+  .thumb-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; opacity: 0.3;
+  }
+
+  /* ── Load more ── */
+  .load-more {
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  /* ── Album row ── */
+  .album-row {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(201,150,74,0.1);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .album-row.unsaved {
+    border-color: rgba(201,150,74,0.4);
+  }
+  .album-row-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .drag-handle {
+    color: rgba(201,150,74,0.3);
+    font-size: 18px;
+    cursor: grab;
+    line-height: 1;
+    padding: 2px 4px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .drag-handle:hover { color: rgba(201,150,74,0.7); }
+  .album-row-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 600px) {
+    .album-row-body { grid-template-columns: 1fr; }
+  }
+
+  /* ── Field ── */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7a6040;
+  }
+  .field input, .field textarea {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,150,74,0.15);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    color: #e8dfc8;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .field input:focus, .field textarea:focus {
+    border-color: rgba(201,150,74,0.45);
+  }
+  .field input[readonly] {
+    color: #7a6040;
+    cursor: default;
+  }
+
+  /* ── Cover photo picker strip ── */
+  .cover-strip-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+    text-transform: uppercase; color: #7a6040;
+    margin-bottom: 6px;
+  }
+  .cover-strip {
+    display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+  }
+  .cover-strip::-webkit-scrollbar { height: 4px; }
+  .cover-strip::-webkit-scrollbar-track { background: transparent; }
+  .cover-strip::-webkit-scrollbar-thumb { background: rgba(201,150,74,0.2); border-radius: 2px; }
+  .cover-option {
+    width: 54px; height: 54px; flex-shrink: 0;
+    border-radius: 5px;
+    background: #2a1f14;
+    border: 2px solid transparent;
+    overflow: hidden; cursor: pointer;
+    transition: border-color 0.15s, transform 0.15s;
+    position: relative;
+  }
+  .cover-option:hover { transform: scale(1.05); }
+  .cover-option.selected { border-color: #c9964a; }
+  .cover-option img { width: 100%; height: 100%; object-fit: cover; }
+  .cover-option .selected-tick {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(201,150,74,0.45);
+    font-size: 18px;
+    opacity: 0;
+  }
+  .cover-option.selected .selected-tick { opacity: 1; }
+
+  /* ── Album row footer ── */
+  .album-row-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 16px; padding-top: 14px;
+    border-top: 1px solid rgba(201,150,74,0.08);
+    gap: 10px; flex-wrap: wrap;
+  }
+  .unsaved-badge {
+    font-size: 11px; font-weight: 600;
+    color: #c9964a;
+    background: rgba(201,150,74,0.1);
+    border: 1px solid rgba(201,150,74,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    display: none;
+  }
+  .album-row.unsaved .unsaved-badge { display: inline-block; }
+
+  /* ── Add album ── */
+  .add-album-btn {
+    width: 100%;
+    padding: 14px;
+    border: 2px dashed rgba(201,150,74,0.2);
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(201,150,74,0.45);
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.18s;
+    margin-top: 4px;
+  }
+  .add-album-btn:hover {
+    border-color: rgba(201,150,74,0.5);
+    color: rgba(201,150,74,0.8);
+    background: rgba(201,150,74,0.04);
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(5,3,1,0.88);
+    backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #1a150f;
+    border: 1px solid rgba(201,150,74,0.18);
+    border-radius: 14px;
+    width: 100%; max-width: 640px;
+    max-height: 80vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.95);
+    transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(201,150,74,0.1);
+    flex-shrink: 0;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; font-style: italic;
+    color: #f5f0e8;
+  }
+  .modal-close {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(201,150,74,0.2);
+    background: rgba(201,150,74,0.08);
+    color: #c9964a; font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+  .modal-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #7a6040;
+    margin-bottom: 10px;
+  }
+  .modal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .modal-thumb {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    background: #2a1f14;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .modal-thumb.checked { border-color: #c9964a; }
+  .modal-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-thumb .check-badge {
+    position: absolute; top: 5px; right: 5px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #c9964a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #0f0c09; font-weight: 700;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .modal-thumb.checked .check-badge { opacity: 1; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(201,150,74,0.1);
+    display: flex; justify-content: flex-end; gap: 10px;
+    flex-shrink: 0;
+  }
+
+  /* ── Tooltip ── */
+  .tip {
+    font-size: 11px; font-weight: 300;
+    color: #7a6040; line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: rgba(201,150,74,0.08);
+    margin: 24px 0;
+  }
+
+  /* colour swatches for placeholder thumbnails */
+  .c1 { background: #3a2510; }
+  .c2 { background: #1e3d2f; }
+  .c3 { background: #1e2d4e; }
+  .c4 { background: #4a3020; }
+  .c5 { background: #3d2840; }
+  .c6 { background: #2a3520; }
+  .c7 { background: #3a1520; }
+  .c8 { background: #2a2040; }
+  .c9 { background: #1e2020; }
+  .c10{ background: #4a2820; }
+  .c11{ background: #2a3830; }
+  .c12{ background: #3a2030; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <p class="page-subtitle">Settings · Profile</p>
+  <h1 class="page-title">Memories & Albums</h1>
+
+  <!-- ── UPLOAD MEMORIES ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Upload Memories</div>
+
+    <button class="btn btn-primary" onclick="alert('BulkMemoryUpload modal opens here')">
+      + Add Memories
+    </button>
+    <p class="tip" style="margin-top:10px;">Photos are uploaded directly to storage. EXIF data is read automatically for date and location.</p>
+
+    <div class="memory-grid" style="margin-top:18px;">
+      <div class="memory-thumb c1"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c2"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c3"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c4"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c5"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c6"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c7"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c8"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c9"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c10"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c11"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+      <div class="memory-thumb c12"><div class="thumb-placeholder">🖼</div><div class="thumb-overlay">✏️</div></div>
+    </div>
+    <div class="load-more" style="margin-top:14px;">
+      <button class="btn btn-ghost btn-sm">Load more  (34 remaining)</button>
+    </div>
+  </div>
+
+  <!-- ── ALBUM CONFIGURATION ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Album Configuration</div>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-year" onclick="setMode('year')">📅 Year albums</button>
+      <button class="mode-btn" id="btn-free" onclick="setMode('free')">✦ Free-form</button>
+    </div>
+
+    <!-- ── YEAR MODE ── -->
+    <div id="year-mode">
+      <p class="tip" style="margin-bottom:20px;">Albums are created automatically — one per year. Add a caption and choose a cover photo for each.</p>
+
+      <!-- Album row: 2024 -->
+      <div class="album-row unsaved" id="row-2024">
+        <div class="album-row-header">
+          <div style="flex:1;">
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#f5f0e8;">2024</div>
+            <div style="font-size:11px;color:#7a6040;margin-top:2px;">14 memories</div>
+          </div>
+        </div>
+
+        <div class="album-row-body">
+          <div class="field">
+            <label>Caption</label>
+            <input type="text" placeholder="e.g. The year everything changed…" oninput="markUnsaved('row-2024')" />
+          </div>
+          <div>
+            <div class="cover-strip-label">Cover photo</div>
+            <div class="cover-strip">
+              <div class="cover-option selected" onclick="selectCover(this)">
+                <div class="thumb-placeholder c1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div>
+                <div class="selected-tick">✓</div>
+              </div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c2" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c3" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c4" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c5" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="album-row-footer">
+          <span class="unsaved-badge">● Unsaved changes</span>
+          <button class="btn btn-primary btn-sm" onclick="saveRow('row-2024')">Save</button>
+        </div>
+      </div>
+
+      <!-- Album row: 2023 -->
+      <div class="album-row" id="row-2023">
+        <div class="album-row-header">
+          <div style="flex:1;">
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#f5f0e8;">2023</div>
+            <div style="font-size:11px;color:#7a6040;margin-top:2px;">22 memories</div>
+          </div>
+        </div>
+        <div class="album-row-body">
+          <div class="field">
+            <label>Caption</label>
+            <input type="text" value="Adventures near and far" oninput="markUnsaved('row-2023')" />
+          </div>
+          <div>
+            <div class="cover-strip-label">Cover photo</div>
+            <div class="cover-strip">
+              <div class="cover-option selected" onclick="selectCover(this)"><div class="thumb-placeholder c6" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c7" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c8" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c9" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="album-row-footer">
+          <span class="unsaved-badge">● Unsaved changes</span>
+          <button class="btn btn-primary btn-sm" onclick="saveRow('row-2023')">Save</button>
+        </div>
+      </div>
+
+      <!-- Album row: 2022 -->
+      <div class="album-row" id="row-2022">
+        <div class="album-row-header">
+          <div style="flex:1;">
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-style:italic;color:#f5f0e8;">2022</div>
+            <div style="font-size:11px;color:#7a6040;margin-top:2px;">8 memories</div>
+          </div>
+        </div>
+        <div class="album-row-body">
+          <div class="field">
+            <label>Caption</label>
+            <input type="text" placeholder="e.g. Where it all began…" oninput="markUnsaved('row-2022')" />
+          </div>
+          <div>
+            <div class="cover-strip-label">Cover photo</div>
+            <div class="cover-strip">
+              <div class="cover-option selected" onclick="selectCover(this)"><div class="thumb-placeholder c10" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c11" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c12" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="album-row-footer">
+          <span class="unsaved-badge">● Unsaved changes</span>
+          <button class="btn btn-primary btn-sm" onclick="saveRow('row-2022')">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FREE-FORM MODE ── -->
+    <div id="free-mode" style="display:none;">
+      <p class="tip" style="margin-bottom:20px;">Create your own albums and choose which memories go into each. Drag ⠿ to reorder the shelf.</p>
+
+      <!-- Album row: Paris -->
+      <div class="album-row" id="row-paris" draggable="true">
+        <div class="album-row-header">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="field" style="flex:1;">
+            <label>Album title</label>
+            <input type="text" value="Paris, always" oninput="markUnsaved('row-paris')" />
+          </div>
+        </div>
+        <div class="album-row-body">
+          <div class="field">
+            <label>Caption</label>
+            <input type="text" value="The trip that changed us" oninput="markUnsaved('row-paris')" />
+          </div>
+          <div>
+            <div class="cover-strip-label">Cover photo</div>
+            <div class="cover-strip">
+              <div class="cover-option selected" onclick="selectCover(this)"><div class="thumb-placeholder c1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c3" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c5" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="album-row-footer">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="openModal()">🖼 Manage photos (6)</button>
+            <span class="unsaved-badge">● Unsaved changes</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-danger btn-sm">Delete</button>
+            <button class="btn btn-primary btn-sm" onclick="saveRow('row-paris')">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Album row: Early days -->
+      <div class="album-row unsaved" id="row-early" draggable="true">
+        <div class="album-row-header">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+          <div class="field" style="flex:1;">
+            <label>Album title</label>
+            <input type="text" value="Early days" oninput="markUnsaved('row-early')" />
+          </div>
+        </div>
+        <div class="album-row-body">
+          <div class="field">
+            <label>Caption</label>
+            <input type="text" placeholder="Add a caption…" oninput="markUnsaved('row-early')" />
+          </div>
+          <div>
+            <div class="cover-strip-label">Cover photo</div>
+            <div class="cover-strip">
+              <div class="cover-option selected" onclick="selectCover(this)"><div class="thumb-placeholder c7" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+              <div class="cover-option" onclick="selectCover(this)"><div class="thumb-placeholder c9" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;">🖼</div><div class="selected-tick">✓</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="album-row-footer">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="openModal()">🖼 Manage photos (11)</button>
+            <span class="unsaved-badge">● Unsaved changes</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-danger btn-sm">Delete</button>
+            <button class="btn btn-primary btn-sm" onclick="saveRow('row-early')">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="add-album-btn" onclick="alert('New empty album added')">+ Add album</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── MANAGE PHOTOS MODAL ── -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Manage photos — Paris, always</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-section-label">In this album (6)</div>
+      <div class="modal-grid">
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c3" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c5" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c7" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c9" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb checked" onclick="toggleThumb(this)"><div class="thumb-placeholder c11" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+      </div>
+
+      <div class="modal-section-label">Unassigned (8)</div>
+      <div class="modal-grid">
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c2" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c4" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c6" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c8" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c10" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c12" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c1" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+        <div class="modal-thumb" onclick="toggleThumb(this)"><div class="thumb-placeholder c3" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div><div class="check-badge">✓</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="closeModal()">Save photos</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setMode(mode) {
+    const yearMode = document.getElementById('year-mode');
+    const freeMode = document.getElementById('free-mode');
+    const btnYear  = document.getElementById('btn-year');
+    const btnFree  = document.getElementById('btn-free');
+    if (mode === 'year') {
+      yearMode.style.display = '';
+      freeMode.style.display = 'none';
+      btnYear.classList.add('active');
+      btnFree.classList.remove('active');
+    } else {
+      if (!confirm('Switching to free-form will clear your year album settings. Your memories won\'t be lost.\n\nSwitch anyway?')) return;
+      yearMode.style.display = 'none';
+      freeMode.style.display = '';
+      btnYear.classList.remove('active');
+      btnFree.classList.add('active');
+    }
+  }
+
+  function markUnsaved(rowId) {
+    document.getElementById(rowId).classList.add('unsaved');
+  }
+
+  function saveRow(rowId) {
+    document.getElementById(rowId).classList.remove('unsaved');
+  }
+
+  function selectCover(el) {
+    const strip = el.closest('.cover-strip');
+    strip.querySelectorAll('.cover-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function openModal() {
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+
+  function toggleThumb(el) {
+    el.classList.toggle('checked');
+  }
+</script>
+</body>
+</html>

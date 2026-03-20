@@ -22,6 +22,8 @@ export function storageUrl(
   const params = new URLSearchParams();
   if (opts.width)   params.set('width',   String(opts.width));
   if (opts.quality) params.set('quality', String(opts.quality));
+  // 'contain' resizes proportionally without cropping; CSS objectFit handles the rest
+  params.set('resize', 'contain');
 
   const qs = params.toString();
   return qs ? `${transformed}?${qs}` : transformed;

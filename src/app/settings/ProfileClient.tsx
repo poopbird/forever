@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CoupleProfile } from '@/lib/couple';
+import MemoriesAlbumsSection from '@/components/album/MemoriesAlbumsSection';
+import HighlightsPickerSection from '@/components/highlights/HighlightsPickerSection';
 
 interface Props {
   profile:  CoupleProfile;
@@ -11,7 +13,7 @@ interface Props {
   siteUrl:  string;
 }
 
-export default function ProfileClient({ profile, shareUrl }: Props) {
+export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
   const router = useRouter();
 
   const [name,          setName]          = useState(profile.name);
@@ -161,6 +163,12 @@ export default function ProfileClient({ profile, shareUrl }: Props) {
           </div>
         </form>
       </section>
+
+      {/* Wedding Highlights */}
+      <HighlightsPickerSection />
+
+      {/* Memories & Albums */}
+      <MemoriesAlbumsSection coupleId={coupleId} />
 
       {/* Shareable link */}
       <section className="bg-white rounded-2xl shadow-sm p-6">

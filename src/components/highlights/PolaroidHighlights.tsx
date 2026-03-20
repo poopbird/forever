@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback } from 'react';
-import { motion, useScroll, AnimatePresence } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useScroll } from 'framer-motion';
 import type { Memory } from '@/types';
-import PolaroidPicker from './PolaroidPicker';
 import { storageUrl } from '@/lib/storageUrl';
 
 // ─── Google Font: Caveat (sharpie feel) ──────────────────────────────────────
@@ -519,7 +518,6 @@ export default function PolaroidHighlights({
   rsvpEnabled = false,
 }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const [showPicker, setShowPicker]           = useState(false);
   const [localHighlights, setLocalHighlights] = useState<Memory[]>(highlights);
   const [scrollProg, setScrollProg]           = useState(0);
 
@@ -551,10 +549,6 @@ export default function PolaroidHighlights({
     ? localHighlights
     : allMemories.filter(m => m.media_type === 'photo' && m.media_url).slice(0, 20);
 
-  const handleSaved = useCallback((saved: Memory[]) => {
-    setLocalHighlights(saved);
-    setShowPicker(false);
-  }, []);
 
   async function handleSaveDetails(fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) {
     if (fields.wedding_date       !== undefined) setWeddingDate(fields.wedding_date);
@@ -690,47 +684,8 @@ export default function PolaroidHighlights({
             </div>
           )}
 
-          {/* ── Curate button (couple view only) ── */}
-          {!readOnly && (
-            <motion.button
-              onClick={() => setShowPicker(true)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                position:       'absolute',
-                bottom:         24,
-                right:          24,
-                zIndex:         50,
-                background:     'rgba(201,150,74,0.12)',
-                border:         '1px solid rgba(201,150,74,0.38)',
-                borderRadius:   '100px',
-                padding:        '8px 18px',
-                color:          'rgba(232,201,123,0.9)',
-                fontFamily:     '"Lato", sans-serif',
-                fontSize:       '0.7rem',
-                letterSpacing:  '0.12em',
-                textTransform:  'uppercase',
-                cursor:         'pointer',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              ✦ &nbsp; Curate Highlights
-            </motion.button>
-          )}
         </div>
       </section>
-
-      {/* ── Picker modal ── */}
-      <AnimatePresence>
-        {showPicker && (
-          <PolaroidPicker
-            allMemories={allMemories}
-            currentHighlights={localHighlights}
-            onSave={handleSaved}
-            onClose={() => setShowPicker(false)}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }

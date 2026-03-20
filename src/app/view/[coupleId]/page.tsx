@@ -3,13 +3,12 @@ import { notFound } from 'next/navigation';
 import CoverHero from '@/components/layout/CoverHero';
 import LandingSection from '@/components/layout/LandingSection';
 import PolaroidHighlights from '@/components/highlights/PolaroidHighlights';
-// FilmReel preserved — will be selectable via Section Visibility Picker (future epic)
-// import FilmReel from '@/components/timeline/FilmReel';
+import FilmReel from '@/components/timeline/FilmReel';
 import AlbumSection from '@/components/album/AlbumSection';
 import MemoryMap from '@/components/map/MemoryMap';
 import KioskMode from '@/components/kiosk/KioskMode';
 import FaqPreview from '@/components/faq/FaqPreview';
-import type { Memory } from '@/types';
+import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
 import type { FaqItem } from '@/components/faq/FaqAccordion';
 
 export const revalidate = 60; // revalidate guest view every 60s
@@ -24,35 +23,29 @@ export default async function PublicView({ params, searchParams }: Params) {
   const { kiosk } = await searchParams;
   const supabase = createAdminClient();
 
-  // Fetch couple profile
+  // Fetch couple profile (include album_mode)
   const { data: couple } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, album_mode, film_reel_enabled')
     .eq('id', coupleId)
     .single();
 
   if (!couple) notFound();
 
-  // Fetch memories, highlights and FAQs in parallel
-  const [{ data }, { data: highlightRows }, { data: faqRows }] = await Promise.all([
-    supabase
-      .from('memories')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .order('date', { ascending: true }),
-    supabase
-      .from('couple_highlights')
-      .select('position, memory:memories(*)')
-      .eq('couple_id', coupleId)
-      .order('position', { ascending: true }),
-    supabase
-      .from('faqs')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .order('position', { ascending: true }),
+  // Fetch memories, highlights, FAQs and album config in parallel
+  const [{ data }, { data: highlightRows }, { data: faqRows }, { data: albumRows }, { data: albumMemRows }] = await Promise.all([
+    supabase.from('memories').select('*').eq('couple_id', coupleId).order('date', { ascending: true }),
+    supabase.from('couple_highlights').select('position, memory:memories(*)').eq('couple_id', coupleId).order('position', { ascending: true }),
+    supabase.from('faqs').select('*').eq('couple_id', coupleId).order('position', { ascending: true }),
+    supabase.from('couple_albums').select('*').eq('couple_id', coupleId).order('sort_order', { ascending: true }),
+    supabase.from('album_memories').select('album_id, memory_id').eq('couple_id', coupleId),
   ]);
 
-  const memories: Memory[] = data ?? [];
+  const memories: Memory[]                = data ?? [];
+  const albumConfigs: CoupleAlbum[]       = (albumRows ?? []) as CoupleAlbum[];
+  const albumMemoryRows: AlbumMemoryRow[] = (albumMemRows ?? []) as AlbumMemoryRow[];
+  const albumMode: string                 = (couple as Record<string, unknown>)?.album_mode as string ?? 'year';
+  const filmReelEnabled: boolean          = Boolean((couple as Record<string, unknown>)?.film_reel_enabled);
   const highlights: Memory[] = (highlightRows ?? [])
     .map((row: { position: number; memory: unknown }) => row.memory as Memory)
     .filter(Boolean);
@@ -95,7 +88,17 @@ export default async function PublicView({ params, searchParams }: Params) {
         rsvpEnabled={couple.rsvp_enabled ?? false}
       />
 
-      <AlbumSection memories={memories} readOnly />
+      <AlbumSection
+        memories={memories}
+        readOnly
+        albumConfigs={albumConfigs}
+        albumMemoryRows={albumMemoryRows}
+        albumMode={albumMode}
+      />
+
+      {filmReelEnabled && memories.length > 0 && (
+        <FilmReel memories={memories} readOnly />
+      )}
 
       {mappable.length > 0 && (
         <section id="map">

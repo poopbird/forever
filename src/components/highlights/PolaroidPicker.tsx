@@ -137,7 +137,7 @@ export default function PolaroidPicker({
               fontWeight: 700,
               color:      selected.length === 20 ? '#C9964A' : '#7B1E3C',
             }}>
-              {selected.length} / 10
+              {selected.length} / 20
             </span>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function PolaroidPicker({
               {photos.map(memory => {
                 const idx        = selected.indexOf(memory.id);
                 const isSelected = idx !== -1;
-                const isDisabled = !isSelected && selected.length >= 10;
+                const isDisabled = !isSelected && selected.length >= 20;
 
                 return (
                   <button

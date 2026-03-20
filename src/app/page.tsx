@@ -5,14 +5,13 @@ import { redirect } from 'next/navigation';
 import CoverHero from '@/components/layout/CoverHero';
 import LandingSection from '@/components/layout/LandingSection';
 import PolaroidHighlights from '@/components/highlights/PolaroidHighlights';
-// FilmReel preserved — will be selectable via Section Visibility Picker (future epic)
-// import FilmReel from '@/components/timeline/FilmReel';
+import FilmReel from '@/components/timeline/FilmReel';
 import AlbumSection from '@/components/album/AlbumSection';
 import MemoryMap from '@/components/map/MemoryMap';
 import FaqPreview from '@/components/faq/FaqPreview';
 import Link from 'next/link';
 import LogoutButton from '@/components/auth/LogoutButton';
-import type { Memory } from '@/types';
+import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
 import type { FaqItem } from '@/components/faq/FaqAccordion';
 
 export const revalidate = 0;
@@ -34,28 +33,23 @@ export default async function HomePage() {
 
   const adminSupabase = createAdminClient();
 
-  // Fetch memories, highlights and FAQs in parallel
-  const [{ data, error }, { data: highlightRows }, { data: faqRows }] = await Promise.all([
-    adminSupabase
-      .from('memories')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .order('date', { ascending: true }),
-    adminSupabase
-      .from('couple_highlights')
-      .select('position, memory:memories(*)')
-      .eq('couple_id', coupleId)
-      .order('position', { ascending: true }),
-    adminSupabase
-      .from('faqs')
-      .select('*')
-      .eq('couple_id', coupleId)
-      .order('position', { ascending: true }),
+  // Fetch memories, highlights, FAQs and album config in parallel
+  const [{ data, error }, { data: highlightRows }, { data: faqRows }, { data: albumRows }, { data: albumMemRows }, { data: coupleRow }] = await Promise.all([
+    adminSupabase.from('memories').select('*').eq('couple_id', coupleId).order('date', { ascending: true }),
+    adminSupabase.from('couple_highlights').select('position, memory:memories(*)').eq('couple_id', coupleId).order('position', { ascending: true }),
+    adminSupabase.from('faqs').select('*').eq('couple_id', coupleId).order('position', { ascending: true }),
+    adminSupabase.from('couple_albums').select('*').eq('couple_id', coupleId).order('sort_order', { ascending: true }),
+    adminSupabase.from('album_memories').select('album_id, memory_id').eq('couple_id', coupleId),
+    adminSupabase.from('couples').select('album_mode, film_reel_enabled').eq('id', coupleId).single(),
   ]);
 
   if (error) console.error('Failed to load memories:', error.message);
 
-  const memories: Memory[] = data ?? [];
+  const memories: Memory[]          = data ?? [];
+  const albumConfigs: CoupleAlbum[] = (albumRows ?? []) as CoupleAlbum[];
+  const albumMemoryRows: AlbumMemoryRow[] = (albumMemRows ?? []) as AlbumMemoryRow[];
+  const albumMode: string           = (coupleRow as Record<string, unknown> | null)?.album_mode as string ?? 'year';
+  const filmReelEnabled: boolean    = Boolean((coupleRow as Record<string, unknown> | null)?.film_reel_enabled);
   const highlights: Memory[] = (highlightRows ?? [])
     .map((row: { position: number; memory: unknown }) => row.memory as Memory)
     .filter(Boolean);
@@ -101,7 +95,16 @@ export default async function HomePage() {
         rsvpEnabled={profile.rsvp_enabled ?? false}
       />
 
-      <AlbumSection memories={memories} />
+      <AlbumSection
+        memories={memories}
+        albumConfigs={albumConfigs}
+        albumMemoryRows={albumMemoryRows}
+        albumMode={albumMode}
+      />
+
+      {filmReelEnabled && memories.length > 0 && (
+        <FilmReel memories={memories} />
+      )}
 
       {mappable.length > 0 && (
         <section id="map">
