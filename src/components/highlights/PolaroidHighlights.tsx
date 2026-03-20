@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
 import type { Memory } from '@/types';
 import PolaroidPicker from './PolaroidPicker';
+import { storageUrl } from '@/lib/storageUrl';
 
 // ─── Google Font: Caveat (sharpie feel) ──────────────────────────────────────
 const SHARPIE = '"Caveat", "Permanent Marker", cursive';
@@ -166,7 +167,7 @@ function Polaroid({
           {memory.media_url && !imgError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={memory.media_url}
+              src={storageUrl(memory.media_url, { width: 400, quality: 75 })}
               alt={memory.caption}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               onError={() => setImgError(true)}

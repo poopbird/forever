@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import ReactionBar from '@/components/guest/ReactionBar';
 import CommentSection from '@/components/guest/CommentSection';
 import type { Memory } from '@/types';
+import { storageUrl } from '@/lib/storageUrl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ function buildFlipperHTML(mems: Memory[], baseIdx: number): string {
         return `<div style="background:rgba(232,220,200,0.5);border:1.5px dashed rgba(180,160,130,0.6);border-radius:2px;"></div>`;
       }
       const img = m.media_url
-        ? `<img src="${escapeHtml(m.media_url)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />`
+        ? `<img src="${escapeHtml(storageUrl(m.media_url, { width: 400, quality: 75 }))}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />`
         : `<span style="font-size:22px">📷</span>`;
       const caption = m.caption
         ? `<div style="position:absolute;bottom:4px;left:5px;right:5px;text-align:center;font-family:'Dancing Script',cursive;font-size:10px;color:#5a3820;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.caption)}</div>`
@@ -208,7 +209,7 @@ function PolaroidCard({
         {memory.media_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={memory.media_url}
+            src={storageUrl(memory.media_url, { width: 400, quality: 75 })}
             alt={memory.caption || ''}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             loading="lazy"
@@ -616,7 +617,7 @@ export default function AlbumSection({ memories, readOnly }: AlbumSectionProps) 
                     {album.coverPhoto ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={album.coverPhoto}
+                        src={storageUrl(album.coverPhoto, { width: 200, quality: 75 })}
                         alt=""
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
@@ -989,7 +990,7 @@ export default function AlbumSection({ memories, readOnly }: AlbumSectionProps) 
                 {focusedMemory.media_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={focusedMemory.media_url}
+                    src={storageUrl(focusedMemory.media_url, { width: 800, quality: 80 })}
                     alt={focusedMemory.caption || ''}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />

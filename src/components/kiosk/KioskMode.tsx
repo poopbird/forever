@@ -107,6 +107,7 @@ export default function KioskMode({ memories, coupleName, coupleId }: KioskModeP
             fill
             className="object-cover"
             sizes="100vw"
+            quality={80}
             priority
           />
         </motion.div>

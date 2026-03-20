@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Memory } from '@/types';
+import { storageUrl } from '@/lib/storageUrl';
 
 interface PhotoSheetProps {
   photos:  Memory[];
@@ -110,7 +111,7 @@ export default function PhotoSheet({ photos, onClose }: PhotoSheetProps) {
           <AnimatePresence mode="wait">
             <motion.img
               key={current.id}
-              src={current.media_url}
+              src={storageUrl(current.media_url, { width: 800, quality: 80 })}
               alt=""
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1,  scale: 1 }}

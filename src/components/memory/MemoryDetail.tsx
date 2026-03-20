@@ -109,6 +109,7 @@ export default function MemoryDetail({ memory, onClose, onEdit }: MemoryDetailPr
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 672px"
+                  quality={80}
                 />
               </motion.div>
             </AnimatePresence>
