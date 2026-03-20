@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Polaroid Albums — Forever</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700&family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens — matching the Forever site ────────────────── */
+:root {
+  --cream:        #f5f0e8;
+  --cream-dark:   #ede3cc;
+  --rose-deep:    #c2697a;
+  --rose-light:   #f2c4ce;
+  --gold:         #c9964a;
+  --gold-light:   #e8c680;
+  --ink:          #2a1a08;
+  --ink-light:    #7a6040;
+  --bg:           #13100c;
+  --bg-mid:       #1c160e;
+  --paper:        #f2ead8;
+  --paper-dark:   #e8dcc4;
+  --spine-shadow: rgba(0,0,0,0.55);
+}
+
+/* ── Base ───────────────────────────────────────────────── */
+body {
+  font-family: 'Lato', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: overlay;
+}
+
+/* ── Section ────────────────────────────────────────────── */
+.section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px 80px;
+  position: relative;
+}
+
+/* Radial warm glow behind shelf */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse, rgba(201,150,74,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.section-eyebrow {
+  font-family: 'Lato', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--cream);
+  margin-bottom: 10px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.section-sub {
+  font-family: 'Lato', sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--ink-light);
+  margin-bottom: 64px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ── Shelf ──────────────────────────────────────────────── */
+.shelf-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 44px;
+  padding: 48px 20px 0;
+}
+
+/* Wooden shelf plank */
+.shelf-plank {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: 18px;
+  margin-top: 0;
+  background: linear-gradient(to bottom, #6b4a28 0%, #4a2e14 40%, #3a2010 100%);
+  border-radius: 3px;
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+}
+.shelf-plank::before {
+  content: '';
+  position: absolute;
+  inset: 3px 0 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 60px,
+    rgba(255,255,255,0.02) 60px, rgba(255,255,255,0.02) 61px
+  );
+  border-radius: 3px;
+}
+
+/* ── Book ───────────────────────────────────────────────── */
+.book {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  animation: floatBook linear infinite;
+  will-change: transform;
+  transition: filter 0.3s;
+}
+.book:hover { filter: brightness(1.12); animation-play-state: paused; }
+.book:hover .book-cover { box-shadow: -5px 5px 0 #1a0e04, 6px 14px 40px rgba(0,0,0,0.7), 0 0 30px rgba(201,150,74,0.2); }
+
+/* Staggered float phases */
+.book:nth-child(1) { animation-duration: 5.2s; animation-delay:  0s; }
+.book:nth-child(2) { animation-duration: 4.4s; animation-delay: -1.8s; }
+.book:nth-child(3) { animation-duration: 5.8s; animation-delay: -3.5s; }
+
+@keyframes floatBook {
+  0%,100% { transform: translateY(0px) rotate(0deg); }
+  33%      { transform: translateY(-12px) rotate(0.3deg); }
+  66%      { transform: translateY(-6px) rotate(-0.2deg); }
+}
+
+/* Book cover */
+.book-cover {
+  border-radius: 3px 12px 12px 3px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: -5px 5px 0 #1a0e04, 4px 10px 32px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 14px;
+  transition: box-shadow 0.3s;
+}
+
+/* Spine shadow + highlight */
+.book-cover::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 12px; height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.1), transparent);
+  z-index: 4;
+}
+/* Right edge highlight */
+.book-cover::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 3px; height: 100%;
+  background: linear-gradient(to left, rgba(255,255,255,0.12), transparent);
+  z-index: 4;
+}
+
+/* Leather texture via layered radial gradients */
+.book-cover .leather-texture {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 30% 40%, rgba(255,255,255,0.05), transparent),
+    radial-gradient(ellipse 60% 80% at 70% 60%, rgba(0,0,0,0.2), transparent);
+  z-index: 1;
+}
+
+/* Small affixed cover photo (like a stuck-on print) */
+.book-cover-photo {
+  position: relative;
+  z-index: 3;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.9),
+    0 0 0 4px rgba(0,0,0,0.15),
+    0 3px 12px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  background: rgba(0,0,0,0.2);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.book-cover-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.book-label {
+  position: relative;
+  z-index: 3;
+  font-family: 'Dancing Script', cursive;
+  font-size: 14px;
+  color: rgba(255,255,255,0.82);
+  text-align: center;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+
+.book-tag {
+  margin-top: 10px;
+  font-family: 'Lato', sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(201,150,74,0.5);
+}
+
+/* ── Album Overlay ──────────────────────────────────────── */
+.album-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8,5,2,0.88);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.album-overlay.open { display: flex; }
+
+/* ── Open Album ─────────────────────────────────────────── */
+.album {
+  width: 100%;
+  max-width: 880px;
+  height: min(86vh, 600px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 3px 10px 10px 3px;
+  overflow: hidden;
+  box-shadow:
+    0 50px 120px rgba(0,0,0,0.85),
+    0 0 0 1px rgba(255,255,255,0.04);
+  animation: albumOpen 0.55s cubic-bezier(0.22,1,0.36,1) both;
+  position: relative;
+}
+
+@keyframes albumOpen {
+  from {
+    opacity: 0;
+    transform: perspective(1600px) rotateY(-28deg) scale(0.82) translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1600px) rotateY(0deg) scale(1) translateX(0);
+  }
+}
+
+/* Album header — top edge resembles the cover spine */
+.album-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: linear-gradient(to right, #d8cdb0, #e8dfc8);
+  border-bottom: 1px solid #c8bda0;
+  position: relative;
+  z-index: 5;
+}
+/* Top binding strip */
+.album-header::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 16px;
+  background: linear-gradient(to right, #3a2510, #5a3a1a);
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.album-header-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  padding-left: 24px;
+}
+
+.album-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(90,58,26,0.25);
+  background: rgba(90,58,26,0.1);
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  font-family: 'Lato', sans-serif;
+}
+.album-close:hover { background: rgba(90,58,26,0.2); }
+
+/* ── Two-page spread ─────────────────────────────────────── */
+.spread-container {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  perspective: 2400px;
+  perspective-origin: 50% 50%;
+  position: relative;
+}
+
+.album-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px;
+  overflow: hidden;
+  position: relative;
+}
+.album-page.left {
+  background: linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%);
+  border-right: 2px solid #d0c4a8;
+}
+.album-page.right {
+  background: linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%);
+}
+
+/* Inner shadow to simulate page curve near spine */
+.album-page.left::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 24px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.05));
+  pointer-events: none;
+}
+.album-page.right::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 24px;
+  background: linear-gradient(to left, transparent, rgba(0,0,0,0.05));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Flipper (3D page turn) ─────────────────────────────── */
+#flipper {
+  display: none;
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  transform-style: preserve-3d;
+  z-index: 10;
+}
+#flipper .f-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px;
+}
+#flipper .f-front {
+  background: linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%);
+}
+#flipper .f-back {
+  background: linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%);
+  transform: rotateY(180deg);
+}
+
+/* Page curl shadow during flip */
+#flipper .f-front::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.12));
+  pointer-events: none;
+}
+#flipper .f-back::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 32px;
+  background: linear-gradient(to left, transparent, rgba(0,0,0,0.1));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Polaroid grid ──────────────────────────────────────── */
+.polaroid-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  height: 100%;
+}
+
+/* ── Polaroid card ──────────────────────────────────────── */
+.polaroid {
+  background: #fff;
+  padding: 6px 6px 28px;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.14),
+    0 8px 20px rgba(0,0,0,0.08);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
+  overflow: visible;
+}
+.polaroid:hover {
+  box-shadow: 0 12px 36px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.15) !important;
+  z-index: 5;
+}
+.polaroid:nth-child(1) { transform: rotate(-1.8deg); }
+.polaroid:nth-child(1):hover { transform: rotate(-1.8deg) scale(1.07) translateY(-4px); }
+.polaroid:nth-child(2) { transform: rotate(1.4deg); }
+.polaroid:nth-child(2):hover { transform: rotate(1.4deg) scale(1.07) translateY(-4px); }
+.polaroid:nth-child(3) { transform: rotate(0.8deg); }
+.polaroid:nth-child(3):hover { transform: rotate(0.8deg) scale(1.07) translateY(-4px); }
+.polaroid:nth-child(4) { transform: rotate(-1.2deg); }
+.polaroid:nth-child(4):hover { transform: rotate(-1.2deg) scale(1.07) translateY(-4px); }
+
+/* Photo area */
+.polaroid-img {
+  flex: 1;
+  background: #e8dece;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+.polaroid-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Caption handwritten-style label */
+.polaroid-caption {
+  position: absolute;
+  bottom: 5px; left: 6px; right: 6px;
+  text-align: center;
+  font-family: 'Dancing Script', cursive;
+  font-size: 10px;
+  color: #5a3820;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1;
+}
+
+/* Empty slot */
+.polaroid-empty {
+  background: rgba(232,220,200,0.5);
+  border: 1.5px dashed rgba(180,160,130,0.6);
+  cursor: default;
+  box-shadow: none !important;
+}
+.polaroid-empty:hover { transform: none !important; box-shadow: none !important; }
+
+/* ── Album footer ───────────────────────────────────────── */
+.album-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: linear-gradient(to right, #d8cdb0, #e0d4b8);
+  border-top: 1px solid #c8bda0;
+  position: relative;
+}
+.album-footer::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 16px;
+  background: linear-gradient(to right, #3a2510, #5a3a1a);
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.page-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(90,58,26,0.3);
+  background: rgba(90,58,26,0.1);
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+  font-family: 'Lato', sans-serif;
+  line-height: 1;
+}
+.page-btn:hover:not(:disabled) {
+  background: rgba(90,58,26,0.2);
+  transform: scale(1.1);
+}
+.page-btn:disabled { opacity: 0.28; cursor: default; }
+
+.page-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-left: 16px;
+}
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(90,58,26,0.25);
+  cursor: pointer;
+  transition: background 0.18s, transform 0.18s;
+}
+.dot.active {
+  background: var(--gold);
+  transform: scale(1.45);
+}
+.dot:hover:not(.active) { background: rgba(90,58,26,0.5); }
+
+/* Page counter */
+.page-count {
+  font-family: 'Lato', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--ink-light);
+  letter-spacing: 0.12em;
+  padding-left: 8px;
+}
+
+/* ── Focused polaroid overlay ───────────────────────────── */
+.focused-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,3,1,0.78);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.focused-overlay.open { display: flex; }
+
+/* The enlarged polaroid */
+.focused-polaroid {
+  background: #fff;
+  padding: 10px 10px 60px;
+  width: min(340px, 88vw);
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,255,255,0.05);
+  animation: popIn 0.32s cubic-bezier(0.22,1,0.36,1) both;
+  position: relative;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.82) rotate(-2deg); }
+  to   { opacity: 1; transform: scale(1) rotate(-0.5deg); }
+}
+
+.focused-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #e0d4c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  overflow: hidden;
+}
+.focused-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.focused-caption-wrap {
+  position: absolute;
+  bottom: 0; left: 10px; right: 10px;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+.focused-caption-main {
+  font-family: 'Dancing Script', cursive;
+  font-size: 17px;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.2;
+}
+.focused-caption-sub {
+  font-family: 'Lato', sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: var(--ink-light);
+  text-align: center;
+}
+
+/* Reactions + comment below the polaroid */
+.focused-actions {
+  width: min(340px, 88vw);
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  animation: popIn 0.32s cubic-bezier(0.22,1,0.36,1) 0.06s both;
+}
+
+.reactions-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.reaction-pill {
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: var(--cream);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+  letter-spacing: 0.02em;
+}
+.reaction-pill:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.22); }
+.reaction-pill.active { background: rgba(201,150,74,0.2); border-color: rgba(201,150,74,0.5); }
+
+.comment-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.comment-row input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-family: 'Lato', sans-serif;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.comment-row input::placeholder { color: rgba(255,255,255,0.28); }
+.comment-row input:focus { border-color: rgba(201,150,74,0.5); }
+.comment-row button {
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: none;
+  background: var(--gold);
+  color: #1a1008;
+  font-size: 12px;
+  font-family: 'Lato', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: background 0.15s;
+}
+.comment-row button:hover { background: var(--gold-light); }
+
+/* Side navigation arrows */
+.focused-side-nav {
+  position: absolute;
+  top: calc(10px + (50%) * 0.55);
+  transform: translateY(-50%);
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+  backdrop-filter: blur(4px);
+  line-height: 1;
+  z-index: 5;
+}
+.focused-side-nav:hover { background: rgba(255,255,255,0.16); }
+#focusedPrev { right: calc(100% + 14px); }
+#focusedNext { left: calc(100% + 14px); }
+
+/* Close hint */
+.focused-close-hint {
+  position: absolute;
+  top: -36px; right: 0;
+  font-family: 'Lato', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.28);
+  cursor: pointer;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .shelf-wrapper { flex-direction: column; align-items: center; gap: 24px; }
+  .shelf-plank { display: none; }
+  .album { height: min(90vh, 520px); }
+  .spread-container { flex-direction: column; }
+  .album-page.left { border-right: none; border-bottom: 2px solid #d0c4a8; }
+  .polaroid-grid { gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Scene 1: The Shelf ─────────────────────────────────── -->
+<section class="section">
+  <div class="section-eyebrow">Our Story</div>
+  <h2 class="section-title">A lifetime of moments</h2>
+  <p class="section-sub">Open an album to relive the journey</p>
+
+  <div class="shelf-wrapper" id="shelf">
+
+    <!-- Book 1: 2020–2022 -->
+    <div class="book" onclick="openAlbum(0)">
+      <div class="book-cover" style="width:148px;height:192px;background:linear-gradient(150deg,#5c2234 0%,#3a1320 60%,#2a0e18 100%);">
+        <div class="leather-texture"></div>
+        <div class="book-cover-photo">🌅</div>
+        <div class="book-label">2020<br/>—<br/>2022</div>
+      </div>
+      <span class="book-tag">click to open</span>
+    </div>
+
+    <!-- Book 2: 2023 (taller — the "engagement year") -->
+    <div class="book" onclick="openAlbum(1)" style="margin-bottom:12px">
+      <div class="book-cover" style="width:136px;height:212px;background:linear-gradient(150deg,#1e3d2f 0%,#122818 60%,#0c1e12 100%);">
+        <div class="leather-texture"></div>
+        <div class="book-cover-photo">💍</div>
+        <div class="book-label">2023</div>
+      </div>
+    </div>
+
+    <!-- Book 3: 2024–2025 -->
+    <div class="book" onclick="openAlbum(2)">
+      <div class="book-cover" style="width:148px;height:192px;background:linear-gradient(150deg,#1e2d4e 0%,#111c34 60%,#0a1226 100%);">
+        <div class="leather-texture"></div>
+        <div class="book-cover-photo">💒</div>
+        <div class="book-label">2024<br/>—<br/>2025</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- The wooden shelf -->
+  <div class="shelf-plank" style="max-width:560px; margin-top:0;"></div>
+
+</section>
+
+
+<!-- ── Album overlay (Scenes 2 + 3) ───────────────────────── -->
+<div class="album-overlay" id="albumOverlay" onclick="handleOverlayClick(event)">
+  <div class="album" id="albumBox" onclick="e => e.stopPropagation()">
+
+    <!-- Header -->
+    <div class="album-header">
+      <div class="album-header-title" id="albumTitle"></div>
+      <button class="album-close" onclick="closeAlbum()">✕</button>
+    </div>
+
+    <!-- Spread -->
+    <div class="spread-container" id="spreadContainer">
+
+      <!-- Static left page -->
+      <div class="album-page left" id="leftPage">
+        <div class="polaroid-grid" id="leftGrid"></div>
+      </div>
+
+      <!-- Static right page -->
+      <div class="album-page right" id="rightPage">
+        <div class="polaroid-grid" id="rightGrid"></div>
+      </div>
+
+      <!-- 3D flipper (absolute, toggled by JS) -->
+      <div id="flipper">
+        <div class="f-face f-front">
+          <div class="polaroid-grid" id="flipFront"></div>
+        </div>
+        <div class="f-face f-back">
+          <div class="polaroid-grid" id="flipBack"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="album-footer">
+      <button class="page-btn" id="prevBtn" onclick="flipPage(-1)">&#8249;</button>
+      <div style="display:flex;align-items:center;padding-left:16px;">
+        <div class="page-dots" id="pageDots"></div>
+        <span class="page-count" id="pageCount"></span>
+      </div>
+      <button class="page-btn" id="nextBtn" onclick="flipPage(1)">&#8250;</button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ── Focused polaroid (Scene 4) ─────────────────────────── -->
+<div class="focused-overlay" id="focusedOverlay" onclick="handleFocusedClick(event)">
+
+  <div style="position:relative; display:flex; flex-direction:column; align-items:center;">
+
+    <!-- Side nav -->
+    <button class="focused-side-nav" id="focusedPrev" onclick="focusedNav(-1)">&#8249;</button>
+    <button class="focused-side-nav" id="focusedNext" onclick="focusedNav(1)">&#8250;</button>
+
+    <!-- Close hint -->
+    <div class="focused-close-hint" onclick="closeFocused()">click outside to close</div>
+
+    <!-- The polaroid -->
+    <div class="focused-polaroid" id="focusedCard">
+      <div class="focused-image" id="focusedImage"></div>
+      <div class="focused-caption-wrap">
+        <div class="focused-caption-main" id="focusedCaptionMain"></div>
+        <div class="focused-caption-sub"  id="focusedCaptionSub"></div>
+      </div>
+    </div>
+
+    <!-- Reactions + comment -->
+    <div class="focused-actions">
+      <div class="reactions-row" id="reactionsRow">
+        <button class="reaction-pill active">❤️ 4</button>
+        <button class="reaction-pill">😍 2</button>
+        <button class="reaction-pill">🥹 1</button>
+        <button class="reaction-pill" id="reactPlusBtn" onclick="toggleReactPicker()">+ React</button>
+      </div>
+      <div class="comment-row">
+        <input type="text" placeholder="Leave a comment…" id="commentInput" />
+        <button onclick="postComment()">Post</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+/* ── Data ─────────────────────────────────────────────── */
+const albums = [
+  {
+    title: '2020 – 2022',
+    memories: [
+      { emoji:'🌅', caption:'First sunrise together',  date:'12 Jan 2020', location:'Sentosa, Singapore' },
+      { emoji:'🎂', caption:"Her 25th birthday",        date:'3 Mar 2020',  location:'Marina Bay' },
+      { emoji:'✈️', caption:'First trip abroad',        date:'Sep 2021',    location:'Bali, Indonesia' },
+      { emoji:'🌸', caption:'Cherry blossoms',          date:'Apr 2021',    location:'Tokyo, Japan' },
+      { emoji:'🎆', caption:"New Year's Eve",            date:'31 Dec 2021', location:'Clarke Quay' },
+      { emoji:'🏖️', caption:'Beach holiday',            date:'Jun 2022',    location:'Phuket, Thailand' },
+      { emoji:'🍜', caption:'Hawker centre date',       date:'Aug 2022',    location:'Tiong Bahru' },
+      { emoji:'🎵', caption:'Concert night',            date:'Oct 2022',    location:'Indoor Stadium' },
+    ]
+  },
+  {
+    title: '2023',
+    memories: [
+      { emoji:'💍', caption:'The proposal',             date:'14 Feb 2023', location:'Gardens by the Bay' },
+      { emoji:'🥂', caption:'Engagement dinner',        date:'20 Feb 2023', location:'Odette, Singapore' },
+      { emoji:'🏔️', caption:'Hiking trip',              date:'May 2023',    location:'Cameron Highlands' },
+      { emoji:'🎨', caption:'Art gallery date',         date:'Aug 2023',    location:'National Gallery' },
+    ]
+  },
+  {
+    title: '2024 – 2025',
+    memories: [
+      { emoji:'👗', caption:'Gown fitting',             date:'Mar 2024',    location:'Orchard Road' },
+      { emoji:'📸', caption:'Pre-wedding shoot',        date:'Jun 2024',    location:'Botanic Gardens' },
+      { emoji:'💒', caption:'The big day',              date:'10 Jan 2025', location:'Conrad Hotel' },
+      { emoji:'🌍', caption:'Honeymoon',                date:'Jan 2025',    location:'Maldives' },
+    ]
+  },
+];
+
+const PER_PAGE   = 4;   // polaroids per page
+const PER_SPREAD = 8;   // polaroids per spread (two pages)
+
+let currentAlbumIdx = 0;
+let currentSpread   = 0;
+let focusedMemIdx   = 0;
+let isFlipping      = false;
+
+/* ── Helpers ──────────────────────────────────────────── */
+function getMemories() { return albums[currentAlbumIdx].memories; }
+function totalSpreads() { return Math.max(1, Math.ceil(getMemories().length / PER_SPREAD)); }
+
+function sliceForSpread(spreadIdx) {
+  const base = spreadIdx * PER_SPREAD;
+  return {
+    left:  getMemories().slice(base,          base + PER_PAGE),
+    right: getMemories().slice(base + PER_PAGE, base + PER_SPREAD),
+    baseIdx: base,
+  };
+}
+
+function buildGrid(slice, baseIdx) {
+  const slots = [...slice];
+  while (slots.length < PER_PAGE) slots.push(null);
+  return slots.map((m, i) => m
+    ? `<div class="polaroid" onclick="openFocused(${baseIdx + i})">
+         <div class="polaroid-img">${m.emoji}</div>
+         <div class="polaroid-caption">${m.caption}</div>
+       </div>`
+    : `<div class="polaroid polaroid-empty"></div>`
+  ).join('');
+}
+
+/* ── Album open / close ───────────────────────────────── */
+function openAlbum(idx) {
+  currentAlbumIdx = idx;
+  currentSpread   = 0;
+  document.getElementById('albumTitle').textContent = albums[idx].title;
+  renderSpread(false);
+  document.getElementById('albumOverlay').classList.add('open');
+}
+
+function closeAlbum() {
+  document.getElementById('albumOverlay').classList.remove('open');
+  closeFocused();
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('albumOverlay')) closeAlbum();
+}
+
+/* ── Render spread ────────────────────────────────────── */
+function renderSpread(animate) {
+  const { left, right, baseIdx } = sliceForSpread(currentSpread);
+  document.getElementById('leftGrid').innerHTML  = buildGrid(left,  baseIdx);
+  document.getElementById('rightGrid').innerHTML = buildGrid(right, baseIdx + PER_PAGE);
+  renderDots();
+}
+
+function renderDots() {
+  const total = totalSpreads();
+  document.getElementById('pageDots').innerHTML = Array.from({length: total}, (_, i) =>
+    `<div class="dot ${i === currentSpread ? 'active' : ''}" onclick="jumpSpread(${i})"></div>`
+  ).join('');
+  document.getElementById('pageCount').textContent =
+    `  ${currentSpread + 1} / ${total}`;
+  document.getElementById('prevBtn').disabled = currentSpread === 0;
+  document.getElementById('nextBtn').disabled = currentSpread >= total - 1;
+}
+
+function jumpSpread(idx) {
+  if (isFlipping || idx === currentSpread) return;
+  const dir = idx > currentSpread ? 1 : -1;
+  doFlip(idx, dir);
+}
+
+/* ── 3D page flip ─────────────────────────────────────── */
+function flipPage(dir) {
+  if (isFlipping) return;
+  const target = currentSpread + dir;
+  if (target < 0 || target >= totalSpreads()) return;
+  doFlip(target, dir);
+}
+
+function doFlip(targetSpread, dir) {
+  isFlipping = true;
+
+  const flipper     = document.getElementById('flipper');
+  const flipFront   = document.getElementById('flipFront');
+  const flipBack    = document.getElementById('flipBack');
+
+  // Content for front and back faces
+  const currentData = sliceForSpread(currentSpread);
+  const nextData    = sliceForSpread(targetSpread);
+
+  if (dir > 0) {
+    // Forward: right page flips to left — flipper covers right half
+    flipper.style.left  = '50%';
+    flipper.style.right = '0';
+    flipper.style.transformOrigin = 'left center';
+    flipFront.innerHTML = buildGrid(currentData.right, currentData.baseIdx + PER_PAGE);
+    flipBack.innerHTML  = buildGrid(nextData.left,     nextData.baseIdx);
+  } else {
+    // Backward: left page flips to right — flipper covers left half
+    flipper.style.left  = '0';
+    flipper.style.right = '50%';
+    flipper.style.transformOrigin = 'right center';
+    flipFront.innerHTML = buildGrid(currentData.left, currentData.baseIdx);
+    flipBack.innerHTML  = buildGrid(nextData.right,   nextData.baseIdx + PER_PAGE);
+  }
+
+  // Immediately hide the relevant static page so only flipper is visible
+  if (dir > 0) {
+    document.getElementById('rightGrid').style.visibility = 'hidden';
+  } else {
+    document.getElementById('leftGrid').style.visibility = 'hidden';
+  }
+
+  // Show flipper and kick off animation
+  flipper.style.display   = 'block';
+  flipper.style.transform = 'rotateY(0deg)';
+  flipper.style.transition = 'none';
+
+  // Force reflow
+  void flipper.offsetWidth;
+
+  // Animate
+  flipper.style.transition = 'transform 0.68s cubic-bezier(0.645, 0.045, 0.355, 1.000)';
+  flipper.style.transform  = dir > 0 ? 'rotateY(-180deg)' : 'rotateY(180deg)';
+
+  // After flip completes
+  setTimeout(() => {
+    currentSpread = targetSpread;
+    renderSpread(false);
+
+    document.getElementById('rightGrid').style.visibility = '';
+    document.getElementById('leftGrid').style.visibility  = '';
+
+    flipper.style.transition = 'none';
+    flipper.style.display    = 'none';
+    isFlipping = false;
+  }, 700);
+}
+
+/* ── Focused view ─────────────────────────────────────── */
+function openFocused(memIdx) {
+  focusedMemIdx = memIdx;
+  renderFocused();
+  document.getElementById('focusedOverlay').classList.add('open');
+}
+
+function closeFocused() {
+  document.getElementById('focusedOverlay').classList.remove('open');
+}
+
+function renderFocused() {
+  const m = getMemories()[focusedMemIdx];
+  if (!m) return;
+
+  // Re-trigger animation
+  const card = document.getElementById('focusedCard');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = '';
+
+  document.getElementById('focusedImage').innerHTML =
+    `<span style="font-size:72px">${m.emoji}</span>`;
+
+  document.getElementById('focusedCaptionMain').textContent = m.caption || '';
+
+  const parts = [];
+  if (m.date)     parts.push(m.date);
+  if (m.location) parts.push(m.location);
+  document.getElementById('focusedCaptionSub').textContent = parts.join('  ·  ');
+}
+
+function focusedNav(dir) {
+  const total = getMemories().length;
+  focusedMemIdx = (focusedMemIdx + dir + total) % total;
+  renderFocused();
+}
+
+function handleFocusedClick(e) {
+  if (e.target === document.getElementById('focusedOverlay')) closeFocused();
+}
+
+/* ── Reactions / Comments (demo) ─────────────────────── */
+const EMOJIS = ['❤️','😍','🥹','😂','🙌','😭'];
+let pickerOpen = false;
+
+function toggleReactPicker() {
+  if (pickerOpen) {
+    document.getElementById('emojiPicker')?.remove();
+    pickerOpen = false;
+    return;
+  }
+  const row = document.getElementById('reactionsRow');
+  const picker = document.createElement('div');
+  picker.id = 'emojiPicker';
+  picker.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;';
+  EMOJIS.forEach(e => {
+    const btn = document.createElement('button');
+    btn.className = 'reaction-pill';
+    btn.textContent = e;
+    btn.onclick = () => addReaction(e);
+    picker.appendChild(btn);
+  });
+  row.parentNode.insertBefore(picker, row.nextSibling);
+  pickerOpen = true;
+}
+
+function addReaction(emoji) {
+  document.getElementById('emojiPicker')?.remove();
+  pickerOpen = false;
+  const row   = document.getElementById('reactionsRow');
+  const plusBtn = document.getElementById('reactPlusBtn');
+  const btn = document.createElement('button');
+  btn.className = 'reaction-pill active';
+  btn.textContent = `${emoji} 1`;
+  row.insertBefore(btn, plusBtn);
+}
+
+function postComment() {
+  const input = document.getElementById('commentInput');
+  const val   = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  // In the real app this would hit the API
+}
+
+/* ── Keyboard nav ─────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  const albumOpen   = document.getElementById('albumOverlay').classList.contains('open');
+  const focusedOpen = document.getElementById('focusedOverlay').classList.contains('open');
+  if (focusedOpen) {
+    if (e.key === 'ArrowLeft')  focusedNav(-1);
+    if (e.key === 'ArrowRight') focusedNav(1);
+    if (e.key === 'Escape')     closeFocused();
+  } else if (albumOpen) {
+    if (e.key === 'ArrowLeft')  flipPage(-1);
+    if (e.key === 'ArrowRight') flipPage(1);
+    if (e.key === 'Escape')     closeAlbum();
+  }
+});
+</script>
+</body>
+</html>

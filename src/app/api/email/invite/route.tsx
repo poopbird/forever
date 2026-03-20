@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         );
 
         await resend.emails.send({
-          from:    `${couple.name} <onboarding@resend.dev>`,
+          from:    `${couple.name} <noreply@foowengs.com>`,
           to:      g.email!,
           subject: `You're invited — ${couple.name}`,
           html,

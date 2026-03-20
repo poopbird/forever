@@ -84,7 +84,7 @@ export async function POST(request: Request) {
   );
 
   const { error } = await resend.emails.send({
-    from:    `${couple.name} <onboarding@resend.dev>`,
+    from:    `${couple.name} <noreply@foowengs.com>`,
     to:      guest.email,
     subject: `RSVP confirmed — ${couple.name}`,
     html,

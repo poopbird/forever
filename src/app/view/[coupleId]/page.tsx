@@ -3,7 +3,9 @@ import { notFound } from 'next/navigation';
 import CoverHero from '@/components/layout/CoverHero';
 import LandingSection from '@/components/layout/LandingSection';
 import PolaroidHighlights from '@/components/highlights/PolaroidHighlights';
-import FilmReel from '@/components/timeline/FilmReel';
+// FilmReel preserved — will be selectable via Section Visibility Picker (future epic)
+// import FilmReel from '@/components/timeline/FilmReel';
+import AlbumSection from '@/components/album/AlbumSection';
 import MemoryMap from '@/components/map/MemoryMap';
 import KioskMode from '@/components/kiosk/KioskMode';
 import FaqPreview from '@/components/faq/FaqPreview';
@@ -93,9 +95,7 @@ export default async function PublicView({ params, searchParams }: Params) {
         rsvpEnabled={couple.rsvp_enabled ?? false}
       />
 
-      <section id="timeline">
-        <FilmReel memories={memories} readOnly />
-      </section>
+      <AlbumSection memories={memories} readOnly />
 
       {mappable.length > 0 && (
         <section id="map">

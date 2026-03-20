@@ -68,7 +68,7 @@ export async function GET(request: Request) {
       );
 
       const { error } = await resend.emails.send({
-        from:    `${couple.name} <onboarding@resend.dev>`,
+        from:    `${couple.name} <noreply@foowengs.com>`,
         to:      g.email!,
         subject: `Reminder: RSVP by ${deadlineStr} — ${couple.name}`,
         html,

@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation';
 import CoverHero from '@/components/layout/CoverHero';
 import LandingSection from '@/components/layout/LandingSection';
 import PolaroidHighlights from '@/components/highlights/PolaroidHighlights';
-import FilmReel from '@/components/timeline/FilmReel';
+// FilmReel preserved — will be selectable via Section Visibility Picker (future epic)
+// import FilmReel from '@/components/timeline/FilmReel';
+import AlbumSection from '@/components/album/AlbumSection';
 import MemoryMap from '@/components/map/MemoryMap';
 import FaqPreview from '@/components/faq/FaqPreview';
 import Link from 'next/link';
@@ -99,9 +101,7 @@ export default async function HomePage() {
         rsvpEnabled={profile.rsvp_enabled ?? false}
       />
 
-      <section id="timeline">
-        <FilmReel memories={memories} />
-      </section>
+      <AlbumSection memories={memories} />
 
       {mappable.length > 0 && (
         <section id="map">
