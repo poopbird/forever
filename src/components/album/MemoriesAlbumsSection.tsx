@@ -21,7 +21,6 @@ function autoYearAlbums(memories: Memory[]): Omit<CoupleAlbum, 'id' | 'couple_id
 
   if (years.length === 0) return [];
 
-  // Ensure at least 2 albums
   const effective = years.length >= 2 ? years : [years[0], years[0]];
 
   return effective.map((y, i) => ({
@@ -36,6 +35,17 @@ function autoYearAlbums(memories: Memory[]): Omit<CoupleAlbum, 'id' | 'couple_id
 
 function memoriesForYear(memories: Memory[], year: string): Memory[] {
   return memories.filter(m => m.date?.startsWith(year) && m.media_url);
+}
+
+// ── Save status indicator ─────────────────────────────────────────────────────
+
+function SaveStatus({ status }: { status: 'idle' | 'saving' | 'saved' | 'error' }) {
+  if (status === 'idle') return null;
+  return (
+    <span className={`text-xs ${status === 'saving' ? 'text-ink-light' : status === 'saved' ? 'text-green-600' : 'text-rose-600'}`}>
+      {status === 'saving' ? 'Saving…' : status === 'saved' ? '✓ Saved' : '✗ Failed'}
+    </span>
+  );
 }
 
 // ── Cover photo strip ─────────────────────────────────────────────────────────
@@ -82,72 +92,64 @@ function CoverStrip({
 
 function YearAlbumRow({
   album,
-  isNew,
   memories,
   onSaved,
 }: {
   album: CoupleAlbum | Omit<CoupleAlbum, 'id' | 'couple_id' | 'created_at'>;
-  isNew: boolean;
   memories: Memory[];
   onSaved: (saved: CoupleAlbum) => void;
 }) {
-  const id = 'id' in album ? album.id : null;
+  const savedIdRef = useRef<string>('id' in album ? album.id : '');
   const year = yearFromLabel(album.label);
   const albumMemories = memoriesForYear(memories, year);
-  const memCount = albumMemories.length;
 
-  const [caption,   setCaption]   = useState(album.caption ?? '');
-  const [coverUrl,  setCoverUrl]  = useState(album.cover_photo_url ?? '');
-  const [saving,    setSaving]    = useState(false);
-  const [unsaved,   setUnsaved]   = useState(isNew);
-  const [msg,       setMsg]       = useState('');
+  const [caption,    setCaption]    = useState(album.caption ?? '');
+  const [coverUrl,   setCoverUrl]   = useState(album.cover_photo_url ?? '');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  // Default cover = most recent photo in year if none chosen
   const defaultCover = albumMemories[albumMemories.length - 1]?.media_url ?? null;
   const displayCover = coverUrl || defaultCover;
 
-  function markUnsaved() { setUnsaved(true); setMsg(''); }
-
-  async function save() {
-    setSaving(true); setMsg('');
+  async function save(overrides?: { caption?: string; coverUrl?: string }) {
+    setSaveStatus('saving');
+    const cap = overrides?.caption  ?? caption;
+    const cov = overrides?.coverUrl ?? coverUrl;
     const body = {
       label:           album.label,
-      caption:         caption || null,
-      cover_photo_url: coverUrl || null,
+      caption:         cap || null,
+      cover_photo_url: cov || null,
       date_start:      album.date_start,
       date_end:        album.date_end,
       sort_order:      album.sort_order,
     };
-    const res = id
-      ? await fetch(`/api/albums/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-      : await fetch('/api/albums',        { method: 'POST',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const currentId = savedIdRef.current;
+    const res = currentId && !currentId.startsWith('__new__')
+      ? await fetch(`/api/albums/${currentId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      : await fetch('/api/albums',               { method: 'POST',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
-    setSaving(false);
     if (res.ok) {
       const saved: CoupleAlbum = await res.json();
-      setUnsaved(false);
-      setMsg('✓ Saved');
+      savedIdRef.current = saved.id;
+      setSaveStatus('saved');
       onSaved(saved);
+      setTimeout(() => setSaveStatus('idle'), 1500);
     } else {
-      setMsg('✗ Failed');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }
   }
 
   return (
-    <div className={`rounded-xl border p-5 transition-colors ${unsaved ? 'border-amber-500/40 bg-amber-500/5' : 'border-ink/10 bg-white/2'}`}>
+    <div className="rounded-xl border border-ink/10 bg-white/2 p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <p className="font-serif text-lg text-ink">{album.label}</p>
-          <p className="text-xs text-ink-light mt-0.5">{memCount} {memCount === 1 ? 'memory' : 'memories'}</p>
+          <p className="text-xs text-ink-light mt-0.5">{albumMemories.length} {albumMemories.length === 1 ? 'memory' : 'memories'}</p>
         </div>
-        {unsaved && (
-          <span className="text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-full px-2.5 py-0.5 whitespace-nowrap">
-            ● Unsaved
-          </span>
-        )}
+        <SaveStatus status={saveStatus} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label block mb-1.5">Caption</label>
           <input
@@ -155,7 +157,8 @@ function YearAlbumRow({
             className="form-input"
             value={caption}
             placeholder="e.g. Where it all began…"
-            onChange={e => { setCaption(e.target.value); markUnsaved(); }}
+            onChange={e => setCaption(e.target.value)}
+            onBlur={() => save()}
           />
         </div>
         <div>
@@ -163,17 +166,8 @@ function YearAlbumRow({
           <CoverStrip
             photos={albumMemories}
             selected={coverUrl || displayCover}
-            onSelect={url => { setCoverUrl(url); markUnsaved(); }}
+            onSelect={url => { setCoverUrl(url); save({ coverUrl: url }); }}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-3 border-t border-ink/8">
-        {msg && <span className="text-xs" style={{ color: msg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>{msg}</span>}
-        <div className="ml-auto">
-          <button className="btn-primary" onClick={save} disabled={saving || !unsaved}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
         </div>
       </div>
     </div>
@@ -196,10 +190,11 @@ function ManagePhotosModal({
   onSave: (ids: string[]) => void;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(assignedIds));
-  const [saving, setSaving] = useState(false);
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
 
-  const photos = allMemories.filter(m => m.media_url);
-  const inAlbum = photos.filter(m => selected.has(m.id));
+  const photos     = allMemories.filter(m => m.media_url);
+  const inAlbum    = photos.filter(m =>  selected.has(m.id));
   const unassigned = photos.filter(m => !selected.has(m.id));
 
   function toggle(id: string) {
@@ -212,6 +207,7 @@ function ManagePhotosModal({
 
   async function handleSave() {
     setSaving(true);
+    setError('');
     const ids = [...selected];
     const res = await fetch(`/api/albums/${album.id}/memories`, {
       method: 'PUT',
@@ -219,7 +215,12 @@ function ManagePhotosModal({
       body: JSON.stringify({ memory_ids: ids }),
     });
     setSaving(false);
-    if (res.ok) onSave(ids);
+    if (res.ok) {
+      onSave(ids); // parent closes modal
+    } else {
+      const body = await res.json().catch(() => ({}));
+      setError((body as Record<string, string>)?.error ?? 'Failed to save. Please try again.');
+    }
   }
 
   return (
@@ -269,6 +270,12 @@ function ManagePhotosModal({
           </div>
         </div>
 
+        {error && (
+          <div className="px-6 pb-2">
+            <p className="text-xs text-rose-600">{error}</p>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 px-6 py-4 border-t border-ink/10">
           <button onClick={onClose} className="btn-ghost">Cancel</button>
           <button onClick={handleSave} disabled={saving} className="btn-primary">
@@ -284,7 +291,6 @@ function ManagePhotosModal({
 
 function FreeformAlbumRow({
   album,
-  isNew,
   allMemories,
   albumMemoryIds,
   totalAlbums,
@@ -293,7 +299,6 @@ function FreeformAlbumRow({
   onMemoriesUpdated,
 }: {
   album: CoupleAlbum;
-  isNew: boolean;
   allMemories: Memory[];
   albumMemoryIds: Set<string>;
   totalAlbums: number;
@@ -301,43 +306,65 @@ function FreeformAlbumRow({
   onDeleted: (id: string) => void;
   onMemoriesUpdated: (albumId: string, ids: string[]) => void;
 }) {
+  const savedIdRef = useRef(album.id);
   const [label,    setLabel]    = useState(album.label);
   const [caption,  setCaption]  = useState(album.caption ?? '');
   const [coverUrl, setCoverUrl] = useState(album.cover_photo_url ?? '');
-  const [unsaved,  setUnsaved]  = useState(isNew);
-  const [saving,   setSaving]   = useState(false);
-  const [msg,      setMsg]      = useState('');
-  const [showManage, setShowManage] = useState(false);
+  const [saveStatus,      setSaveStatus]      = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [showManage,      setShowManage]      = useState(false);
   const [deletingConfirm, setDeletingConfirm] = useState(false);
 
-  const albumPhotos = allMemories.filter(m => albumMemoryIds.has(m.id) && m.media_url);
+  const albumPhotos  = allMemories.filter(m => albumMemoryIds.has(m.id) && m.media_url);
   const defaultCover = albumPhotos[albumPhotos.length - 1]?.media_url ?? null;
   const displayCover = coverUrl || defaultCover;
 
-  function markUnsaved() { setUnsaved(true); setMsg(''); }
+  // Returns real DB id after save, or null on failure
+  async function save(overrides?: { label?: string; caption?: string; coverUrl?: string }): Promise<string | null> {
+    const lbl = (overrides?.label   ?? label).trim();
+    const cap = overrides?.caption  ?? caption;
+    const cov = overrides?.coverUrl ?? coverUrl;
+    if (!lbl) return null;
 
-  async function save() {
-    if (!label.trim()) return;
-    setSaving(true); setMsg('');
-    const body = { label: label.trim(), caption: caption || null, cover_photo_url: coverUrl || null, sort_order: album.sort_order };
-    const res = await fetch(`/api/albums/${album.id}`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-    });
-    setSaving(false);
-    if (res.ok) { const saved = await res.json(); setUnsaved(false); setMsg('✓ Saved'); onSaved(saved); }
-    else setMsg('✗ Failed');
+    setSaveStatus('saving');
+    const body = { label: lbl, caption: cap || null, cover_photo_url: cov || null, sort_order: album.sort_order };
+    const currentId = savedIdRef.current;
+    const res = !currentId.startsWith('__new__')
+      ? await fetch(`/api/albums/${currentId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      : await fetch('/api/albums',               { method: 'POST',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+    if (res.ok) {
+      const saved: CoupleAlbum = await res.json();
+      savedIdRef.current = saved.id;
+      setSaveStatus('saved');
+      onSaved(saved);
+      setTimeout(() => setSaveStatus('idle'), 1500);
+      return saved.id;
+    } else {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+      return null;
+    }
+  }
+
+  // Ensure album persisted before opening manage modal
+  async function openManage() {
+    if (savedIdRef.current.startsWith('__new__')) {
+      const id = await save();
+      if (!id) return;
+    }
+    setShowManage(true);
   }
 
   async function handleDelete() {
     if (!deletingConfirm) { setDeletingConfirm(true); return; }
-    const res = await fetch(`/api/albums/${album.id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/albums/${savedIdRef.current}`, { method: 'DELETE' });
     if (res.ok) onDeleted(album.id);
-    else { setMsg('✗ Cannot delete (minimum 2 albums)'); setDeletingConfirm(false); }
+    else { setSaveStatus('error'); setDeletingConfirm(false); setTimeout(() => setSaveStatus('idle'), 2000); }
   }
 
   return (
     <>
-      <div className={`rounded-xl border p-5 transition-colors ${unsaved ? 'border-amber-500/40 bg-amber-500/5' : 'border-ink/10 bg-white/2'}`}>
+      <div className="rounded-xl border border-ink/10 bg-white/2 p-5">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-ink/20 cursor-grab text-xl select-none" title="Drag to reorder">⠿</span>
           <div className="flex-1">
@@ -345,14 +372,11 @@ function FreeformAlbumRow({
             <input
               type="text" className="form-input"
               value={label} placeholder="e.g. Paris, always"
-              onChange={e => { setLabel(e.target.value); markUnsaved(); }}
+              onChange={e => setLabel(e.target.value)}
+              onBlur={() => save()}
             />
           </div>
-          {unsaved && (
-            <span className="text-xs text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-full px-2.5 py-0.5 whitespace-nowrap self-end mb-1">
-              ● Unsaved
-            </span>
-          )}
+          <SaveStatus status={saveStatus} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -361,7 +385,8 @@ function FreeformAlbumRow({
             <input
               type="text" className="form-input"
               value={caption} placeholder="e.g. The trip that changed us"
-              onChange={e => { setCaption(e.target.value); markUnsaved(); }}
+              onChange={e => setCaption(e.target.value)}
+              onBlur={() => save()}
             />
           </div>
           <div>
@@ -369,44 +394,33 @@ function FreeformAlbumRow({
             <CoverStrip
               photos={albumPhotos}
               selected={coverUrl || displayCover}
-              onSelect={url => { setCoverUrl(url); markUnsaved(); }}
+              onSelect={url => { setCoverUrl(url); save({ coverUrl: url }); }}
             />
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-ink/8 gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
+          <button onClick={openManage} className="btn-ghost text-sm">
+            🖼 Manage photos ({albumPhotos.length})
+          </button>
+          {totalAlbums > 2 && (
             <button
-              onClick={() => setShowManage(true)}
-              className="btn-ghost text-sm"
+              onClick={handleDelete}
+              className="text-xs text-rose-deep/60 hover:text-rose-deep border border-rose-deep/20 hover:border-rose-deep/50 rounded-lg px-3 py-1.5 transition"
             >
-              🖼 Manage photos ({albumPhotos.length})
+              {deletingConfirm ? 'Confirm delete?' : 'Delete'}
             </button>
-            {msg && <span className="text-xs" style={{ color: msg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>{msg}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            {totalAlbums > 2 && (
-              <button
-                onClick={handleDelete}
-                className="text-xs text-rose-deep/60 hover:text-rose-deep border border-rose-deep/20 hover:border-rose-deep/50 rounded-lg px-3 py-1.5 transition"
-              >
-                {deletingConfirm ? 'Confirm delete?' : 'Delete'}
-              </button>
-            )}
-            <button className="btn-primary" onClick={save} disabled={saving || !unsaved}>
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
       {showManage && (
         <ManagePhotosModal
-          album={album}
+          album={{ ...album, id: savedIdRef.current }}
           allMemories={allMemories}
           assignedIds={albumMemoryIds}
           onClose={() => setShowManage(false)}
-          onSave={ids => { onMemoriesUpdated(album.id, ids); setShowManage(false); }}
+          onSave={ids => { onMemoriesUpdated(savedIdRef.current, ids); setShowManage(false); }}
         />
       )}
     </>
@@ -425,7 +439,9 @@ function ModeSwitchModal({ targetMode, onConfirm, onCancel }: {
       <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
         <h3 className="font-serif text-lg text-ink mb-2">Switch to {targetMode === 'year' ? 'Year' : 'Free-form'} albums?</h3>
         <p className="text-sm text-ink-light mb-5">
-          This will clear your current album configuration. Your memories won&apos;t be lost.
+          {targetMode === 'freeform'
+            ? 'Your year album captions will be preserved. Switch back any time.'
+            : 'Your free-form albums and photo assignments will be preserved. Switch back any time.'}
         </p>
         <div className="flex justify-end gap-3">
           <button onClick={onCancel} className="btn-ghost">Cancel</button>
@@ -439,18 +455,17 @@ function ModeSwitchModal({ targetMode, onConfirm, onCancel }: {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }) {
-  const [memories,     setMemories]     = useState<Memory[]>([]);
-  const [albums,       setAlbums]       = useState<CoupleAlbum[]>([]);
-  const [albumMode,    setAlbumMode]    = useState<'year' | 'freeform'>('year');
-  const [albumMemMap,  setAlbumMemMap]  = useState<Record<string, Set<string>>>({}); // albumId → Set<memoryId>
-  const [loading,      setLoading]      = useState(true);
-  const [memPage,      setMemPage]      = useState(1);
-  const [showUpload,   setShowUpload]   = useState(false);
-  const [editMemory,   setEditMemory]   = useState<Memory | null>(null);
-  const [switchTarget,     setSwitchTarget]     = useState<'year' | 'freeform' | null>(null);
-  const [filmReelEnabled,  setFilmReelEnabled]  = useState(false);
-  const [filmReelSaving,   setFilmReelSaving]   = useState(false);
-  const initialized = useRef(false);
+  const [memories,    setMemories]    = useState<Memory[]>([]);
+  const [albums,      setAlbums]      = useState<CoupleAlbum[]>([]);
+  const [albumMode,   setAlbumMode]   = useState<'year' | 'freeform'>('year');
+  const [albumMemMap, setAlbumMemMap] = useState<Record<string, Set<string>>>({});
+  const [loading,     setLoading]     = useState(true);
+  const [memPage,     setMemPage]     = useState(1);
+  const [showUpload,  setShowUpload]  = useState(false);
+  const [editMemory,  setEditMemory]  = useState<Memory | null>(null);
+  const [switchTarget,    setSwitchTarget]    = useState<'year' | 'freeform' | null>(null);
+  const [filmReelEnabled, setFilmReelEnabled] = useState(false);
+  const [filmReelSaving,  setFilmReelSaving]  = useState(false);
 
   // ── Load all data ─────────────────────────────────────────────────────────
 
@@ -462,24 +477,32 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
       fetch('/api/couples'),
     ]);
 
-    const mems: Memory[]       = memRes.ok  ? await memRes.json()    : [];
-    const albs: CoupleAlbum[]  = albRes.ok  ? await albRes.json()    : [];
-    const cfg                  = coupleRes.ok ? await coupleRes.json() : {};
+    const mems: Memory[]         = memRes.ok    ? await memRes.json()    : [];
+    const allAlbs: CoupleAlbum[] = albRes.ok    ? await albRes.json()    : [];
+    const cfg                    = coupleRes.ok  ? await coupleRes.json() : {};
 
+    const mode = (cfg.album_mode as 'year' | 'freeform') ?? 'year';
     setMemories(mems.sort((a, b) => b.date?.localeCompare(a.date ?? '') ?? 0));
-    setAlbumMode((cfg.album_mode as 'year' | 'freeform') ?? 'year');
+    setAlbumMode(mode);
     setFilmReelEnabled(Boolean(cfg.film_reel_enabled));
 
-    // If no albums saved yet, seed from memory years
-    if (albs.length === 0) {
-      const seeds = autoYearAlbums(mems);
-      setAlbums(seeds.map((s, i) => ({ ...s, id: `__new__${i}`, couple_id: coupleId, created_at: '' })));
+    // Year albums have date_start set; freeform albums have date_start = null
+    const yearAlbs     = allAlbs.filter(a => a.date_start !== null);
+    const freeformAlbs = allAlbs.filter(a => a.date_start === null);
+
+    if (mode === 'year') {
+      if (yearAlbs.length === 0) {
+        const seeds = autoYearAlbums(mems);
+        setAlbums(seeds.map((s, i) => ({ ...s, id: `__new__${i}`, couple_id: coupleId, created_at: '' })));
+      } else {
+        setAlbums(yearAlbs);
+      }
+      setAlbumMemMap({});
     } else {
-      setAlbums(albs);
-      // For freeform albums, fetch memory assignments
-      if ((cfg.album_mode ?? 'year') === 'freeform') {
+      setAlbums(freeformAlbs);
+      if (freeformAlbs.length > 0) {
         const mapEntries = await Promise.all(
-          albs.map(async a => {
+          freeformAlbs.map(async a => {
             const r = await fetch(`/api/albums/${a.id}/memories`);
             const ids: string[] = r.ok ? await r.json() : [];
             return [a.id, new Set(ids)] as [string, Set<string>];
@@ -490,7 +513,6 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
     }
 
     setLoading(false);
-    initialized.current = true;
   }, [coupleId]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
@@ -504,7 +526,6 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
       const mems: Memory[] = await res.json();
       setMemories(mems.sort((a, b) => b.date?.localeCompare(a.date ?? '') ?? 0));
 
-      // In year mode, if a new year appeared → add new seeded album row
       if (albumMode === 'year') {
         const existingYears = new Set(albums.map(a => a.label));
         const newYears = [...new Set(mems.map(m => m.date?.slice(0, 4)).filter(Boolean))] as string[];
@@ -522,36 +543,47 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
     }
   }
 
-  // ── Mode switching ────────────────────────────────────────────────────────
+  // ── Mode switching — does NOT delete albums ────────────────────────────────
 
   async function confirmSwitchMode() {
     if (!switchTarget) return;
     const newMode = switchTarget;
     setSwitchTarget(null);
 
-    // Clear existing albums in DB
-    await Promise.all(albums.filter(a => !a.id.startsWith('__new__')).map(a =>
-      fetch(`/api/albums/${a.id}`, { method: 'DELETE' }),
-    ));
-
-    // Save new mode
+    // Save mode preference only — albums are preserved
     await fetch('/api/couples', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ album_mode: newMode }),
     });
 
     setAlbumMode(newMode);
-    setAlbumMemMap({});
+
+    // Reload the right subset from DB
+    const albRes = await fetch('/api/albums');
+    const allAlbs: CoupleAlbum[] = albRes.ok ? await albRes.json() : [];
+    const yearAlbs     = allAlbs.filter(a => a.date_start !== null);
+    const freeformAlbs = allAlbs.filter(a => a.date_start === null);
 
     if (newMode === 'year') {
-      const seeds = autoYearAlbums(memories);
-      setAlbums(seeds.map((s, i) => ({ ...s, id: `__new__${i}`, couple_id: coupleId, created_at: '' })));
+      if (yearAlbs.length === 0) {
+        const seeds = autoYearAlbums(memories);
+        setAlbums(seeds.map((s, i) => ({ ...s, id: `__new__${i}`, couple_id: coupleId, created_at: '' })));
+      } else {
+        setAlbums(yearAlbs);
+      }
+      setAlbumMemMap({});
     } else {
-      // Start with 2 empty freeform albums
-      setAlbums([
-        { id: `__new__0`, couple_id: coupleId, created_at: '', label: 'Album 1', caption: null, cover_photo_url: null, date_start: null, date_end: null, sort_order: 0 },
-        { id: `__new__1`, couple_id: coupleId, created_at: '', label: 'Album 2', caption: null, cover_photo_url: null, date_start: null, date_end: null, sort_order: 1 },
-      ]);
+      setAlbums(freeformAlbs);
+      if (freeformAlbs.length > 0) {
+        const mapEntries = await Promise.all(
+          freeformAlbs.map(async a => {
+            const r = await fetch(`/api/albums/${a.id}/memories`);
+            const ids: string[] = r.ok ? await r.json() : [];
+            return [a.id, new Set(ids)] as [string, Set<string>];
+          }),
+        );
+        setAlbumMemMap(Object.fromEntries(mapEntries));
+      }
     }
   }
 
@@ -665,7 +697,6 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
       <div>
         <h3 className="font-sans text-sm font-bold tracking-widest uppercase text-ink/50 mb-4">Album Configuration</h3>
 
-        {/* Mode toggle */}
         <div className="inline-flex bg-ink/5 rounded-xl p-1 gap-1 mb-5">
           {(['year', 'freeform'] as const).map(mode => (
             <button
@@ -696,7 +727,6 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
               <YearAlbumRow
                 key={a.id}
                 album={a}
-                isNew={a.id.startsWith('__new__')}
                 memories={memories}
                 onSaved={handleAlbumSaved}
               />
@@ -704,11 +734,13 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
           </div>
         ) : (
           <div className="space-y-3">
+            {albums.length === 0 && (
+              <p className="text-sm text-ink-light italic py-2">No albums yet — add your first album below.</p>
+            )}
             {albums.map(a => (
               <FreeformAlbumRow
                 key={a.id}
                 album={a}
-                isNew={a.id.startsWith('__new__')}
                 allMemories={memories}
                 albumMemoryIds={albumMemMap[a.id] ?? new Set()}
                 totalAlbums={albums.length}
