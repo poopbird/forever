@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forever — Shrek Theme Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=IM+Fell+English:ital@0;1&family=MedievalSharp&family=UnifrakturMaguntia&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ── Theme Tokens (what Claude generated) ── */
+:root {
+  --color-primary:     #3D6B1A;
+  --color-primary-h:   #4E8A22;
+  --color-accent:      #8B6914;
+  --color-accent-h:    #C49A1F;
+  --color-bg:          #0E1A08;
+  --color-bg-2:        #141F0A;
+  --color-bg-3:        #1A2B0D;
+  --color-surface:     #1E2F10;
+  --color-border:      rgba(100, 160, 50, 0.2);
+  --color-text:        #D4E8B8;
+  --color-text-muted:  rgba(180, 210, 130, 0.5);
+  --color-mist:        rgba(60, 110, 20, 0.12);
+  --color-gold:        #C49A1F;
+  --color-mud:         #5C3D1E;
+
+  --font-display: 'Cinzel Decorative', 'Georgia', serif;
+  --font-body:    'IM Fell English', 'Georgia', serif;
+
+  --radius-polaroid:  4px;
+  --border-polaroid:  14px solid #2A3D15;
+  --border-bottom-polaroid: 42px solid #2A3D15;
+  --photo-filter:     sepia(0.3) hue-rotate(60deg) saturate(0.8) brightness(0.85);
+  --shadow-card:      0 8px 40px rgba(0,0,0,0.7), 0 0 20px rgba(60,110,20,0.15);
+  --shadow-glow:      0 0 30px rgba(80,150,30,0.2);
+  --animation-speed:  slow;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E🧅%3C/text%3E%3C/svg%3E") 16 16, auto;
+}
+
+/* ── Firefly particles ── */
+.fireflies {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.firefly {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #C8FF50;
+  box-shadow: 0 0 6px 2px rgba(180,255,50,0.6);
+  animation: flyfly linear infinite;
+  opacity: 0;
+}
+.firefly:nth-child(1)  { left:8%;  top:20%; animation-duration:7s;  animation-delay:0s;   width:2px; height:2px; }
+.firefly:nth-child(2)  { left:20%; top:60%; animation-duration:9s;  animation-delay:1.2s; }
+.firefly:nth-child(3)  { left:35%; top:40%; animation-duration:6s;  animation-delay:0.5s; width:4px; height:4px; }
+.firefly:nth-child(4)  { left:50%; top:80%; animation-duration:11s; animation-delay:2s;   }
+.firefly:nth-child(5)  { left:65%; top:25%; animation-duration:8s;  animation-delay:3s;   width:2px; height:2px; }
+.firefly:nth-child(6)  { left:78%; top:55%; animation-duration:10s; animation-delay:0.8s; }
+.firefly:nth-child(7)  { left:90%; top:35%; animation-duration:7s;  animation-delay:4s;   width:4px; height:4px; }
+.firefly:nth-child(8)  { left:15%; top:85%; animation-duration:9s;  animation-delay:1.5s; }
+.firefly:nth-child(9)  { left:45%; top:15%; animation-duration:12s; animation-delay:2.5s; }
+.firefly:nth-child(10) { left:72%; top:70%; animation-duration:8s;  animation-delay:0.3s; width:2px; height:2px; }
+.firefly:nth-child(11) { left:30%; top:75%; animation-duration:6s;  animation-delay:3.5s; }
+.firefly:nth-child(12) { left:85%; top:15%; animation-duration:10s; animation-delay:1s;   width:4px; height:4px; }
+
+@keyframes flyfly {
+  0%   { opacity:0; transform: translate(0,0) scale(1); }
+  15%  { opacity:1; }
+  50%  { transform: translate(30px,-40px) scale(1.2); }
+  85%  { opacity:1; }
+  100% { opacity:0; transform: translate(-20px,-80px) scale(0.8); }
+}
+
+/* ── Swamp mist ── */
+.mist {
+  position: fixed;
+  bottom: 0; left: -20%; right: -20%;
+  height: 35%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(40, 80, 15, 0.08) 40%,
+    rgba(40, 80, 15, 0.18) 70%,
+    rgba(20, 50, 8, 0.25) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+  animation: mist-drift 20s ease-in-out infinite alternate;
+  filter: blur(20px);
+}
+@keyframes mist-drift {
+  0%   { transform: scaleX(1) translateX(0); opacity: 0.6; }
+  100% { transform: scaleX(1.1) translateX(-5%); opacity: 1; }
+}
+
+/* ── Mud drip top border ── */
+.mud-drip {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    #3D2010 0px, #3D2010 20px,
+    #5C3D1E 20px, #5C3D1E 35px,
+    #2A1608 35px, #2A1608 55px
+  );
+  z-index: 200;
+}
+
+/* ── Main container ── */
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 8px 24px 80px;
+}
+
+/* ── AI Token Panel ── */
+.token-panel {
+  background: rgba(60,110,20,0.08);
+  border: 1px solid rgba(100,170,40,0.2);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 24px 0 40px;
+  font-family: 'DM Sans', sans-serif;
+}
+.token-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.token-badge {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+.token-panel-title {
+  font-size: 13px;
+  color: rgba(180,210,130,0.7);
+}
+.token-prompt {
+  background: rgba(0,0,0,0.3);
+  border-left: 3px solid var(--color-primary);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(200,230,150,0.8);
+  margin-bottom: 16px;
+}
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.token-item {
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.token-key {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(150,200,90,0.5);
+}
+.token-value {
+  font-size: 11px;
+  color: rgba(200,230,150,0.9);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.color-swatch {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Divider ── */
+.swamp-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 32px 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-style: italic;
+}
+.swamp-divider::before,
+.swamp-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(80,140,30,0.3), transparent);
+}
+
+/* ═══════════════════════════════
+   HERO SECTION
+   ═══════════════════════════════ */
+.hero {
+  text-align: center;
+  padding: 60px 0 48px;
+  position: relative;
+}
+
+/* Onion ring decorative element */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 20px; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 1px solid rgba(80,140,30,0.06);
+  box-shadow:
+    0 0 0 30px rgba(80,140,30,0.04),
+    0 0 0 60px rgba(80,140,30,0.03),
+    0 0 0 90px rgba(80,140,30,0.02);
+  pointer-events: none;
+}
+
+.hero-location {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.hero-location::before,
+.hero-location::after {
+  content: '🌿';
+  font-size: 12px;
+}
+
+.hero-names {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 8vw, 90px);
+  font-weight: 900;
+  color: var(--color-text);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-shadow:
+    0 0 60px rgba(100,180,40,0.3),
+    0 4px 20px rgba(0,0,0,0.5);
+  margin-bottom: 6px;
+}
+.hero-names .amp {
+  color: var(--color-primary);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.hero-tagline {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin: 16px 0 8px;
+  letter-spacing: 0.02em;
+}
+
+.hero-date {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(150,200,90,0.35);
+  margin-top: 12px;
+}
+
+/* Onion layers icon */
+.hero-onion {
+  font-size: 48px;
+  margin: 24px 0 0;
+  display: block;
+  animation: onion-bob 4s ease-in-out infinite;
+}
+@keyframes onion-bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-8px) rotate(3deg); }
+}
+
+/* ═══════════════════════════════
+   POLAROID HIGHLIGHTS (invitation card)
+   ═══════════════════════════════ */
+.invitation-card {
+  background: linear-gradient(160deg, #1A2B0D 0%, #0E1A08 100%);
+  border: 1px solid rgba(100,160,40,0.15);
+  border-radius: 16px;
+  padding: 36px;
+  margin: 0 0 40px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+/* Swamp texture overlay */
+.invitation-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(ellipse 80% 60% at 80% 50%, rgba(60,110,20,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.invite-left {}
+.invite-eyebrow {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+.invite-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.invite-subtitle {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+.invite-details {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.invite-detail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: rgba(160,210,100,0.6);
+}
+.invite-detail-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(120,170,60,0.4);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+/* Polaroid stack */
+.polaroid-stack {
+  position: relative;
+  width: 140px;
+  height: 160px;
+  flex-shrink: 0;
+}
+.stack-polaroid {
+  position: absolute;
+  width: 120px;
+  background: #1E2F10;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: var(--shadow-card);
+}
+.stack-polaroid:nth-child(1) { transform: rotate(-8deg) translate(-10px, 5px); z-index: 1; }
+.stack-polaroid:nth-child(2) { transform: rotate(3deg) translate(10px, 0);   z-index: 2; }
+.stack-polaroid:nth-child(3) { transform: rotate(-2deg) translate(0, -5px);  z-index: 3; }
+.stack-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  filter: var(--photo-filter);
+}
+
+/* ═══════════════════════════════
+   ALBUM SHELF
+   ═══════════════════════════════ */
+.shelf-section {
+  margin-bottom: 48px;
+}
+.section-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(80,140,30,0.2), transparent);
+}
+
+.shelf {
+  display: flex;
+  gap: 0;
+  align-items: flex-end;
+  padding: 32px 24px 0;
+  position: relative;
+}
+/* Muddy shelf plank */
+.shelf::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 12px;
+  background: linear-gradient(180deg, #3D2010 0%, #2A1608 50%, #1A0E04 100%);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.7),
+    inset 0 1px 0 rgba(120,70,20,0.2);
+  border-radius: 0 0 4px 4px;
+}
+/* Moss on shelf edge */
+.shelf::before {
+  content: '';
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #2D5A10 0px, #2D5A10 8px,
+    #1E3D0A 8px, #1E3D0A 14px,
+    #3D7A1A 14px, #3D7A1A 20px,
+    transparent 20px, transparent 24px
+  );
+  opacity: 0.6;
+}
+
+.album {
+  flex: 0 0 auto;
+  width: clamp(90px, 11vw, 130px);
+  aspect-ratio: 0.68;
+  position: relative;
+  cursor: pointer;
+  margin-right: -3px;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), filter 0.3s;
+}
+.album:hover { transform: translateY(-18px) rotate(-2deg); z-index: 10; filter: brightness(1.2); }
+.album:nth-child(even):hover { transform: translateY(-18px) rotate(2deg); }
+
+.album-body {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px 6px 6px 2px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    3px 6px 20px rgba(0,0,0,0.7),
+    -1px 0 0 rgba(255,255,255,0.03);
+}
+
+/* Spine */
+.album-spine {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.album-spine-text {
+  font-family: var(--font-display);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: rgba(180,220,100,0.5);
+  text-transform: uppercase;
+}
+
+.album-cover {
+  position: absolute;
+  left: 16px; top: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px;
+  overflow: hidden;
+}
+.album-cover-bg {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  opacity: 0.5;
+  filter: var(--photo-filter);
+}
+.album-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(0,0,0,0.75) 100%);
+}
+.album-year {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 700;
+  color: var(--color-text);
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+.album-caption {
+  font-family: var(--font-body);
+  font-size: 7px;
+  font-style: italic;
+  color: rgba(160,210,100,0.6);
+  position: relative;
+  z-index: 1;
+  margin-top: 3px;
+  text-align: center;
+}
+
+/* Moss on book tops */
+.album::after {
+  content: '';
+  position: absolute;
+  top: -3px; left: 20%; right: 5%;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #2D5A10 0px, #2D5A10 4px,
+    #1E3D0A 4px, #1E3D0A 7px
+  );
+  opacity: 0;
+  border-radius: 2px 2px 0 0;
+  transition: opacity 0.3s;
+}
+.album:hover::after { opacity: 0.7; }
+
+/* Book colours — all swamp variants */
+.album:nth-child(1) .album-body { background: linear-gradient(150deg, #1A3D0A 0%, #0D2005 100%); }
+.album:nth-child(1) .album-spine { background: #0D2005; border-right: 1px solid rgba(80,140,30,0.2); }
+.album:nth-child(2) .album-body { background: linear-gradient(150deg, #2D4A10 0%, #1A2D08 100%); }
+.album:nth-child(2) .album-spine { background: #1A2D08; border-right: 1px solid rgba(80,140,30,0.15); }
+.album:nth-child(3) .album-body { background: linear-gradient(150deg, #3A5C1A 0%, #223510 100%); }
+.album:nth-child(3) .album-spine { background: #223510; border-right: 1px solid rgba(100,160,40,0.2); }
+.album:nth-child(4) .album-body { background: linear-gradient(150deg, #1E3A0A 0%, #102005 100%); }
+.album:nth-child(4) .album-spine { background: #102005; border-right: 1px solid rgba(80,140,30,0.15); }
+.album:nth-child(5) .album-body { background: linear-gradient(150deg, #2A4D10 0%, #162808 100%); }
+.album:nth-child(5) .album-spine { background: #162808; border-right: 1px solid rgba(80,140,30,0.18); }
+
+/* ═══════════════════════════════
+   OPENED ALBUM
+   ═══════════════════════════════ */
+.opened-album {
+  background: #141E0A;
+  border: 1px solid rgba(100,160,40,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,0.8),
+    0 0 60px rgba(60,110,20,0.1),
+    0 0 0 1px rgba(0,0,0,0.4);
+  margin-bottom: 48px;
+  animation: album-open 0.5s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes album-open {
+  from { opacity:0; transform: translateY(16px) scale(0.97); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+
+.album-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px 18px;
+  border-bottom: 1px solid rgba(100,160,40,0.08);
+  background: linear-gradient(180deg, rgba(60,110,20,0.06) 0%, transparent 100%);
+}
+.album-h-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+.album-h-meta {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.close-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(100,160,40,0.2);
+  background: transparent;
+  color: rgba(150,200,90,0.5);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.close-btn:hover { background: rgba(100,160,40,0.1); color: rgba(180,230,100,0.8); }
+
+/* Two-page spread */
+.spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: rgba(100,160,40,0.05);
+}
+.page {
+  background: #141E0A;
+  padding: 28px 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+/* Gutter line with vine effect */
+.spread::before {
+  display: none;
+}
+
+/* Polaroid */
+.polaroid {
+  background: #1E2F10;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s;
+  position: relative;
+}
+.polaroid:hover {
+  transform: rotate(2deg) scale(1.06) translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(80,150,30,0.2);
+  z-index: 10;
+}
+.polaroid:nth-child(odd):hover { transform: rotate(-1.5deg) scale(1.06) translateY(-8px); }
+
+.polaroid-img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  filter: var(--photo-filter);
+}
+.polaroid-caption {
+  font-family: var(--font-body);
+  font-size: 9px;
+  font-style: italic;
+  color: rgba(140,190,80,0.5);
+  text-align: center;
+  padding: 6px 4px 2px;
+}
+
+/* Page turn navigation */
+.spread-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px 20px;
+  border-top: 1px solid rgba(100,160,40,0.06);
+}
+.page-dots { display: flex; gap: 6px; align-items: center; }
+.dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(100,160,40,0.2);
+  cursor: pointer; transition: all 0.2s;
+}
+.dot.active { background: var(--color-primary); width: 18px; border-radius: 100px; }
+.nav-btns { display: flex; gap: 8px; }
+.nav-btn {
+  padding: 7px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(100,160,40,0.2);
+  background: transparent;
+  color: rgba(140,200,80,0.5);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-btn:hover { background: rgba(100,160,40,0.1); color: rgba(180,230,100,0.8); border-color: rgba(100,160,40,0.4); }
+.page-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(100,150,50,0.25);
+}
+
+/* ═══════════════════════════════
+   FOCUSED POLAROID VIEW
+   ═══════════════════════════════ */
+.focused-view {
+  background: rgba(10,16,5,0.97);
+  border: 1px solid rgba(100,160,40,0.12);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 48px;
+  box-shadow:
+    0 40px 100px rgba(0,0,0,0.9),
+    0 0 80px rgba(60,110,20,0.08);
+}
+.focused-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 340px;
+}
+.focused-image-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0A100500;
+  padding: 32px;
+  border-right: 1px solid rgba(100,160,40,0.08);
+}
+.focused-polaroid {
+  background: #1E2F10;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(80,150,30,0.15);
+  width: 200px;
+}
+.focused-polaroid-img {
+  width: 100%;
+  aspect-ratio: 1;
+  filter: var(--photo-filter);
+}
+.focused-polaroid-caption {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(140,190,80,0.5);
+  text-align: center;
+  padding: 8px 4px 2px;
+}
+.focused-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(100,160,40,0.2);
+  background: rgba(10,20,5,0.8);
+  color: rgba(140,200,80,0.6);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.focused-nav-btn:hover { background: rgba(60,110,20,0.3); color: rgba(180,230,100,0.9); }
+.focused-nav-left  { left: 8px; }
+.focused-nav-right { right: 8px; }
+
+.focused-info-side {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.focused-meta {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+.focused-caption-text {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--color-text);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.focused-location {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.focused-reactions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.reaction-chip {
+  background: rgba(60,110,20,0.15);
+  border: 1px solid rgba(100,160,40,0.15);
+  border-radius: 100px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'DM Sans', sans-serif;
+  color: rgba(160,210,100,0.7);
+  font-size: 12px;
+}
+.reaction-chip:hover { background: rgba(60,110,20,0.3); border-color: rgba(100,160,40,0.35); }
+.reaction-chip.active { background: rgba(60,110,20,0.4); border-color: var(--color-primary); color: var(--color-text); }
+.focused-comment {
+  margin-top: 16px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(100,160,40,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.focused-comment-input {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(140,190,80,0.4);
+}
+
+/* ═══════════════════════════════
+   COMPARISON SIDE-BY-SIDE
+   ═══════════════════════════════ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.compare-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.compare-label {
+  padding: 10px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compare-before .compare-label {
+  background: rgba(26,21,16,0.9);
+  color: rgba(180,160,140,0.6);
+}
+.compare-after .compare-label {
+  background: rgba(20,30,10,0.9);
+  color: rgba(140,200,80,0.6);
+}
+.compare-body {
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.compare-before .compare-body { background: rgba(253,248,240,0.04); }
+.compare-after .compare-body { background: rgba(14,26,8,0.6); }
+
+.compare-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+}
+.compare-token {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  width: 80px;
+  flex-shrink: 0;
+}
+.compare-before .compare-row { color: rgba(200,180,160,0.7); }
+.compare-after .compare-row { color: rgba(160,220,100,0.8); }
+.compare-swatch {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Footer ── */
+.footer-note {
+  text-align: center;
+  padding: 24px 0;
+  border-top: 1px solid rgba(100,160,40,0.08);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: rgba(100,150,50,0.3);
+  letter-spacing: 0.1em;
+}
+</style>
+</head>
+<body>
+
+<!-- Ambient effects -->
+<div class="mud-drip"></div>
+<div class="fireflies">
+  <div class="firefly"></div><div class="firefly"></div><div class="firefly"></div>
+  <div class="firefly"></div><div class="firefly"></div><div class="firefly"></div>
+  <div class="firefly"></div><div class="firefly"></div><div class="firefly"></div>
+  <div class="firefly"></div><div class="firefly"></div><div class="firefly"></div>
+</div>
+<div class="mist"></div>
+
+<div class="page">
+
+  <!-- AI Token Panel -->
+  <div class="token-panel">
+    <div class="token-panel-header">
+      <span class="token-badge">✦ AI Generated</span>
+      <span class="token-panel-title">Claude interpreted your prompt and generated these design tokens</span>
+    </div>
+    <div class="token-prompt">"I want a shrek themed wedding website"</div>
+    <div class="token-grid">
+      <div class="token-item">
+        <span class="token-key">Primary colour</span>
+        <span class="token-value"><span class="color-swatch" style="background:#3D6B1A"></span>#3D6B1A</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Background</span>
+        <span class="token-value"><span class="color-swatch" style="background:#0E1A08"></span>#0E1A08</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Accent</span>
+        <span class="token-value"><span class="color-swatch" style="background:#8B6914"></span>#8B6914</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Text colour</span>
+        <span class="token-value"><span class="color-swatch" style="background:#D4E8B8"></span>#D4E8B8</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Display font</span>
+        <span class="token-value">Cinzel Decorative</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Body font</span>
+        <span class="token-value">IM Fell English</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Polaroid border</span>
+        <span class="token-value">14px moss green</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Photo filter</span>
+        <span class="token-value">sepia + green hue</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Border radius</span>
+        <span class="token-value">Sharp (4px)</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Shadow style</span>
+        <span class="token-value">Dramatic + glow</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Animation</span>
+        <span class="token-value">Slow, dreamy</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Mood</span>
+        <span class="token-value">🐸 Swamp fantasy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-location">Far Far Away · Est. 2001</div>
+    <h1 class="hero-names">Shrek <span class="amp">&</span> Fiona</h1>
+    <p class="hero-tagline">"Ogres have layers. So does our love."</p>
+    <div class="hero-date">Saturday · 28 June 2025 · The Swamp, Far Far Away</div>
+    <span class="hero-onion">🧅</span>
+  </div>
+
+  <div class="swamp-divider">∿ scroll through our swamp ∿</div>
+
+  <!-- ── INVITATION CARD (Polaroid Highlights equivalent) ── -->
+  <div class="invitation-card">
+    <div class="invite-left">
+      <div class="invite-eyebrow">You are cordially invited</div>
+      <div class="invite-title">A Swamp Wedding<br>Like No Other</div>
+      <div class="invite-subtitle">
+        Join us in the swamp for an evening of mudslides, fireflies,<br>
+        and a celebration no fairy tale could contain.
+      </div>
+      <div class="invite-details">
+        <div class="invite-detail">
+          <span class="invite-detail-label">When</span>
+          28 June 2025 · 4:00 PM
+        </div>
+        <div class="invite-detail">
+          <span class="invite-detail-label">Where</span>
+          The Swamp, Far Far Away (bring boots)
+        </div>
+        <div class="invite-detail">
+          <span class="invite-detail-label">RSVP by</span>
+          1 June 2025 · Donkey will remind you
+        </div>
+      </div>
+    </div>
+    <div class="polaroid-stack">
+      <div class="stack-polaroid">
+        <div class="stack-photo photo-a" style="height:80px; background:linear-gradient(135deg,#2d5a10,#1a3508)"></div>
+      </div>
+      <div class="stack-polaroid">
+        <div class="stack-photo photo-b" style="height:80px; background:linear-gradient(135deg,#3d6b1a,#223d0d)"></div>
+      </div>
+      <div class="stack-polaroid">
+        <div class="stack-photo photo-c" style="height:80px; background:linear-gradient(135deg,#4a7a20,#2a4810)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALBUM SHELF ── -->
+  <div class="shelf-section">
+    <div class="section-label">Our chapters together</div>
+    <div class="shelf">
+      <div class="album" onclick="document.getElementById('opened').scrollIntoView({behavior:'smooth'})">
+        <div class="album-body">
+          <div class="album-spine"><span class="album-spine-text">2019</span></div>
+          <div class="album-cover">
+            <div class="album-cover-bg" style="background:linear-gradient(135deg,#2d5a10,#1a3508)"></div>
+            <div class="album-year">2019</div>
+            <div class="album-caption">In the swamp</div>
+          </div>
+        </div>
+      </div>
+      <div class="album" onclick="document.getElementById('opened').scrollIntoView({behavior:'smooth'})">
+        <div class="album-body">
+          <div class="album-spine"><span class="album-spine-text">2020</span></div>
+          <div class="album-cover">
+            <div class="album-cover-bg" style="background:linear-gradient(135deg,#3d6b1a,#223d0d)"></div>
+            <div class="album-year">2020</div>
+            <div class="album-caption">Dragon drama</div>
+          </div>
+        </div>
+      </div>
+      <div class="album" onclick="document.getElementById('opened').scrollIntoView({behavior:'smooth'})">
+        <div class="album-body">
+          <div class="album-spine"><span class="album-spine-text">2021</span></div>
+          <div class="album-cover">
+            <div class="album-cover-bg" style="background:linear-gradient(135deg,#4a7a20,#2a4810)"></div>
+            <div class="album-year">2021</div>
+            <div class="album-caption">Far Far Away</div>
+          </div>
+        </div>
+      </div>
+      <div class="album" onclick="document.getElementById('opened').scrollIntoView({behavior:'smooth'})">
+        <div class="album-body">
+          <div class="album-spine"><span class="album-spine-text">2022</span></div>
+          <div class="album-cover">
+            <div class="album-cover-bg" style="background:linear-gradient(135deg,#3a6015,#1e3208)"></div>
+            <div class="album-year">2022</div>
+            <div class="album-caption">Puss in Boots</div>
+          </div>
+        </div>
+      </div>
+      <div class="album" onclick="document.getElementById('opened').scrollIntoView({behavior:'smooth'})">
+        <div class="album-body">
+          <div class="album-spine"><span class="album-spine-text">2023</span></div>
+          <div class="album-cover">
+            <div class="album-cover-bg" style="background:linear-gradient(135deg,#507025,#2c3e10)"></div>
+            <div class="album-year">2023</div>
+            <div class="album-caption">She said yes 🧅</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPENED ALBUM ── -->
+  <div id="opened" class="opened-album">
+    <div class="album-header">
+      <div>
+        <div class="album-h-title">2023 — She Said Yes 🧅</div>
+        <div class="album-h-meta">12 memories · Page 1 of 3</div>
+      </div>
+      <button class="close-btn">✕</button>
+    </div>
+
+    <div class="spread">
+      <div class="page">
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#2d5a10,#1a3508); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Mudslide Sunday</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#3d6b1a,#223d0d); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">The proposal rock</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#4a7a20,#2a4810); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Donkey crashed it</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#1e3d0a,#102005); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Firefly evening</div>
+        </div>
+      </div>
+      <div class="page">
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#3a6015,#1e3208); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Swamp sunset</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#507025,#2c3e10); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Onion soup date 🧅</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#2d5a10,#1a3508); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">The mud bath</div>
+        </div>
+        <div class="polaroid">
+          <div class="polaroid-img" style="height:100px; background:linear-gradient(135deg,#3d6b1a,#223d0d); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="polaroid-caption">Dragon babysitting</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spread-footer">
+      <div class="page-dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+      <span class="page-num">1 / 3</span>
+      <div class="nav-btns">
+        <button class="nav-btn">← Prev</button>
+        <button class="nav-btn">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOCUSED POLAROID ── -->
+  <div class="section-label">Focused polaroid view</div>
+  <div class="focused-view">
+    <div class="focused-inner">
+      <div class="focused-image-side">
+        <button class="focused-nav-btn focused-nav-left">←</button>
+        <div class="focused-polaroid">
+          <div class="focused-polaroid-img" style="height:164px; background:linear-gradient(135deg,#3d6b1a,#223d0d); filter:sepia(0.4) hue-rotate(60deg) saturate(0.7)"></div>
+          <div class="focused-polaroid-caption">The proposal rock</div>
+        </div>
+        <button class="focused-nav-btn focused-nav-right">→</button>
+      </div>
+      <div class="focused-info-side">
+        <div>
+          <div class="focused-meta">2023 · Far Far Away</div>
+          <div class="focused-caption-text">The Rock Where Shrek Asked</div>
+          <div class="focused-location">📍 Duloc Outskirts, Far Far Away</div>
+          <div class="focused-reactions">
+            <div class="reaction-chip active">🧅 24</div>
+            <div class="reaction-chip">🐸 8</div>
+            <div class="reaction-chip">❤️ 31</div>
+            <div class="reaction-chip">🌿 12</div>
+            <div class="reaction-chip">✨</div>
+          </div>
+        </div>
+        <div class="focused-comment">
+          <div class="focused-comment-input">Leave a comment as a guest…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BEFORE / AFTER COMPARISON ── -->
+  <div class="section-label">What changed from default → Shrek theme</div>
+  <div class="comparison">
+    <div class="compare-card compare-before">
+      <div class="compare-label">Default "Forever" theme</div>
+      <div class="compare-body">
+        <div class="compare-row"><span class="compare-token">Background</span><span class="compare-swatch" style="background:#FDF8F0"></span> #FDF8F0 (warm cream)</div>
+        <div class="compare-row"><span class="compare-token">Primary</span><span class="compare-swatch" style="background:#7B1E3C"></span> #7B1E3C (rose deep)</div>
+        <div class="compare-row"><span class="compare-token">Accent</span><span class="compare-swatch" style="background:#C9964A"></span> #C9964A (gold warm)</div>
+        <div class="compare-row"><span class="compare-token">Text</span><span class="compare-swatch" style="background:#3D2C2C"></span> #3D2C2C (ink)</div>
+        <div class="compare-row"><span class="compare-token">Serif font</span> Playfair Display</div>
+        <div class="compare-row"><span class="compare-token">Sans font</span> Lato</div>
+        <div class="compare-row"><span class="compare-token">Polaroid</span> Thick white border</div>
+        <div class="compare-row"><span class="compare-token">Photo</span> No filter (natural)</div>
+        <div class="compare-row"><span class="compare-token">Shadows</span> Soft, warm</div>
+        <div class="compare-row"><span class="compare-token">Atmosphere</span> Romantic, candlelit</div>
+      </div>
+    </div>
+    <div class="compare-card compare-after">
+      <div class="compare-label">🐸 Shrek theme (AI generated)</div>
+      <div class="compare-body">
+        <div class="compare-row"><span class="compare-token">Background</span><span class="compare-swatch" style="background:#0E1A08"></span> #0E1A08 (deep swamp)</div>
+        <div class="compare-row"><span class="compare-token">Primary</span><span class="compare-swatch" style="background:#3D6B1A"></span> #3D6B1A (swamp green)</div>
+        <div class="compare-row"><span class="compare-token">Accent</span><span class="compare-swatch" style="background:#8B6914"></span> #8B6914 (muddy gold)</div>
+        <div class="compare-row"><span class="compare-token">Text</span><span class="compare-swatch" style="background:#D4E8B8"></span> #D4E8B8 (pale leaf)</div>
+        <div class="compare-row"><span class="compare-token">Serif font</span> Cinzel Decorative</div>
+        <div class="compare-row"><span class="compare-token">Sans font</span> IM Fell English</div>
+        <div class="compare-row"><span class="compare-token">Polaroid</span> Moss green thick border</div>
+        <div class="compare-row"><span class="compare-token">Photo</span> Sepia + green hue shift</div>
+        <div class="compare-row"><span class="compare-token">Shadows</span> Dramatic + green glow</div>
+        <div class="compare-row"><span class="compare-token">Atmosphere</span> Swamp fantasy + fireflies</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    ∿ Same structure. Same sections. Completely different soul. ∿<br><br>
+    Shrek & Fiona · Forever · Made with 🧅 and love in the swamp
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forever — Reference Image Theme Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+/* ══════════════════════════════════════
+   GENERATED THEME TOKENS
+   Extracted from reference image by Claude
+   ══════════════════════════════════════ */
+:root {
+  --color-primary:       #4A7BB5;
+  --color-primary-deep:  #1E3A6B;
+  --color-primary-pale:  #A8C4E0;
+  --color-primary-mist:  #E8F0F8;
+  --color-accent:        #7EA3CC;
+  --color-bg:            #FAFBFF;
+  --color-bg-section:    #F4F7FC;
+  --color-surface:       #FFFFFF;
+  --color-border:        rgba(74, 123, 181, 0.15);
+  --color-text:          #1E3A6B;
+  --color-text-body:     #3A5A82;
+  --color-text-muted:    rgba(74, 123, 181, 0.45);
+  --color-floral:        rgba(74, 123, 181, 0.12);
+
+  --font-script:  'Dancing Script', cursive;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Jost', system-ui, sans-serif;
+
+  --radius-polaroid: 3px;
+  --border-polaroid: 10px solid #FFFFFF;
+  --border-bottom-polaroid: 38px solid #FFFFFF;
+  --photo-filter:   brightness(1.02) saturate(0.95) contrast(1.0);
+  --shadow-card:    0 4px 24px rgba(74,123,181,0.12), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-polaroid: 0 8px 32px rgba(30,58,107,0.15), 0 2px 6px rgba(0,0,0,0.07);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ── Daisy SVG pattern (background) ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.5px at 8% 15%, rgba(74,123,181,0.15) 100%, transparent 0),
+    radial-gradient(circle 1px at 23% 72%, rgba(74,123,181,0.1) 100%, transparent 0),
+    radial-gradient(circle 2px at 45% 30%, rgba(74,123,181,0.08) 100%, transparent 0),
+    radial-gradient(circle 1.5px at 68% 60%, rgba(74,123,181,0.12) 100%, transparent 0),
+    radial-gradient(circle 1px at 82% 20%, rgba(74,123,181,0.1) 100%, transparent 0),
+    radial-gradient(circle 2px at 91% 78%, rgba(74,123,181,0.08) 100%, transparent 0);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Floral corner decoration ── */
+.floral-corner {
+  position: absolute;
+  font-size: 40px;
+  opacity: 0.12;
+  color: var(--color-primary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.page { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 0 28px 80px; }
+
+/* ══════════════════════════════════════
+   AI TOKEN PANEL
+   ══════════════════════════════════════ */
+.token-panel {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin: 28px 0 44px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.token-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-pale), var(--color-primary), var(--color-primary-pale));
+}
+.token-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.token-badge {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-family: var(--font-body);
+}
+.token-badge-img {
+  background: var(--color-primary-mist);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  padding: 4px 11px;
+  border-radius: 100px;
+  border: 1px solid var(--color-border);
+  font-family: var(--font-body);
+}
+.token-panel-title {
+  font-size: 13px;
+  color: rgba(74,123,181,0.6);
+  font-family: var(--font-body);
+}
+.token-prompt {
+  background: var(--color-bg-section);
+  border-left: 3px solid var(--color-primary);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--color-text-body);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ref-thumb {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  background: linear-gradient(135deg, #4A7BB5, #A8C4E0);
+}
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 8px;
+}
+.token-item {
+  background: var(--color-bg-section);
+  border: 1px solid rgba(74,123,181,0.08);
+  border-radius: 8px;
+  padding: 9px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.token-key {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+}
+.token-value {
+  font-size: 11px;
+  color: var(--color-text);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+}
+.color-swatch {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* ══════════════════════════════════════
+   WATERCOLOR WAVE DIVIDER
+   ══════════════════════════════════════ */
+.wave-divider {
+  width: 100%;
+  height: 48px;
+  position: relative;
+  margin: 8px 0;
+  overflow: hidden;
+  opacity: 0.18;
+}
+.wave-divider svg { width: 100%; height: 100%; }
+
+.section-label {
+  font-family: var(--font-body);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-label::before, .section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+}
+
+/* ══════════════════════════════════════
+   HERO SECTION
+   ══════════════════════════════════════ */
+.hero {
+  text-align: center;
+  padding: 56px 0 44px;
+  position: relative;
+}
+
+/* Botanical floral ornament top */
+.hero-ornament {
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: var(--color-primary-pale);
+  margin-bottom: 16px;
+  font-family: var(--font-body);
+  text-transform: uppercase;
+}
+
+.hero-of {
+  font-family: var(--font-script);
+  font-size: 20px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.hero-names {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 10vw, 108px);
+  font-weight: 300;
+  color: var(--color-primary-deep);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.hero-names .and-script {
+  font-family: var(--font-script);
+  font-size: clamp(24px, 4vw, 42px);
+  color: var(--color-primary);
+  display: block;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Monogram circle */
+.hero-monogram {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-primary-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto 0;
+  position: relative;
+}
+.hero-monogram::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 0.5px solid var(--color-primary-pale);
+}
+.monogram-text {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--color-primary);
+}
+
+.hero-date {
+  margin-top: 24px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-body);
+}
+.hero-date strong {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-primary-deep);
+  margin: 0 4px;
+}
+
+.hero-verse {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  max-width: 480px;
+  margin: 16px auto 0;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+/* Watercolor blue mountain shapes */
+.hero-watercolor {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 100px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.08;
+}
+.hero-watercolor svg { width: 100%; height: 100%; }
+
+/* ══════════════════════════════════════
+   INVITATION CARD
+   ══════════════════════════════════════ */
+.invitation-card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 40px;
+  margin: 0 0 44px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: center;
+}
+/* Blue top stripe like the reference */
+.invitation-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary-pale), var(--color-primary), var(--color-primary-deep));
+}
+/* Subtle daisy corner */
+.invitation-card::after {
+  content: '❀';
+  position: absolute;
+  bottom: 16px; right: 24px;
+  font-size: 32px;
+  color: var(--color-primary);
+  opacity: 0.08;
+}
+
+.invite-eyebrow {
+  font-family: var(--font-body);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+.invite-script-title {
+  font-family: var(--font-script);
+  font-size: 36px;
+  color: var(--color-primary);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.invite-subtitle {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--color-text-body);
+  line-height: 1.7;
+}
+.invite-program {
+  margin-top: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  background: var(--color-bg-section);
+}
+.invite-program-title {
+  font-family: var(--font-script);
+  font-size: 16px;
+  color: var(--color-primary);
+  margin-bottom: 10px;
+}
+.invite-program-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-body);
+  padding: 3px 0;
+}
+.invite-program-time {
+  font-weight: 500;
+  color: var(--color-primary-deep);
+  width: 52px;
+  flex-shrink: 0;
+}
+.invite-program-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--color-border);
+  margin: 4px 0;
+  margin-left: 24px;
+}
+
+/* Polaroid stack */
+.polaroid-stack {
+  position: relative;
+  width: 150px;
+  height: 170px;
+  flex-shrink: 0;
+}
+.stack-polaroid {
+  position: absolute;
+  width: 125px;
+  background: #fff;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: var(--shadow-polaroid);
+}
+.stack-polaroid:nth-child(1) { transform: rotate(-6deg) translate(-8px, 6px); z-index: 1; }
+.stack-polaroid:nth-child(2) { transform: rotate(4deg) translate(12px, 2px);  z-index: 2; }
+.stack-polaroid:nth-child(3) { transform: rotate(-1deg) translate(2px, -4px); z-index: 3; }
+.stack-photo { width: 100%; aspect-ratio: 1; filter: var(--photo-filter); display: block; }
+
+/* ══════════════════════════════════════
+   ALBUM SHELF
+   ══════════════════════════════════════ */
+.shelf-section { margin-bottom: 48px; }
+
+.shelf {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.shelf::-webkit-scrollbar { height: 2px; }
+.shelf::-webkit-scrollbar-track { background: var(--color-floral); }
+.shelf::-webkit-scrollbar-thumb { background: var(--color-primary-pale); border-radius: 2px; }
+
+.album {
+  flex: 0 0 auto;
+  width: clamp(150px, 17vw, 200px);
+  background: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  transition: transform 0.4s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.4s;
+  position: relative;
+}
+.album:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 48px rgba(74,123,181,0.18), 0 4px 8px rgba(0,0,0,0.05);
+}
+
+/* Coloured top stripe per album (like chapter colour coding in reference) */
+.album:nth-child(1)::before { content:''; position:absolute; top:0;left:0;right:0;height:4px;background:var(--color-primary);z-index:1; }
+.album:nth-child(2)::before { content:''; position:absolute; top:0;left:0;right:0;height:4px;background:#5B9BD5;z-index:1; }
+.album:nth-child(3)::before { content:''; position:absolute; top:0;left:0;right:0;height:4px;background:#3A6BA0;z-index:1; }
+.album:nth-child(4)::before { content:''; position:absolute; top:0;left:0;right:0;height:4px;background:#7AB0D8;z-index:1; }
+.album:nth-child(5)::before { content:''; position:absolute; top:0;left:0;right:0;height:4px;background:#2D5A8E;z-index:1; }
+
+.album-cover {
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-section);
+}
+.album-cover-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--photo-filter);
+  transition: transform 0.5s;
+}
+.album:hover .album-cover-photo { transform: scale(1.04); }
+.album-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(30,58,107,0.35) 100%);
+}
+
+.album-info {
+  padding: 16px 18px 20px;
+}
+.album-year {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--color-primary-deep);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.album-caption {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+.album-count {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(74,123,181,0.3);
+  margin-top: 8px;
+}
+
+/* ══════════════════════════════════════
+   OPENED ALBUM
+   ══════════════════════════════════════ */
+.opened-album {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 32px 80px rgba(74,123,181,0.14),
+    0 4px 16px rgba(0,0,0,0.05);
+  margin-bottom: 44px;
+  animation: album-open 0.45s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes album-open {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.album-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 36px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-section);
+}
+.album-h-year {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 300;
+  color: var(--color-primary-deep);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.album-h-caption {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+.album-h-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.album-tag {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-primary-mist);
+  border: 1px solid var(--color-border);
+  padding: 5px 12px;
+  border-radius: 100px;
+}
+.close-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+.close-btn:hover { background: var(--color-primary-mist); color: var(--color-primary); }
+
+/* Spread */
+.spread {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+.spread::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 20px; bottom: 20px;
+  width: 1px;
+  background: var(--color-border);
+  transform: translateX(-50%);
+}
+.page {
+  padding: 32px 36px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+/* Editorial polaroid */
+.polaroid {
+  background: #fff;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: var(--shadow-polaroid);
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.3s;
+  position: relative;
+}
+.polaroid:hover {
+  transform: rotate(2deg) scale(1.05) translateY(-6px);
+  box-shadow: 0 16px 48px rgba(30,58,107,0.2);
+  z-index: 5;
+}
+.polaroid:nth-child(odd):hover { transform: rotate(-1.5deg) scale(1.05) translateY(-6px); }
+.polaroid-img {
+  width: 100%; aspect-ratio: 1;
+  display: block;
+  filter: var(--photo-filter);
+}
+.polaroid-caption {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 6px 4px 2px;
+}
+
+/* Page numbers */
+.page:first-child { position: relative; }
+.page:first-child::after {
+  content: '01';
+  position: absolute;
+  bottom: 14px; right: 28px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: rgba(74,123,181,0.18);
+  letter-spacing: 0.1em;
+}
+.page:last-child::after {
+  content: '02';
+  position: absolute;
+  bottom: 14px; left: 28px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: rgba(74,123,181,0.18);
+  letter-spacing: 0.1em;
+}
+.page:last-child { position: relative; }
+
+.spread-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 36px 22px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-section);
+}
+.dots { display: flex; gap: 6px; align-items: center; }
+.dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--color-border);
+  cursor: pointer; transition: all 0.2s;
+}
+.dot.active { background: var(--color-primary); width: 20px; border-radius: 100px; }
+.dot:hover { background: var(--color-primary-pale); }
+.nav-btns { display: flex; gap: 8px; }
+.nav-btn {
+  padding: 7px 18px;
+  border-radius: 100px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text-body);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-btn:hover { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.page-count {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(74,123,181,0.3);
+}
+
+/* ══════════════════════════════════════
+   FOCUSED VIEW
+   ══════════════════════════════════════ */
+.focused-view {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(74,123,181,0.12);
+  margin-bottom: 44px;
+}
+.focused-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 320px;
+}
+.focused-image-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 36px;
+  background: var(--color-bg-section);
+  border-right: 1px solid var(--color-border);
+}
+.focused-polaroid {
+  background: #fff;
+  border: var(--border-polaroid);
+  border-bottom: var(--border-bottom-polaroid);
+  border-radius: var(--radius-polaroid);
+  box-shadow: var(--shadow-polaroid);
+  width: 200px;
+}
+.focused-polaroid-img {
+  width: 100%; aspect-ratio: 1;
+  display: block;
+  filter: var(--photo-filter);
+}
+.focused-polaroid-caption {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 8px 4px 2px;
+}
+.focused-nav {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-primary);
+  cursor: pointer; font-size: 12px;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+.focused-nav:hover { background: var(--color-primary); color: #fff; }
+.focused-nav-l { left: 10px; }
+.focused-nav-r { right: 10px; }
+
+.focused-info {
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.focused-meta {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+.focused-caption {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--color-primary-deep);
+  line-height: 1.3;
+}
+.focused-location {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.reactions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.reaction {
+  background: var(--color-bg-section);
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  color: var(--color-text-body);
+}
+.reaction:hover { border-color: var(--color-primary); background: var(--color-primary-mist); }
+.reaction.active { background: var(--color-primary-mist); border-color: var(--color-primary); color: var(--color-primary-deep); font-weight: 500; }
+.comment-box {
+  margin-top: 16px;
+  background: var(--color-bg-section);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+/* ══════════════════════════════════════
+   BEFORE / AFTER
+   ══════════════════════════════════════ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 44px;
+}
+.compare-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.compare-label {
+  padding: 11px 18px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.compare-before .compare-label {
+  background: rgba(61,44,44,0.04);
+  color: rgba(61,44,44,0.5);
+}
+.compare-after .compare-label {
+  background: var(--color-primary-mist);
+  color: var(--color-primary);
+}
+.compare-body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+}
+.compare-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-size: 12px;
+}
+.compare-before .compare-row { color: rgba(61,44,44,0.6); }
+.compare-after  .compare-row { color: var(--color-text-body); }
+.compare-token {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  width: 80px;
+  flex-shrink: 0;
+}
+.compare-swatch {
+  width: 13px; height: 13px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* ── Gallery strip (reference-style) ── */
+.gallery-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 8px;
+  margin-bottom: 44px;
+}
+.gallery-strip::-webkit-scrollbar { height: 2px; }
+.gallery-strip::-webkit-scrollbar-thumb { background: var(--color-primary-pale); border-radius: 2px; }
+.gallery-thumb {
+  flex: 0 0 auto;
+  width: 100px; height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  filter: var(--photo-filter);
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 1px solid var(--color-border);
+}
+.gallery-thumb:hover { transform: scale(1.03); }
+.gallery-thumb-inner {
+  width: 100%; height: 100%;
+  transition: transform 0.4s;
+}
+.gallery-thumb:hover .gallery-thumb-inner { transform: scale(1.06); }
+
+/* ── Footer ── */
+.footer-note {
+  text-align: center;
+  padding: 28px 0;
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+.footer-script {
+  font-family: var(--font-script);
+  font-size: 22px;
+  color: var(--color-primary);
+  display: block;
+  margin-top: 8px;
+}
+
+/* Colour samples (like in reference) */
+.color-guide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  justify-content: center;
+}
+.color-guide-swatch {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+
+/* Photo placeholders */
+.ph-a { background: linear-gradient(135deg, #7EAAD4, #4A7BB5); }
+.ph-b { background: linear-gradient(135deg, #A8C4E0, #5B9BD5); }
+.ph-c { background: linear-gradient(135deg, #5B8EC4, #2D5A8E); }
+.ph-d { background: linear-gradient(135deg, #9AB8D8, #6A9EC8); }
+.ph-e { background: linear-gradient(135deg, #3A6BA0, #1E3A6B); }
+.ph-f { background: linear-gradient(135deg, #7AAAC8, #4A80A8); }
+.ph-g { background: linear-gradient(135deg, #B0CEEA, #6898C4); }
+.ph-h { background: linear-gradient(135deg, #4872A0, #2A4878); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── AI Token Panel ── -->
+  <div class="token-panel">
+    <div class="token-panel-header">
+      <span class="token-badge">✦ AI Generated</span>
+      <span class="token-badge-img">🖼 From reference image</span>
+      <span class="token-panel-title">Claude analysed the uploaded design and extracted these tokens</span>
+    </div>
+    <div class="token-prompt">
+      <div class="ref-thumb"></div>
+      <span>Couple uploaded a reference image — blue & white coastal wedding design with script typography, botanical florals, watercolour dividers, and a structured programme layout</span>
+    </div>
+    <div class="token-grid">
+      <div class="token-item">
+        <span class="token-key">Primary colour</span>
+        <span class="token-value"><span class="color-swatch" style="background:#4A7BB5"></span>#4A7BB5</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Deep navy</span>
+        <span class="token-value"><span class="color-swatch" style="background:#1E3A6B"></span>#1E3A6B</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Pale blue</span>
+        <span class="token-value"><span class="color-swatch" style="background:#A8C4E0"></span>#A8C4E0</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Background</span>
+        <span class="token-value"><span class="color-swatch" style="background:#FAFBFF"></span>#FAFBFF</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Display font</span>
+        <span class="token-value">Cormorant Garamond</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Script font</span>
+        <span class="token-value">Dancing Script</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Body font</span>
+        <span class="token-value">Jost</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Polaroid border</span>
+        <span class="token-value">10px clean white</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Photo filter</span>
+        <span class="token-value">Clean, slightly cool</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Shadow style</span>
+        <span class="token-value">Soft, airy blue</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Animation</span>
+        <span class="token-value">Gentle, graceful</span>
+      </div>
+      <div class="token-item">
+        <span class="token-key">Mood</span>
+        <span class="token-value">🌊 Coastal romantic</span>
+      </div>
+    </div>
+
+    <!-- Extracted colour palette like reference image -->
+    <div style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(74,123,181,0.1);">
+      <span style="font-family:var(--font-body);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--color-text-muted);margin-right:12px;">Extracted palette</span>
+      <span style="font-family:var(--font-body);font-size:11px;color:var(--color-text-muted);font-style:italic;">Colour guide: Blue</span>
+      <div class="color-guide">
+        <div class="color-guide-swatch" style="background:#1E3A6B"></div>
+        <div class="color-guide-swatch" style="background:#4A7BB5"></div>
+        <div class="color-guide-swatch" style="background:#7EAAD4"></div>
+        <div class="color-guide-swatch" style="background:#A8C4E0"></div>
+        <div class="color-guide-swatch" style="background:#D0E4F4"></div>
+        <div class="color-guide-swatch" style="background:#F4F7FC; border:1px solid #c0d4ea;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-ornament">✦ · The Wedding of · ✦</div>
+    <div class="hero-of">the wedding of</div>
+    <div class="hero-names">
+      OLIVIA
+      <span class="and-script">and</span>
+      RALPH
+    </div>
+    <div class="hero-monogram">
+      <span class="monogram-text">O&R</span>
+    </div>
+    <div class="hero-date">
+      MAY <strong>18</strong> 2025
+    </div>
+    <div class="hero-verse">
+      "Isaiah 60:22 — When the time is right, I, the Lord, will make it happen"
+    </div>
+
+    <!-- Colour palette visual like reference -->
+    <div class="color-guide" style="margin-top:20px;">
+      <div class="color-guide-swatch" style="background:#1E3A6B;width:20px;height:20px;"></div>
+      <div class="color-guide-swatch" style="background:#4A7BB5;width:20px;height:20px;"></div>
+      <div class="color-guide-swatch" style="background:#A8C4E0;width:20px;height:20px;"></div>
+    </div>
+  </div>
+
+  <!-- Wave divider (like watercolour in reference) -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 960 48" preserveAspectRatio="none">
+      <path d="M0,20 Q120,0 240,20 T480,20 T720,20 T960,20 L960,48 L0,48 Z" fill="#4A7BB5"/>
+    </svg>
+  </div>
+
+  <!-- ── INVITATION CARD ── -->
+  <div class="invitation-card" style="margin-top:32px;">
+    <div>
+      <div class="invite-eyebrow">You are cordially invited</div>
+      <div class="invite-script-title">The Wedding Program</div>
+      <div class="invite-subtitle">
+        Join us as Olivia &amp; Ralph exchange their vows<br>
+        in an intimate ceremony with family and friends.
+      </div>
+      <div class="invite-program">
+        <div class="invite-program-title">Schedule</div>
+        <div class="invite-program-row"><span class="invite-program-time">2:00 PM</span> Ceremony</div>
+        <div class="invite-program-row"><span class="invite-program-time">4:00 PM</span> Reception</div>
+        <div class="invite-program-row"><span class="invite-program-time">5:00 PM</span> Dinner</div>
+        <div class="invite-program-row"><span class="invite-program-time">6:00 PM</span> Photo</div>
+      </div>
+    </div>
+    <div class="polaroid-stack">
+      <div class="stack-polaroid">
+        <div class="stack-photo ph-a" style="height:85px"></div>
+      </div>
+      <div class="stack-polaroid">
+        <div class="stack-photo ph-b" style="height:85px"></div>
+      </div>
+      <div class="stack-polaroid">
+        <div class="stack-photo ph-c" style="height:85px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wave divider -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 960 48" preserveAspectRatio="none">
+      <path d="M0,28 Q160,8 320,28 T640,28 T960,28 L960,0 L0,0 Z" fill="#4A7BB5"/>
+    </svg>
+  </div>
+
+  <!-- ── GALLERY STRIP (like reference) ── -->
+  <div class="section-label" style="margin-top:32px;">Gallery</div>
+  <div class="gallery-strip">
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-a"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-b"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-c"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-d"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-e"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-f"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-g"></div></div>
+    <div class="gallery-thumb"><div class="gallery-thumb-inner ph-h"></div></div>
+  </div>
+
+  <!-- ── ALBUM SHELF ── -->
+  <div class="shelf-section">
+    <div class="section-label">Our story — browse by chapter</div>
+    <div class="shelf">
+      <div class="album">
+        <div class="album-cover"><div class="album-cover-photo ph-g" style="height:160px"></div><div class="album-cover-overlay"></div></div>
+        <div class="album-info"><div class="album-year">2019</div><div class="album-caption">Where it all began</div><div class="album-count">8 memories</div></div>
+      </div>
+      <div class="album">
+        <div class="album-cover"><div class="album-cover-photo ph-c" style="height:160px"></div><div class="album-cover-overlay"></div></div>
+        <div class="album-info"><div class="album-year">2020</div><div class="album-caption">Just the two of us</div><div class="album-count">14 memories</div></div>
+      </div>
+      <div class="album">
+        <div class="album-cover"><div class="album-cover-photo ph-a" style="height:160px"></div><div class="album-cover-overlay"></div></div>
+        <div class="album-info"><div class="album-year">2021</div><div class="album-caption">First big trip</div><div class="album-count">22 memories</div></div>
+      </div>
+      <div class="album">
+        <div class="album-cover"><div class="album-cover-photo ph-e" style="height:160px"></div><div class="album-cover-overlay"></div></div>
+        <div class="album-info"><div class="album-year">2022</div><div class="album-caption">Across the world</div><div class="album-count">18 memories</div></div>
+      </div>
+      <div class="album">
+        <div class="album-cover"><div class="album-cover-photo ph-d" style="height:160px"></div><div class="album-cover-overlay"></div></div>
+        <div class="album-info"><div class="album-year">2023</div><div class="album-caption">She said yes</div><div class="album-count">31 memories</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── OPENED ALBUM ── -->
+  <div class="opened-album">
+    <div class="album-header">
+      <div>
+        <div class="album-h-year">2022</div>
+        <div class="album-h-caption">Across the world</div>
+      </div>
+      <div class="album-h-right">
+        <span class="album-tag">18 memories</span>
+        <span class="album-tag">Page 1 of 5</span>
+        <button class="close-btn">✕</button>
+      </div>
+    </div>
+
+    <div class="spread">
+      <div class="page">
+        <div class="polaroid"><div class="polaroid-img ph-a" style="height:100px"></div><div class="polaroid-caption">Santorini</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-b" style="height:100px"></div><div class="polaroid-caption">Amalfi</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-c" style="height:100px"></div><div class="polaroid-caption">Venice</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-d" style="height:100px"></div><div class="polaroid-caption">Florence</div></div>
+      </div>
+      <div class="page">
+        <div class="polaroid"><div class="polaroid-img ph-e" style="height:100px"></div><div class="polaroid-caption">Paris</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-f" style="height:100px"></div><div class="polaroid-caption">Lyon</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-g" style="height:100px"></div><div class="polaroid-caption">Barcelona</div></div>
+        <div class="polaroid"><div class="polaroid-img ph-h" style="height:100px"></div><div class="polaroid-caption">Madrid</div></div>
+      </div>
+    </div>
+
+    <div class="spread-footer">
+      <div class="dots">
+        <div class="dot active"></div>
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <span class="page-count">1 / 5</span>
+      <div class="nav-btns">
+        <button class="nav-btn">← Previous</button>
+        <button class="nav-btn">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FOCUSED POLAROID ── -->
+  <div class="section-label">Focused polaroid view</div>
+  <div class="focused-view">
+    <div class="focused-inner">
+      <div class="focused-image-side">
+        <button class="focused-nav focused-nav-l">←</button>
+        <div class="focused-polaroid">
+          <div class="focused-polaroid-img ph-b" style="height:164px"></div>
+          <div class="focused-polaroid-caption">Amalfi Coast</div>
+        </div>
+        <button class="focused-nav focused-nav-r">→</button>
+      </div>
+      <div class="focused-info">
+        <div>
+          <div class="focused-meta">2022 · Italy</div>
+          <div class="focused-caption">The cliffside walk we'll never forget</div>
+          <div class="focused-location">📍 Amalfi Coast, Italy · April 2022</div>
+          <div class="reactions">
+            <div class="reaction active">❤️ 31</div>
+            <div class="reaction">😍 18</div>
+            <div class="reaction">✨ 12</div>
+            <div class="reaction">🌊 8</div>
+            <div class="reaction">+</div>
+          </div>
+        </div>
+        <div class="comment-box">Leave a comment as a guest…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BEFORE / AFTER ── -->
+  <div class="section-label">What changed from default → reference theme</div>
+  <div class="comparison">
+    <div class="compare-card compare-before">
+      <div class="compare-label">Default "Forever" theme</div>
+      <div class="compare-body">
+        <div class="compare-row"><span class="compare-token">Background</span><span class="compare-swatch" style="background:#FDF8F0"></span> #FDF8F0 — warm cream</div>
+        <div class="compare-row"><span class="compare-token">Primary</span><span class="compare-swatch" style="background:#7B1E3C"></span> #7B1E3C — rose deep</div>
+        <div class="compare-row"><span class="compare-token">Accent</span><span class="compare-swatch" style="background:#C9964A"></span> #C9964A — gold warm</div>
+        <div class="compare-row"><span class="compare-token">Text</span><span class="compare-swatch" style="background:#3D2C2C"></span> #3D2C2C — warm brown ink</div>
+        <div class="compare-row"><span class="compare-token">Serif</span> Playfair Display</div>
+        <div class="compare-row"><span class="compare-token">Sans</span> Lato</div>
+        <div class="compare-row"><span class="compare-token">Script</span> — none —</div>
+        <div class="compare-row"><span class="compare-token">Polaroid</span> Thick white border</div>
+        <div class="compare-row"><span class="compare-token">Shadows</span> Warm rose-tinted</div>
+        <div class="compare-row"><span class="compare-token">Mood</span> Romantic, candlelit</div>
+      </div>
+    </div>
+    <div class="compare-card compare-after">
+      <div class="compare-label">🌊 Reference-matched theme</div>
+      <div class="compare-body">
+        <div class="compare-row"><span class="compare-token">Background</span><span class="compare-swatch" style="background:#FAFBFF"></span> #FAFBFF — cool white</div>
+        <div class="compare-row"><span class="compare-token">Primary</span><span class="compare-swatch" style="background:#4A7BB5"></span> #4A7BB5 — cornflower blue</div>
+        <div class="compare-row"><span class="compare-token">Accent</span><span class="compare-swatch" style="background:#1E3A6B"></span> #1E3A6B — deep navy</div>
+        <div class="compare-row"><span class="compare-token">Text</span><span class="compare-swatch" style="background:#1E3A6B"></span> #1E3A6B — navy</div>
+        <div class="compare-row"><span class="compare-token">Serif</span> Cormorant Garamond</div>
+        <div class="compare-row"><span class="compare-token">Sans</span> Jost</div>
+        <div class="compare-row"><span class="compare-token">Script</span> Dancing Script ← new</div>
+        <div class="compare-row"><span class="compare-token">Polaroid</span> Thin clean white</div>
+        <div class="compare-row"><span class="compare-token">Shadows</span> Soft blue-tinted</div>
+        <div class="compare-row"><span class="compare-token">Mood</span> Coastal, airy, fresh</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Same structure. Same sections. Completely different soul.
+    <span class="footer-script">Olivia & Ralph · Forever</span>
+  </div>
+
+</div>
+</body>
+</html>
