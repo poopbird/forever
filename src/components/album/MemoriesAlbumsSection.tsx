@@ -179,23 +179,36 @@ function YearAlbumRow({
 function ManagePhotosModal({
   album,
   allMemories,
-  assignedIds,
+  allAlbums,
+  albumMemMap,
   onClose,
   onSave,
 }: {
   album: CoupleAlbum;
   allMemories: Memory[];
-  assignedIds: Set<string>;
+  allAlbums: CoupleAlbum[];
+  albumMemMap: Record<string, Set<string>>;
   onClose: () => void;
   onSave: (ids: string[]) => void;
 }) {
+  const assignedIds = albumMemMap[album.id] ?? new Set<string>();
   const [selected, setSelected] = useState<Set<string>>(new Set(assignedIds));
   const [saving,   setSaving]   = useState(false);
   const [error,    setError]    = useState('');
 
-  const photos     = allMemories.filter(m => m.media_url);
-  const inAlbum    = photos.filter(m =>  selected.has(m.id));
-  const unassigned = photos.filter(m => !selected.has(m.id));
+  // Build a map: memoryId → album label (for other albums only)
+  const otherAlbumLabelMap = new Map<string, string>();
+  for (const a of allAlbums) {
+    if (a.id === album.id) continue;
+    const ids = albumMemMap[a.id];
+    if (!ids) continue;
+    for (const id of ids) otherAlbumLabelMap.set(id, a.label);
+  }
+
+  const photos       = allMemories.filter(m => m.media_url);
+  const inThisAlbum  = photos.filter(m =>  selected.has(m.id));
+  const inOther      = photos.filter(m => !selected.has(m.id) &&  otherAlbumLabelMap.has(m.id));
+  const unassigned   = photos.filter(m => !selected.has(m.id) && !otherAlbumLabelMap.has(m.id));
 
   function toggle(id: string) {
     setSelected(prev => {
@@ -216,7 +229,7 @@ function ManagePhotosModal({
     });
     setSaving(false);
     if (res.ok) {
-      onSave(ids); // parent closes modal
+      onSave(ids);
     } else {
       const body = await res.json().catch(() => ({}));
       setError((body as Record<string, string>)?.error ?? 'Failed to save. Please try again.');
@@ -236,13 +249,16 @@ function ManagePhotosModal({
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {inAlbum.length > 0 && (
+
+          {/* In this album */}
+          {inThisAlbum.length > 0 && (
             <div>
-              <p className="form-label mb-3">In this album ({inAlbum.length})</p>
+              <p className="form-label mb-3">In this album ({inThisAlbum.length})</p>
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                {inAlbum.map(m => (
+                {inThisAlbum.map(m => (
                   <button key={m.id} onClick={() => toggle(m.id)}
-                    className="relative aspect-square rounded-lg overflow-hidden border-2 border-amber-500 transition">
+                    className="relative aspect-square rounded-lg overflow-hidden border-2 border-amber-500 transition"
+                    title="Click to remove from this album">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={storageUrl(m.media_url, { width: 150, quality: 70 })} alt="" className="w-full h-full object-cover" />
                     <div className="absolute top-1 right-1 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</div>
@@ -252,10 +268,35 @@ function ManagePhotosModal({
             </div>
           )}
 
+          {/* In another album */}
+          {inOther.length > 0 && (
+            <div>
+              <p className="form-label mb-1">In another album ({inOther.length})</p>
+              <p className="text-xs text-ink-light mb-3">Click to move to this album — it will be removed from its current album.</p>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                {inOther.map(m => (
+                  <button key={m.id} onClick={() => toggle(m.id)}
+                    className="relative aspect-square rounded-lg overflow-hidden border-2 border-ink/20 hover:border-amber-400 transition group"
+                    title={`Currently in "${otherAlbumLabelMap.get(m.id)}" — click to move here`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={storageUrl(m.media_url, { width: 150, quality: 70 })} alt="" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition" />
+                    {/* Album label badge */}
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1 py-0.5 text-center">
+                      <span className="text-white text-[9px] leading-tight truncate block">{otherAlbumLabelMap.get(m.id)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Unassigned */}
           <div>
             <p className="form-label mb-3">Unassigned ({unassigned.length})</p>
-            {unassigned.length === 0 ? (
-              <p className="text-sm text-ink-light italic">All photos are assigned to albums.</p>
+            {unassigned.length === 0 && inOther.length === 0 && inThisAlbum.length === 0 ? (
+              <p className="text-sm text-ink-light italic">No photos uploaded yet.</p>
+            ) : unassigned.length === 0 ? (
+              <p className="text-sm text-ink-light italic">All remaining photos are assigned to other albums.</p>
             ) : (
               <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                 {unassigned.map(m => (
@@ -268,6 +309,7 @@ function ManagePhotosModal({
               </div>
             )}
           </div>
+
         </div>
 
         {error && (
@@ -292,19 +334,33 @@ function ManagePhotosModal({
 function FreeformAlbumRow({
   album,
   allMemories,
+  allAlbums,
   albumMemoryIds,
+  albumMemMap,
   totalAlbums,
+  isDragOver,
   onSaved,
   onDeleted,
   onMemoriesUpdated,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDrop,
 }: {
   album: CoupleAlbum;
   allMemories: Memory[];
+  allAlbums: CoupleAlbum[];
   albumMemoryIds: Set<string>;
+  albumMemMap: Record<string, Set<string>>;
   totalAlbums: number;
+  isDragOver: boolean;
   onSaved: (saved: CoupleAlbum) => void;
   onDeleted: (id: string) => void;
   onMemoriesUpdated: (albumId: string, ids: string[]) => void;
+  onDragStart: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
+  onDrop: () => void;
 }) {
   const savedIdRef = useRef(album.id);
   const [label,    setLabel]    = useState(album.label);
@@ -318,7 +374,6 @@ function FreeformAlbumRow({
   const defaultCover = albumPhotos[albumPhotos.length - 1]?.media_url ?? null;
   const displayCover = coverUrl || defaultCover;
 
-  // Returns real DB id after save, or null on failure
   async function save(overrides?: { label?: string; caption?: string; coverUrl?: string }): Promise<string | null> {
     const lbl = (overrides?.label   ?? label).trim();
     const cap = overrides?.caption  ?? caption;
@@ -346,7 +401,6 @@ function FreeformAlbumRow({
     }
   }
 
-  // Ensure album persisted before opening manage modal
   async function openManage() {
     if (savedIdRef.current.startsWith('__new__')) {
       const id = await save();
@@ -364,9 +418,23 @@ function FreeformAlbumRow({
 
   return (
     <>
-      <div className="rounded-xl border border-ink/10 bg-white/2 p-5">
+      <div
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={onDragOver}
+        onDragEnd={onDragEnd}
+        onDrop={onDrop}
+        className={`rounded-xl border p-5 transition-all ${
+          isDragOver
+            ? 'border-rose-deep/40 bg-rose-deep/5 scale-[1.01]'
+            : 'border-ink/10 bg-white/2'
+        }`}
+      >
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-ink/20 cursor-grab text-xl select-none" title="Drag to reorder">⠿</span>
+          <span
+            className="text-ink/30 hover:text-ink/60 cursor-grab active:cursor-grabbing text-xl select-none transition-colors"
+            title="Drag to reorder"
+          >⠿</span>
           <div className="flex-1">
             <label className="form-label block mb-1.5">Album title</label>
             <input
@@ -418,7 +486,8 @@ function FreeformAlbumRow({
         <ManagePhotosModal
           album={{ ...album, id: savedIdRef.current }}
           allMemories={allMemories}
-          assignedIds={albumMemoryIds}
+          allAlbums={allAlbums}
+          albumMemMap={albumMemMap}
           onClose={() => setShowManage(false)}
           onSave={ids => { onMemoriesUpdated(savedIdRef.current, ids); setShowManage(false); }}
         />
@@ -466,6 +535,8 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
   const [switchTarget,    setSwitchTarget]    = useState<'year' | 'freeform' | null>(null);
   const [filmReelEnabled, setFilmReelEnabled] = useState(false);
   const [filmReelSaving,  setFilmReelSaving]  = useState(false);
+  const [dragFromIdx,     setDragFromIdx]     = useState<number | null>(null);
+  const [dragOverIdx,     setDragOverIdx]     = useState<number | null>(null);
 
   // ── Load all data ─────────────────────────────────────────────────────────
 
@@ -608,6 +679,27 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
     setAlbumMemMap(prev => ({ ...prev, [albumId]: new Set(ids) }));
   }
 
+  async function handleDrop(fromIdx: number, toIdx: number) {
+    if (fromIdx === toIdx) return;
+    const reordered = [...albums];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+    const withOrder = reordered.map((a, i) => ({ ...a, sort_order: i }));
+    setAlbums(withOrder);
+    setDragFromIdx(null);
+    setDragOverIdx(null);
+    // Persist new sort_order for all albums with real IDs
+    await Promise.all(
+      withOrder
+        .filter(a => !a.id.startsWith('__new__'))
+        .map(a => fetch(`/api/albums/${a.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sort_order: a.sort_order }),
+        })),
+    );
+  }
+
   async function addFreeformAlbum() {
     const sortOrder = albums.length;
     const res = await fetch('/api/albums', {
@@ -737,16 +829,23 @@ export default function MemoriesAlbumsSection({ coupleId }: { coupleId: string }
             {albums.length === 0 && (
               <p className="text-sm text-ink-light italic py-2">No albums yet — add your first album below.</p>
             )}
-            {albums.map(a => (
+            {albums.map((a, idx) => (
               <FreeformAlbumRow
                 key={a.id}
                 album={a}
                 allMemories={memories}
+                allAlbums={albums}
                 albumMemoryIds={albumMemMap[a.id] ?? new Set()}
+                albumMemMap={albumMemMap}
                 totalAlbums={albums.length}
+                isDragOver={dragOverIdx === idx}
                 onSaved={handleAlbumSaved}
                 onDeleted={handleAlbumDeleted}
                 onMemoriesUpdated={handleMemoriesUpdated}
+                onDragStart={() => setDragFromIdx(idx)}
+                onDragOver={e => { e.preventDefault(); setDragOverIdx(idx); }}
+                onDragEnd={() => { setDragFromIdx(null); setDragOverIdx(null); }}
+                onDrop={() => { if (dragFromIdx !== null) handleDrop(dragFromIdx, idx); }}
               />
             ))}
             <button
