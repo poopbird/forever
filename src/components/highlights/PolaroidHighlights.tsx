@@ -1,106 +1,169 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useScroll } from 'framer-motion';
 import type { Memory } from '@/types';
 import type { InvitationTheme } from '@/lib/couple';
 import { storageUrl } from '@/lib/storageUrl';
 
 // ─── Card theme registry ──────────────────────────────────────────────────────
+// All 4 themes share the same polaroid structure:
+//   [frame border 10px top/sides] [photo 1:1 square] [footer with details]
+// Dimensions: width min(400px, 85vw) · photo 1:1 · matches website POLAROID_W×H = 220×220
 interface CardThemeConfig {
-  label:             string;
-  description:       string;
-  cardBg:            string;
-  cardBorder:        string;
-  cardShadow:        string;
-  innerBorder?:      string;
-  eyebrowColor:      string;
-  nameColor:         string;
-  bodyColor:         string;
-  dividerColor:      string;
-  detailsLabelColor: string;
-  detailsBodyColor:  string;
-  btnBg:             string;
-  btnBorder:         string;
-  btnColor:          string;
-  btnBlur:           string;
+  label:          string;
+  description:    string;
+  // Polaroid frame
+  frameBg:        string;   // colour of the border areas (top/sides/footer wrapper)
+  frameShadow:    string;
+  footerBg:       string;   // footer background (may differ from frame for light themes)
+  photoFallback:  string;   // CSS gradient when no photo is set
+  // Name typography
+  nameFont:       string;
+  nameFontSize:   string;
+  nameWeight:     number;
+  nameStyle:      'normal' | 'italic';
+  nameTracking?:  string;
+  nameColor:      string;
+  // Other text
+  eyebrowColor:   string;
+  labelColor:     string;
+  valueColor:     string;
+  ruleColor:      string;
+  sepColor:       string;
+  // Button
+  btnColor:       string;
+  btnBorder:      string;
+  btnBg:          string;
+  btnFont:        string;
+  btnStyle?:      'normal' | 'italic';
+  // Decorative effects
+  hasGarden?:     boolean;  // botanical SVG overlay on photo
+  hasStars?:      boolean;  // animated star field (midnight indigo)
+  hasNoise?:      boolean;  // linen noise texture (sage linen)
 }
 
 export const CARD_THEMES: Record<InvitationTheme, CardThemeConfig> = {
-  classic: {
-    label:             'Ivory Classic',
-    description:       'Warm ivory parchment with gold accents',
-    cardBg:            'linear-gradient(160deg, #faf6ee 0%, #f3e8d5 100%)',
-    cardBorder:        '1px solid rgba(180,130,60,0.35)',
-    cardShadow:        '0 12px 60px rgba(0,0,0,0.38), 0 2px 12px rgba(0,0,0,0.22)',
-    innerBorder:       '1px solid rgba(180,130,60,0.16)',
-    eyebrowColor:      'rgba(130,85,30,0.72)',
-    nameColor:         'rgba(35,18,5,0.92)',
-    bodyColor:         'rgba(70,45,18,0.62)',
-    dividerColor:      'rgba(150,100,40,0.3)',
-    detailsLabelColor: 'rgba(130,85,30,0.58)',
-    detailsBodyColor:  'rgba(50,30,10,0.78)',
-    btnBg:             'rgba(150,100,40,0.1)',
-    btnBorder:         '1px solid rgba(150,100,40,0.45)',
-    btnColor:          'rgba(120,75,25,0.9)',
-    btnBlur:           'none',
+  polaroid_white: {
+    label:          'Polaroid Classic',
+    description:    'Pure white print — clean, timeless',
+    frameBg:        '#ffffff',
+    frameShadow:    '0 28px 80px rgba(0,0,0,0.28), 0 4px 20px rgba(0,0,0,0.14)',
+    footerBg:       '#ffffff',
+    photoFallback:  'linear-gradient(145deg, #d6c8b4 0%, #c4ae96 35%, #b09278 60%, #9a7c64 100%)',
+    nameFont:       '"Alex Brush", cursive',
+    nameFontSize:   'clamp(2.4rem, 8vw, 3.2rem)',
+    nameWeight:     400,
+    nameStyle:      'normal',
+    nameColor:      'rgba(0,0,0,0.86)',
+    eyebrowColor:   'rgba(0,0,0,0.30)',
+    labelColor:     'rgba(0,0,0,0.28)',
+    valueColor:     'rgba(0,0,0,0.72)',
+    ruleColor:      'rgba(0,0,0,0.12)',
+    sepColor:       'rgba(0,0,0,0.10)',
+    btnColor:       'rgba(0,0,0,0.60)',
+    btnBorder:      '1px solid rgba(0,0,0,0.18)',
+    btnBg:          'rgba(0,0,0,0.03)',
+    btnFont:        '"DM Sans", sans-serif',
   },
-  dark_luxury: {
-    label:             'Dark Luxury',
-    description:       'Deep charcoal with warm gold typography',
-    cardBg:            'linear-gradient(145deg, #1e130a 0%, #251508 100%)',
-    cardBorder:        '1px solid rgba(201,150,74,0.2)',
-    cardShadow:        '0 12px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.4)',
-    eyebrowColor:      'rgba(201,150,74,0.65)',
-    nameColor:         'rgba(255,243,225,0.97)',
-    bodyColor:         'rgba(240,220,200,0.55)',
-    dividerColor:      'rgba(201,150,74,0.45)',
-    detailsLabelColor: 'rgba(201,150,74,0.55)',
-    detailsBodyColor:  'rgba(240,220,200,0.72)',
-    btnBg:             'rgba(201,150,74,0.09)',
-    btnBorder:         '1px solid rgba(201,150,74,0.42)',
-    btnColor:          'rgba(201,150,74,0.92)',
-    btnBlur:           'blur(8px)',
+  garden_bloom: {
+    label:          'Garden Bloom',
+    description:    'Parchment print with botanical accents',
+    frameBg:        '#f3ead8',
+    frameShadow:    '0 28px 80px rgba(0,0,0,0.26), 0 4px 20px rgba(15,40,15,0.14)',
+    footerBg:       '#f3ead8',
+    photoFallback:  'linear-gradient(155deg, #8aaa6e 0%, #6e9052 28%, #4e7038 55%, #2c4420 100%)',
+    nameFont:       '"Playfair Display", Georgia, serif',
+    nameFontSize:   'clamp(2.1rem, 7vw, 2.9rem)',
+    nameWeight:     700,
+    nameStyle:      'italic',
+    nameColor:      '#1e3a1e',
+    eyebrowColor:   'rgba(40,74,40,0.50)',
+    labelColor:     'rgba(42,78,42,0.45)',
+    valueColor:     'rgba(30,58,30,0.82)',
+    ruleColor:      'rgba(42,78,42,0.20)',
+    sepColor:       'rgba(42,78,42,0.15)',
+    btnColor:       'rgba(30,58,30,0.70)',
+    btnBorder:      '1px solid rgba(42,78,42,0.28)',
+    btnBg:          'rgba(42,78,42,0.06)',
+    btnFont:        '"EB Garamond", Georgia, serif',
+    btnStyle:       'italic',
+    hasGarden:      true,
   },
-  blush: {
-    label:             'Blush Romance',
-    description:       'Soft rose gradient — romantic and feminine',
-    cardBg:            'linear-gradient(150deg, #fef0f2 0%, #fce4e9 45%, #f8d4dc 100%)',
-    cardBorder:        '1px solid rgba(190,100,120,0.2)',
-    cardShadow:        '0 12px 48px rgba(160,70,90,0.22), 0 2px 10px rgba(0,0,0,0.1)',
-    innerBorder:       '1px solid rgba(190,100,120,0.12)',
-    eyebrowColor:      'rgba(160,70,90,0.68)',
-    nameColor:         'rgba(38,14,22,0.9)',
-    bodyColor:         'rgba(90,38,52,0.6)',
-    dividerColor:      'rgba(180,90,110,0.28)',
-    detailsLabelColor: 'rgba(160,70,90,0.58)',
-    detailsBodyColor:  'rgba(60,22,32,0.75)',
-    btnBg:             'rgba(180,90,110,0.1)',
-    btnBorder:         '1px solid rgba(180,90,110,0.38)',
-    btnColor:          'rgba(150,65,85,0.92)',
-    btnBlur:           'none',
+  sage_linen: {
+    label:          'Sage Linen',
+    description:    'Deep sage with a tactile linen feel',
+    frameBg:        '#3d4f3b',
+    frameShadow:    '0 28px 80px rgba(0,0,0,0.50), 0 4px 20px rgba(0,0,0,0.30)',
+    footerBg:       '#3d4f3b',
+    photoFallback:  'linear-gradient(150deg, #7a9268 0%, #5e7850 28%, #4a6040 55%, #2c3c24 100%)',
+    nameFont:       '"Sorts Mill Goudy", Georgia, serif',
+    nameFontSize:   'clamp(2rem, 7vw, 2.75rem)',
+    nameWeight:     400,
+    nameStyle:      'italic',
+    nameColor:      'rgba(235,245,225,0.95)',
+    eyebrowColor:   'rgba(180,210,160,0.45)',
+    labelColor:     'rgba(180,210,160,0.38)',
+    valueColor:     'rgba(235,245,225,0.78)',
+    ruleColor:      'rgba(180,210,160,0.22)',
+    sepColor:       'rgba(180,210,160,0.15)',
+    btnColor:       'rgba(180,210,160,0.75)',
+    btnBorder:      '1px solid rgba(180,210,160,0.25)',
+    btnBg:          'rgba(180,210,160,0.06)',
+    btnFont:        '"DM Sans", sans-serif',
+    hasNoise:       true,
   },
-  minimal: {
-    label:             'Clean Minimal',
-    description:       'Pure white with clean, modern typography',
-    cardBg:            '#ffffff',
-    cardBorder:        '1px solid rgba(0,0,0,0.09)',
-    cardShadow:        '0 8px 40px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.07)',
-    eyebrowColor:      'rgba(0,0,0,0.32)',
-    nameColor:         'rgba(0,0,0,0.88)',
-    bodyColor:         'rgba(0,0,0,0.44)',
-    dividerColor:      'rgba(0,0,0,0.1)',
-    detailsLabelColor: 'rgba(0,0,0,0.32)',
-    detailsBodyColor:  'rgba(0,0,0,0.65)',
-    btnBg:             'rgba(0,0,0,0.04)',
-    btnBorder:         '1px solid rgba(0,0,0,0.18)',
-    btnColor:          'rgba(0,0,0,0.75)',
-    btnBlur:           'none',
+  midnight_indigo: {
+    label:          'Midnight Indigo',
+    description:    'Celestial navy with twinkling stars',
+    frameBg:        '#0e0f1e',
+    frameShadow:    '0 28px 80px rgba(0,0,0,0.65), 0 4px 24px rgba(60,60,130,0.25)',
+    footerBg:       '#0e0f1e',
+    photoFallback:  'linear-gradient(145deg, #0e0f1e 0%, #121428 50%, #0a0b18 100%)',
+    nameFont:       '"Cinzel", Georgia, serif',
+    nameFontSize:   'clamp(1.5rem, 5.5vw, 2.2rem)',
+    nameWeight:     300,
+    nameStyle:      'normal',
+    nameTracking:   '0.14em',
+    nameColor:      'rgba(240,235,255,0.96)',
+    eyebrowColor:   'rgba(160,150,220,0.45)',
+    labelColor:     'rgba(160,150,220,0.38)',
+    valueColor:     'rgba(220,215,255,0.72)',
+    ruleColor:      'rgba(160,150,220,0.22)',
+    sepColor:       'rgba(160,150,220,0.15)',
+    btnColor:       'rgba(160,150,220,0.78)',
+    btnBorder:      '1px solid rgba(160,150,220,0.22)',
+    btnBg:          'rgba(100,90,180,0.06)',
+    btnFont:        '"Cinzel", Georgia, serif',
+    hasStars:       true,
   },
 };
 
-// ─── Google Font: Caveat (sharpie feel) ──────────────────────────────────────
+// ─── Google Font: Caveat (sharpie feel on memory polaroids) ──────────────────
 const SHARPIE = '"Caveat", "Permanent Marker", cursive';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+/** Convert HH:MM → h:mm AM/PM */
+function fmt12h(hhmm: string): string {
+  const [hStr, mStr = '00'] = hhmm.split(':');
+  const h = parseInt(hStr, 10);
+  return `${h % 12 || 12}:${mStr} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+/** Format ISO date "YYYY-MM-DD" → "Sat, 19 Sep 2026" */
+function fmtDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+  });
+}
+/** Deterministic star positions for Midnight Indigo (avoids SSR hydration mismatch) */
+const STAR_DATA = Array.from({ length: 26 }, (_, i) => ({
+  left: `${(i * 37 + 13) % 100}%`,
+  top:  `${(i * 53 + 7) % 100}%`,
+  size: 1 + (i % 3) * 0.5,
+  op:   0.45 + (i % 4) * 0.14,
+  dur:  2 + (i % 5) * 0.6,
+  del:  (i % 8) * 0.4,
+}));
 
 // ─── Polaroid layout constants ────────────────────────────────────────────────
 const POLAROID_W    = 220;
@@ -358,7 +421,7 @@ function EditableField({
   );
 }
 
-// ─── Invitation card — themed physical card with solid background ─────────────
+// ─── Invitation card — polaroid format (photo + themed footer) ───────────────
 function FloatingInvitation({
   coupleName,
   visible,
@@ -371,23 +434,28 @@ function FloatingInvitation({
   onSaveDetails,
   rsvpEnabled,
   coupleId,
-  cardTheme = 'dark_luxury',
+  cardTheme = 'polaroid_white',
+  invitationPhotoUrl,
 }: {
-  coupleName:        string;
-  visible:           boolean;
-  weddingDate?:      string | null;
-  weddingTimeStart?: string | null;
-  weddingTimeEnd?:   string | null;
-  weddingVenue?:     string | null;
-  weddingCity?:      string | null;
-  readOnly?:         boolean;
-  onSaveDetails?:    (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) => Promise<void>;
-  rsvpEnabled?:      boolean;
-  coupleId?:         string;
-  cardTheme?:        InvitationTheme;
+  coupleName:           string;
+  visible:              boolean;
+  weddingDate?:         string | null;
+  weddingTimeStart?:    string | null;
+  weddingTimeEnd?:      string | null;
+  weddingVenue?:        string | null;
+  weddingCity?:         string | null;
+  readOnly?:            boolean;
+  onSaveDetails?:       (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) => Promise<void>;
+  rsvpEnabled?:         boolean;
+  coupleId?:            string;
+  cardTheme?:           InvitationTheme;
+  invitationPhotoUrl?:  string | null;
 }) {
-  const [saving, setSaving] = useState(false);
-  const t = CARD_THEMES[cardTheme] ?? CARD_THEMES.dark_luxury;
+  const [saving,   setSaving]   = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const t = CARD_THEMES[cardTheme] ?? CARD_THEMES.polaroid_white;
+
+  const hasDetails = weddingDate || weddingTimeStart || weddingVenue || weddingCity;
 
   async function handleSave(field: string, value: string) {
     if (!onSaveDetails) return;
@@ -396,7 +464,38 @@ function FloatingInvitation({
     finally { setSaving(false); }
   }
 
-  const hasDetails = weddingDate || weddingTimeStart || weddingVenue || weddingCity;
+  // Shared style helpers
+  const lblStyle: React.CSSProperties = {
+    fontFamily:    '"DM Sans", sans-serif',
+    fontWeight:    300,
+    fontSize:      '0.5rem',
+    letterSpacing: '0.3em',
+    textTransform: 'uppercase',
+    color:         t.labelColor,
+    minWidth:      36,
+    textAlign:     'right',
+    flexShrink:    0,
+  };
+  const valStyle: React.CSSProperties = {
+    fontFamily:    '"DM Sans", sans-serif',
+    fontWeight:    400,
+    fontSize:      '0.72rem',
+    letterSpacing: '0.04em',
+    color:         t.valueColor,
+    textAlign:     'left',
+  };
+  const rowStyle: React.CSSProperties = {
+    display:     'flex',
+    alignItems:  'baseline',
+    gap:         8,
+    justifyContent: 'center',
+  };
+  const sepStyle: React.CSSProperties = {
+    width:      28,
+    height:     1,
+    background: t.sepColor,
+    margin:     '2px auto',
+  };
 
   return (
     <motion.div
@@ -413,197 +512,272 @@ function FloatingInvitation({
         left:          '50%',
         top:           '50%',
         zIndex:        30,
-        textAlign:     'center',
         pointerEvents: visible ? 'auto' : 'none',
-        width:         'min(560px, 88vw)',
+        // min(400px, 85vw): spotlight on desktop, fills mobile beautifully
+        width:         'min(400px, 85vw)',
       }}
     >
-      {/* ── Physical card shell — blocks polaroids behind it ── */}
+      {/* ── Polaroid frame shell ── */}
       <div style={{
-        background:    t.cardBg,
-        border:        t.cardBorder,
-        boxShadow:     t.cardShadow,
-        borderRadius:  '3px',
-        padding:       'clamp(32px, 6vw, 56px) clamp(28px, 6vw, 52px)',
-        position:      'relative',
+        background:   t.frameBg,
+        boxShadow:    t.frameShadow,
+        borderRadius: '2px',
+        // Polaroid border: equal on top/sides, footer handles bottom space
+        padding:      '10px 10px 0',
+        position:     'relative',
+        overflow:     'hidden',
       }}>
 
-        {/* Optional inner decorative frame */}
-        {t.innerBorder && (
+        {/* Linen noise texture — Sage Linen only */}
+        {t.hasNoise && (
           <div style={{
-            position:     'absolute',
-            inset:        10,
-            border:       t.innerBorder,
-            borderRadius: '2px',
-            pointerEvents:'none',
+            position:        'absolute',
+            inset:           0,
+            zIndex:          3,
+            pointerEvents:   'none',
+            opacity:         0.16,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            backgroundSize:  '200px 200px',
           }} />
         )}
 
-        {/* Saving indicator */}
-        {saving && (
-          <p style={{ position: 'absolute', top: 8, right: 14, fontFamily: '"Lato", sans-serif', fontSize: '0.58rem', color: t.eyebrowColor, letterSpacing: '0.1em' }}>
-            saving…
-          </p>
-        )}
-
-        {/* Eyebrow */}
-        <p style={{
-          fontFamily:    '"Lato", sans-serif',
-          fontSize:      '0.62rem',
-          letterSpacing: '0.45em',
-          textTransform: 'uppercase',
-          color:         t.eyebrowColor,
-          marginBottom:  20,
+        {/* ── Photo section — 1:1 square, matches POLAROID_W × POLAROID_H = 220×220 ── */}
+        <div style={{
+          position:      'relative',
+          width:         '100%',
+          aspectRatio:   '1 / 1',
+          overflow:      'hidden',
+          background:    t.photoFallback,
+          zIndex:        1,
         }}>
-          ✦ &nbsp; You are invited &nbsp; ✦
-        </p>
+          {/* Midnight Indigo: nebula + star field (visible only when no real photo) */}
+          {t.hasStars && (!invitationPhotoUrl || imgError) && (
+            <>
+              <div style={{
+                position:   'absolute',
+                inset:      0,
+                background: 'radial-gradient(ellipse 60% 40% at 30% 60%, rgba(80,60,140,0.22) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 75% 25%, rgba(40,60,120,0.18) 0%, transparent 55%)',
+              }} />
+              {STAR_DATA.map((s, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position:    'absolute',
+                    left:        s.left,
+                    top:         s.top,
+                    width:       s.size,
+                    height:      s.size,
+                    borderRadius:'50%',
+                    background:  '#fff',
+                    animation:   `inv-twinkle ${s.dur}s ${s.del}s ease-in-out infinite`,
+                    opacity:     s.op,
+                  }}
+                />
+              ))}
+            </>
+          )}
 
-        {/* Couple name */}
-        <h2 style={{
-          fontFamily:    '"Playfair Display", Georgia, serif',
-          fontSize:      'clamp(2.4rem, 6vw, 4.5rem)',
-          fontStyle:     'italic',
-          fontWeight:    700,
-          color:         t.nameColor,
-          lineHeight:    1.05,
-          marginBottom:  20,
-          letterSpacing: '-0.01em',
-        }}>
-          {coupleName}
-        </h2>
+          {/* Actual photo */}
+          {invitationPhotoUrl && !imgError ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={storageUrl(invitationPhotoUrl, { width: 800, quality: 85 })}
+              alt="Invitation"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={() => setImgError(true)}
+            />
+          ) : null}
 
-        {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center', marginBottom: 22 }}>
-          <div style={{ flex: 1, height: 1, background: `linear-gradient(to right, transparent, ${t.dividerColor})` }} />
-          <span style={{ color: t.dividerColor, fontSize: '0.58rem', letterSpacing: '0.25em' }}>◆ ◆ ◆</span>
-          <div style={{ flex: 1, height: 1, background: `linear-gradient(to left, transparent, ${t.dividerColor})` }} />
-        </div>
-
-        {/* Tagline */}
-        <p style={{
-          fontFamily:    '"Lato", sans-serif',
-          fontSize:      'clamp(0.82rem, 2vw, 0.98rem)',
-          color:         t.bodyColor,
-          lineHeight:    1.85,
-          letterSpacing: '0.04em',
-          marginBottom:  28,
-        }}>
-          Join us as we celebrate our love<br />
-          and begin our forever together.
-        </p>
-
-        {/* RSVP button */}
-        {rsvpEnabled && coupleId && (
-          <div style={{ marginBottom: 28 }}>
-            <a
-              href={`/rsvp/lookup?couple_id=${coupleId}`}
-              style={{
-                display:        'inline-block',
-                fontFamily:     '"Lato", sans-serif',
-                fontSize:       '0.72rem',
-                letterSpacing:  '0.25em',
-                textTransform:  'uppercase',
-                color:          t.btnColor,
-                border:         t.btnBorder,
-                borderRadius:   '100px',
-                padding:        '10px 28px',
-                background:     t.btnBg,
-                backdropFilter: t.btnBlur,
-                textDecoration: 'none',
-                transition:     'background 0.2s',
-              }}
+          {/* Garden Bloom: botanical SVG overlay (corner accent on top of photo) */}
+          {t.hasGarden && (
+            <svg
+              style={{ position: 'absolute', bottom: 0, right: 0, opacity: 0.18, pointerEvents: 'none' }}
+              width="110" height="110" viewBox="0 0 140 140" fill="none"
             >
-              ✦ &nbsp; RSVP
-            </a>
-          </div>
-        )}
-
-        {/* Wedding details */}
-        <div>
-          <p style={{
-            fontFamily:    '"Playfair Display", serif',
-            fontSize:      '0.72rem',
-            fontStyle:     'italic',
-            color:         t.detailsLabelColor,
-            marginBottom:  12,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-          }}>
-            — Our Wedding Day —
-          </p>
-
-          {readOnly ? (
-            <div style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}>
-              {hasDetails ? (
-                <>
-                  {weddingDate && (
-                    <p>{new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  )}
-                  {weddingTimeStart && (
-                    <p>
-                      {weddingTimeStart.slice(0, 5)}
-                      {weddingTimeEnd ? ` – ${weddingTimeEnd.slice(0, 5)}` : ''}
-                    </p>
-                  )}
-                  {weddingVenue && <p>{weddingVenue}</p>}
-                  {weddingCity  && <p>{weddingCity}</p>}
-                </>
-              ) : (
-                <p style={{ opacity: 0.35, fontSize: '0.82rem' }}>Details coming soon</p>
-              )}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <EditableField
-                type="date"
-                value={weddingDate ?? ''}
-                displayValue={weddingDate
-                  ? new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-                  : ''}
-                placeholder="Wedding date"
-                onSave={v => handleSave('wedding_date', v)}
-                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
-              />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                <EditableField
-                  type="time"
-                  value={weddingTimeStart?.slice(0, 5) ?? ''}
-                  placeholder="Start"
-                  onSave={v => handleSave('wedding_time_start', v)}
-                  style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2, width: 'auto', minWidth: 60 }}
-                />
-                {(weddingTimeStart || weddingTimeEnd) && (
-                  <span style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.bodyColor }}>–</span>
-                )}
-                <EditableField
-                  type="time"
-                  value={weddingTimeEnd?.slice(0, 5) ?? ''}
-                  placeholder="End"
-                  onSave={v => handleSave('wedding_time_end', v)}
-                  style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2, width: 'auto', minWidth: 60 }}
-                />
-              </div>
-              <EditableField
-                value={weddingVenue ?? ''}
-                placeholder="Venue name"
-                onSave={v => handleSave('wedding_venue', v)}
-                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
-              />
-              <EditableField
-                value={weddingCity ?? ''}
-                placeholder="City / Location"
-                onSave={v => handleSave('wedding_city', v)}
-                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
-              />
-              {!hasDetails && (
-                <p style={{ fontFamily: '"Lato", sans-serif', fontSize: '0.6rem', color: t.eyebrowColor, opacity: 0.5, letterSpacing: '0.14em', marginTop: 8 }}>
-                  ✎ &nbsp; Click any field to edit
-                </p>
-              )}
-            </div>
+              <path d="M10 130 C30 100, 50 80, 70 50" stroke="#1e3a1e" strokeWidth="1.5" fill="none"/>
+              <path d="M40 95 C20 75, 10 55, 20 35" stroke="#1e3a1e" strokeWidth="1" fill="none"/>
+              <path d="M60 70 C80 55, 100 50, 110 35" stroke="#1e3a1e" strokeWidth="1" fill="none"/>
+              <ellipse cx="28" cy="108" rx="10" ry="5" fill="#2a5c2a" opacity="0.7" transform="rotate(-30 28 108)"/>
+              <ellipse cx="52" cy="82" rx="12" ry="5" fill="#2a5c2a" opacity="0.6" transform="rotate(-50 52 82)"/>
+              <ellipse cx="64" cy="60" rx="10" ry="4" fill="#2a5c2a" opacity="0.5" transform="rotate(-60 64 60)"/>
+              <circle cx="70" cy="48" r="7" fill="#8c3040" opacity="0.5"/>
+              <path d="M65 48 Q70 40 75 48 Q70 52 65 48" fill="#a83848" opacity="0.6"/>
+              <path d="M70 43 Q76 48 70 53 Q64 48 70 43" fill="#c04058" opacity="0.5"/>
+              <circle cx="20" cy="33" r="5" fill="#8c3040" opacity="0.4"/>
+              <circle cx="110" cy="33" r="5" fill="#8c3040" opacity="0.35"/>
+            </svg>
           )}
         </div>
 
+        {/* ── Footer — couple name + wedding details ── */}
+        <div style={{
+          background:   t.footerBg,
+          padding:      '18px 20px 26px',
+          textAlign:    'center',
+          position:     'relative',
+          zIndex:       2,
+        }}>
+          {saving && (
+            <p style={{ position: 'absolute', top: 6, right: 12, fontFamily: '"DM Sans", sans-serif', fontSize: '0.52rem', color: t.eyebrowColor }}>
+              saving…
+            </p>
+          )}
+
+          {/* Eyebrow */}
+          <p style={{
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    300,
+            fontSize:      '0.52rem',
+            letterSpacing: '0.4em',
+            textTransform: 'uppercase',
+            color:         t.eyebrowColor,
+            marginBottom:  8,
+          }}>
+            ✦ You are invited ✦
+          </p>
+
+          {/* Couple name */}
+          <div style={{
+            fontFamily:    t.nameFont,
+            fontSize:      t.nameFontSize,
+            fontWeight:    t.nameWeight,
+            fontStyle:     t.nameStyle,
+            letterSpacing: t.nameTracking,
+            color:         t.nameColor,
+            lineHeight:    1.0,
+            marginBottom:  12,
+          }}>
+            {coupleName}
+          </div>
+
+          {/* Rule */}
+          <div style={{ width: 32, height: 1, background: t.ruleColor, margin: '0 auto 14px' }} />
+
+          {/* Wedding details */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+            {readOnly ? (
+              <>
+                {weddingDate && (
+                  <div style={rowStyle}>
+                    <span style={lblStyle}>Date</span>
+                    <span style={valStyle}>{fmtDate(weddingDate)}</span>
+                  </div>
+                )}
+                {(weddingTimeStart || weddingTimeEnd) && (
+                  <>
+                    <div style={sepStyle} />
+                    <div style={rowStyle}>
+                      <span style={lblStyle}>Time</span>
+                      <span style={valStyle}>
+                        {weddingTimeStart ? fmt12h(weddingTimeStart.slice(0, 5)) : ''}
+                        {weddingTimeEnd   ? ` – ${fmt12h(weddingTimeEnd.slice(0, 5))}` : ''}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {(weddingVenue || weddingCity) && (
+                  <>
+                    <div style={sepStyle} />
+                    <div style={rowStyle}>
+                      <span style={lblStyle}>Venue</span>
+                      <span style={valStyle}>
+                        {weddingVenue ?? ''}{weddingCity ? `, ${weddingCity}` : ''}
+                      </span>
+                    </div>
+                  </>
+                )}
+                {!hasDetails && (
+                  <p style={{ fontSize: '0.72rem', color: t.eyebrowColor, opacity: 0.5 }}>Details coming soon</p>
+                )}
+              </>
+            ) : (
+              <>
+                <div style={rowStyle}>
+                  <span style={lblStyle}>Date</span>
+                  <div style={{ flex: 1, maxWidth: 200, textAlign: 'left' }}>
+                    <EditableField
+                      type="date"
+                      value={weddingDate ?? ''}
+                      placeholder="Choose date"
+                      displayValue={weddingDate ? fmtDate(weddingDate) : ''}
+                      onSave={v => handleSave('wedding_date', v)}
+                      style={{ ...valStyle, textAlign: 'left' }}
+                    />
+                  </div>
+                </div>
+                <div style={sepStyle} />
+                <div style={rowStyle}>
+                  <span style={lblStyle}>Time</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, textAlign: 'left' }}>
+                    <EditableField
+                      type="time"
+                      value={weddingTimeStart?.slice(0, 5) ?? ''}
+                      placeholder="Start"
+                      displayValue={weddingTimeStart ? fmt12h(weddingTimeStart.slice(0, 5)) : ''}
+                      onSave={v => handleSave('wedding_time_start', v)}
+                      style={{ ...valStyle, minWidth: 60 }}
+                    />
+                    <span style={{ color: t.valueColor, opacity: 0.5 }}>–</span>
+                    <EditableField
+                      type="time"
+                      value={weddingTimeEnd?.slice(0, 5) ?? ''}
+                      placeholder="End"
+                      displayValue={weddingTimeEnd ? fmt12h(weddingTimeEnd.slice(0, 5)) : ''}
+                      onSave={v => handleSave('wedding_time_end', v)}
+                      style={{ ...valStyle, minWidth: 60 }}
+                    />
+                  </div>
+                </div>
+                <div style={sepStyle} />
+                <div style={rowStyle}>
+                  <span style={lblStyle}>Venue</span>
+                  <div style={{ flex: 1, maxWidth: 200, textAlign: 'left' }}>
+                    <EditableField
+                      value={weddingVenue ?? ''}
+                      placeholder="Venue name"
+                      onSave={v => handleSave('wedding_venue', v)}
+                      style={{ ...valStyle, textAlign: 'left', display: 'block' }}
+                    />
+                    <EditableField
+                      value={weddingCity ?? ''}
+                      placeholder="City"
+                      onSave={v => handleSave('wedding_city', v)}
+                      style={{ ...valStyle, textAlign: 'left', fontSize: '0.65rem', opacity: 0.7, display: 'block' }}
+                    />
+                  </div>
+                </div>
+                {!hasDetails && (
+                  <p style={{ fontSize: '0.52rem', color: t.eyebrowColor, opacity: 0.5, letterSpacing: '0.14em', marginTop: 6 }}>
+                    ✎ Click any field to edit
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* RSVP button */}
+          {rsvpEnabled && coupleId && (
+            <a
+              href={`/rsvp/lookup?couple_id=${coupleId}`}
+              style={{
+                display:       'inline-block',
+                fontFamily:    t.btnFont,
+                fontStyle:     t.btnStyle ?? 'normal',
+                fontSize:      '0.6rem',
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color:         t.btnColor,
+                border:        t.btnBorder,
+                borderRadius:  '100px',
+                padding:       '8px 22px',
+                background:    t.btnBg,
+                textDecoration:'none',
+              }}
+            >
+              ✦ RSVP
+            </a>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -611,18 +785,19 @@ function FloatingInvitation({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 interface Props {
-  highlights:         Memory[];
-  allMemories:        Memory[];
-  coupleName:         string;
-  weddingDate?:       string | null;
-  weddingTimeStart?:  string | null;
-  weddingTimeEnd?:    string | null;
-  weddingVenue?:      string | null;
-  weddingCity?:       string | null;
-  readOnly?:          boolean;
-  coupleId?:          string;
-  rsvpEnabled?:       boolean;
-  invitationTheme?:   InvitationTheme | null;
+  highlights:           Memory[];
+  allMemories:          Memory[];
+  coupleName:           string;
+  weddingDate?:         string | null;
+  weddingTimeStart?:    string | null;
+  weddingTimeEnd?:      string | null;
+  weddingVenue?:        string | null;
+  weddingCity?:         string | null;
+  readOnly?:            boolean;
+  coupleId?:            string;
+  rsvpEnabled?:         boolean;
+  invitationTheme?:     InvitationTheme | null;
+  invitationPhotoUrl?:  string | null;  // selected photo; null = auto-pick most recent
 }
 
 export default function PolaroidHighlights({
@@ -638,6 +813,7 @@ export default function PolaroidHighlights({
   coupleId,
   rsvpEnabled = false,
   invitationTheme,
+  invitationPhotoUrl = null,
 }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [localHighlights, setLocalHighlights] = useState<Memory[]>(highlights);
@@ -671,6 +847,14 @@ export default function PolaroidHighlights({
     ? localHighlights
     : allMemories.filter(m => m.media_type === 'photo' && m.media_url).slice(0, 20);
 
+  // Auto-pick the most recent memory photo when no photo is explicitly selected
+  // allMemories is sorted ascending by date, so .at(-1) is the most recent
+  const autoInvitationPhoto = useMemo(
+    () => allMemories.filter(m => m.media_type === 'photo' && m.media_url).at(-1)?.media_url ?? null,
+    [allMemories],
+  );
+  const resolvedInvitationPhoto = invitationPhotoUrl ?? autoInvitationPhoto;
+
 
   async function handleSaveDetails(fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) {
     if (fields.wedding_date       !== undefined) setWeddingDate(fields.wedding_date);
@@ -689,7 +873,13 @@ export default function PolaroidHighlights({
 
   return (
     <>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Caveat:wght@400;600&family=Cinzel:wght@300;400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&family=EB+Garamond:ital,wght@0,400;1,400&family=Sorts+Mill+Goudy:ital@0;1&display=swap');
+        @keyframes inv-twinkle {
+          0%, 100% { opacity: var(--op, 0.6); transform: scale(1); }
+          50%       { opacity: calc(var(--op, 0.6) * 0.2); transform: scale(0.55); }
+        }
+      `}</style>
 
       <section
         ref={sectionRef}
@@ -774,7 +964,8 @@ export default function PolaroidHighlights({
             onSaveDetails={readOnly ? undefined : handleSaveDetails}
             rsvpEnabled={rsvpEnabled}
             coupleId={coupleId}
-            cardTheme={invitationTheme ?? 'dark_luxury'}
+            cardTheme={invitationTheme ?? 'polaroid_white'}
+            invitationPhotoUrl={resolvedInvitationPhoto}
           />
 
           {/* ── Progress dots ── */}

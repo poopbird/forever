@@ -41,7 +41,7 @@ export default async function HomePage() {
     adminSupabase.from('faqs').select('*').eq('couple_id', coupleId).order('position', { ascending: true }),
     adminSupabase.from('couple_albums').select('*').eq('couple_id', coupleId).order('sort_order', { ascending: true }),
     adminSupabase.from('album_memories').select('album_id, memory_id').eq('couple_id', coupleId),
-    adminSupabase.from('couples').select('album_mode, film_reel_enabled, invitation_theme').eq('id', coupleId).single(),
+    adminSupabase.from('couples').select('album_mode, film_reel_enabled, invitation_theme, invitation_photo_url').eq('id', coupleId).single(),
   ]);
 
   if (error) console.error('Failed to load memories:', error.message);
@@ -51,7 +51,8 @@ export default async function HomePage() {
   const albumMemoryRows: AlbumMemoryRow[] = (albumMemRows ?? []) as AlbumMemoryRow[];
   const albumMode: string           = (coupleRow as Record<string, unknown> | null)?.album_mode as string ?? 'year';
   const filmReelEnabled: boolean    = Boolean((coupleRow as Record<string, unknown> | null)?.film_reel_enabled);
-  const invitationTheme: InvitationTheme = ((coupleRow as Record<string, unknown> | null)?.invitation_theme as InvitationTheme) ?? 'dark_luxury';
+  const invitationTheme: InvitationTheme = ((coupleRow as Record<string, unknown> | null)?.invitation_theme as InvitationTheme) ?? 'polaroid_white';
+  const invitationPhotoUrl: string | null = ((coupleRow as Record<string, unknown> | null)?.invitation_photo_url as string) ?? null;
   const highlights: Memory[] = (highlightRows ?? [])
     .map((row: { position: number; memory: unknown }) => row.memory as Memory)
     .filter(Boolean);
@@ -96,6 +97,7 @@ export default async function HomePage() {
         coupleId={coupleId}
         rsvpEnabled={profile.rsvp_enabled ?? false}
         invitationTheme={invitationTheme}
+        invitationPhotoUrl={invitationPhotoUrl}
       />
 
       <AlbumSection

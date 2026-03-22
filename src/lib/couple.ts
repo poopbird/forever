@@ -1,6 +1,6 @@
 import { createAdminClient } from './supabase/admin';
 
-export type InvitationTheme = 'classic' | 'dark_luxury' | 'blush' | 'minimal';
+export type InvitationTheme = 'polaroid_white' | 'garden_bloom' | 'sage_linen' | 'midnight_indigo';
 
 export interface CoupleProfile {
   id: string;
@@ -15,6 +15,7 @@ export interface CoupleProfile {
   wedding_time_start: string | null;
   wedding_time_end: string | null;
   invitation_theme?: InvitationTheme | null;
+  invitation_photo_url?: string | null;
   // RSVP fields — only present after migration 0010_rsvp.sql has been run
   rsvp_enabled?: boolean;
   rsvp_locked_at?: string | null;
@@ -36,7 +37,7 @@ export async function getCoupleProfile(coupleId: string): Promise<CoupleProfile 
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city, wedding_time_start, wedding_time_end, invitation_theme')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_venue, wedding_city, wedding_time_start, wedding_time_end, invitation_theme, invitation_photo_url')
     .eq('id', coupleId)
     .single();
   return data ?? null;

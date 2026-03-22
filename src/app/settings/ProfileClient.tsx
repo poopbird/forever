@@ -4,17 +4,21 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CoupleProfile, InvitationTheme } from '@/lib/couple';
 import { CARD_THEMES } from '@/components/highlights/PolaroidHighlights';
+import { storageUrl } from '@/lib/storageUrl';
 import MemoriesAlbumsSection from '@/components/album/MemoriesAlbumsSection';
 import HighlightsPickerSection from '@/components/highlights/HighlightsPickerSection';
 
+interface PhotoMemory { id: string; media_url: string; caption: string; }
+
 interface Props {
-  profile:  CoupleProfile;
-  shareUrl: string;
-  coupleId: string;
-  siteUrl:  string;
+  profile:       CoupleProfile;
+  shareUrl:      string;
+  coupleId:      string;
+  siteUrl:       string;
+  photoMemories: PhotoMemory[];   // memories with photos, sorted newest-first
 }
 
-export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
+export default function ProfileClient({ profile, shareUrl, coupleId, photoMemories }: Props) {
   const router = useRouter();
 
   const [name,          setName]          = useState(profile.name);
@@ -34,9 +38,12 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
   const [inviteLink,       setInviteLink]       = useState('');
   const [generating,       setGenerating]       = useState(false);
   const [copied,           setCopied]           = useState(false);
-  const [invitationTheme,  setInvitationTheme]  = useState<InvitationTheme>(profile.invitation_theme ?? 'dark_luxury');
-  const [themeSaving,      setThemeSaving]      = useState(false);
-  const [themeMsg,         setThemeMsg]         = useState('');
+  const [invitationTheme,    setInvitationTheme]    = useState<InvitationTheme>(profile.invitation_theme ?? 'polaroid_white');
+  const [themeSaving,        setThemeSaving]        = useState(false);
+  const [themeMsg,           setThemeMsg]           = useState('');
+  const [invitationPhotoUrl, setInvitationPhotoUrl] = useState<string | null>(profile.invitation_photo_url ?? null);
+  const [photoPickerOpen,    setPhotoPickerOpen]    = useState(false);
+  const [photoSaving,        setPhotoSaving]        = useState(false);
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -81,6 +88,18 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
     setThemeSaving(false);
     setThemeMsg(res.ok ? '✓ Saved' : '✗ Save failed — try again');
     if (res.ok) router.refresh();
+  }
+
+  async function handleSavePhoto(url: string | null) {
+    setInvitationPhotoUrl(url);
+    setPhotoSaving(true);
+    await fetch('/api/couples', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ invitation_photo_url: url }),
+    });
+    setPhotoSaving(false);
+    router.refresh();
   }
 
   async function handleGenerateInvite() {
@@ -198,30 +217,37 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
                 disabled={themeSaving}
                 className="flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all text-left"
                 style={{
-                  borderColor:  active ? '#7B1E3C' : 'transparent',
-                  background:   active ? 'rgba(123,30,60,0.04)' : '#f8f5f2',
-                  cursor:       themeSaving ? 'not-allowed' : 'pointer',
+                  borderColor: active ? '#7B1E3C' : 'transparent',
+                  background:  active ? 'rgba(123,30,60,0.04)' : '#f8f5f2',
+                  cursor:      themeSaving ? 'not-allowed' : 'pointer',
                 }}
               >
-                {/* Mini card preview */}
+                {/* Mini polaroid preview — photo strip + footer */}
                 <div style={{
-                  width:        '100%',
-                  aspectRatio:  '3/2',
-                  background:   t.cardBg,
-                  border:       t.cardBorder,
-                  borderRadius: '3px',
-                  boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
-                  display:      'flex',
-                  flexDirection:'column',
-                  alignItems:   'center',
-                  justifyContent: 'center',
-                  gap:          4,
-                  padding:      '8px 6px',
+                  width:         '100%',
+                  aspectRatio:   '3/4',
+                  display:       'flex',
+                  flexDirection: 'column',
+                  background:    t.frameBg,
+                  borderRadius:  '2px',
+                  boxShadow:     '0 2px 8px rgba(0,0,0,0.18)',
+                  overflow:      'hidden',
+                  padding:       '3px 3px 0',
                 }}>
-                  <div style={{ width: '60%', height: 2, background: t.eyebrowColor, borderRadius: 1, opacity: 0.6 }} />
-                  <div style={{ width: '80%', height: 4, background: t.nameColor, borderRadius: 1, opacity: 0.8 }} />
-                  <div style={{ width: '50%', height: 2, background: t.bodyColor, borderRadius: 1, opacity: 0.5 }} />
-                  <div style={{ width: '65%', height: 2, background: t.bodyColor, borderRadius: 1, opacity: 0.35 }} />
+                  {/* Photo area */}
+                  <div style={{ flex: 1, background: t.photoFallback, borderRadius: '1px' }} />
+                  {/* Footer */}
+                  <div style={{
+                    background:    t.footerBg,
+                    padding:       '4px 5px 7px',
+                    display:       'flex',
+                    flexDirection: 'column',
+                    alignItems:    'center',
+                    gap:           3,
+                  }}>
+                    <div style={{ width: '68%', height: 3, background: t.nameColor, borderRadius: 1, opacity: 0.65 }} />
+                    <div style={{ width: '48%', height: 1.5, background: t.labelColor, borderRadius: 1, opacity: 0.45 }} />
+                  </div>
                 </div>
                 <div>
                   <p className="font-sans text-xs font-semibold text-ink leading-tight">{t.label}</p>
@@ -235,6 +261,109 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
           <p className="font-sans text-sm mt-3" style={{ color: themeMsg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>
             {themeMsg}
           </p>
+        )}
+
+        {/* ── Invitation photo picker ── */}
+        <div className="mt-6 pt-6 border-t border-stone-100">
+          <p className="font-sans text-sm font-semibold text-ink mb-1">Invitation photo</p>
+          <p className="font-sans text-xs text-ink-light mb-4">
+            Shown in the photo section of the invitation card. Defaults to your most recent memory.
+          </p>
+          <div className="flex items-center gap-4">
+            {/* Thumbnail */}
+            <div className="w-16 h-16 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0 border border-stone-200">
+              {invitationPhotoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={storageUrl(invitationPhotoUrl, { width: 128, quality: 70 })}
+                  alt="Invitation photo"
+                  className="w-full h-full object-cover"
+                />
+              ) : photoMemories[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={storageUrl(photoMemories[0].media_url, { width: 128, quality: 70 })}
+                  alt="Most recent"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-stone-300 text-xs text-center px-1">
+                  No photos
+                </div>
+              )}
+            </div>
+            <div>
+              <p className="font-sans text-xs text-ink mb-1">
+                {invitationPhotoUrl
+                  ? 'Custom photo selected'
+                  : <span className="italic text-ink-light">Auto — most recent memory</span>
+                }
+                {photoSaving && <span className="text-ink-light ml-2">Saving…</span>}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPhotoPickerOpen(true)}
+                  className="font-sans text-xs underline"
+                  style={{ color: '#7B1E3C' }}
+                >
+                  Change
+                </button>
+                {invitationPhotoUrl && (
+                  <button
+                    onClick={() => handleSavePhoto(null)}
+                    className="font-sans text-xs text-ink-light underline"
+                  >
+                    Reset to auto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Photo picker modal ── */}
+        {photoPickerOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            style={{ background: 'rgba(0,0,0,0.55)' }}
+            onClick={e => { if (e.target === e.currentTarget) setPhotoPickerOpen(false); }}
+          >
+            <div className="bg-white rounded-2xl p-6 max-w-xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-lg text-ink">Choose invitation photo</h3>
+                <button onClick={() => setPhotoPickerOpen(false)} className="text-ink-light text-xl leading-none">✕</button>
+              </div>
+              {/* Reset to auto */}
+              <button
+                onClick={() => { handleSavePhoto(null); setPhotoPickerOpen(false); }}
+                className="w-full text-left px-3 py-2.5 rounded-lg border border-dashed border-stone-300 font-sans text-xs text-ink-light mb-4 hover:bg-stone-50 transition-colors"
+              >
+                ↺ Use most recent memory photo automatically
+              </button>
+              {photoMemories.length === 0 ? (
+                <p className="font-sans text-sm text-ink-light">No photos uploaded yet.</p>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {photoMemories.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => { handleSavePhoto(m.media_url); setPhotoPickerOpen(false); }}
+                      className="aspect-square rounded-lg overflow-hidden border-2 transition-all hover:opacity-90"
+                      style={{ borderColor: invitationPhotoUrl === m.media_url ? '#7B1E3C' : 'transparent' }}
+                      title={m.caption || undefined}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={storageUrl(m.media_url, { width: 200, quality: 60 })}
+                        alt={m.caption || ''}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </section>
 

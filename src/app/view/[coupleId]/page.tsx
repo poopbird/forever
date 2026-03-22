@@ -27,7 +27,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // Fetch couple profile (include album_mode)
   const { data: couple } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, album_mode, film_reel_enabled, invitation_theme')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, album_mode, film_reel_enabled, invitation_theme, invitation_photo_url')
     .eq('id', coupleId)
     .single();
 
@@ -47,7 +47,8 @@ export default async function PublicView({ params, searchParams }: Params) {
   const albumMemoryRows: AlbumMemoryRow[] = (albumMemRows ?? []) as AlbumMemoryRow[];
   const albumMode: string                 = (couple as Record<string, unknown>)?.album_mode as string ?? 'year';
   const filmReelEnabled: boolean          = Boolean((couple as Record<string, unknown>)?.film_reel_enabled);
-  const invitationTheme: InvitationTheme  = ((couple as Record<string, unknown>)?.invitation_theme as InvitationTheme) ?? 'dark_luxury';
+  const invitationTheme: InvitationTheme  = ((couple as Record<string, unknown>)?.invitation_theme as InvitationTheme) ?? 'polaroid_white';
+  const invitationPhotoUrl: string | null = ((couple as Record<string, unknown>)?.invitation_photo_url as string) ?? null;
   const highlights: Memory[] = (highlightRows ?? [])
     .map((row: { position: number; memory: unknown }) => row.memory as Memory)
     .filter(Boolean);
@@ -89,6 +90,7 @@ export default async function PublicView({ params, searchParams }: Params) {
         coupleId={coupleId}
         rsvpEnabled={couple.rsvp_enabled ?? false}
         invitationTheme={invitationTheme}
+        invitationPhotoUrl={invitationPhotoUrl}
       />
 
       <AlbumSection
