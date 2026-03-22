@@ -3,7 +3,101 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll } from 'framer-motion';
 import type { Memory } from '@/types';
+import type { InvitationTheme } from '@/lib/couple';
 import { storageUrl } from '@/lib/storageUrl';
+
+// ─── Card theme registry ──────────────────────────────────────────────────────
+interface CardThemeConfig {
+  label:             string;
+  description:       string;
+  cardBg:            string;
+  cardBorder:        string;
+  cardShadow:        string;
+  innerBorder?:      string;
+  eyebrowColor:      string;
+  nameColor:         string;
+  bodyColor:         string;
+  dividerColor:      string;
+  detailsLabelColor: string;
+  detailsBodyColor:  string;
+  btnBg:             string;
+  btnBorder:         string;
+  btnColor:          string;
+  btnBlur:           string;
+}
+
+export const CARD_THEMES: Record<InvitationTheme, CardThemeConfig> = {
+  classic: {
+    label:             'Ivory Classic',
+    description:       'Warm ivory parchment with gold accents',
+    cardBg:            'linear-gradient(160deg, #faf6ee 0%, #f3e8d5 100%)',
+    cardBorder:        '1px solid rgba(180,130,60,0.35)',
+    cardShadow:        '0 12px 60px rgba(0,0,0,0.38), 0 2px 12px rgba(0,0,0,0.22)',
+    innerBorder:       '1px solid rgba(180,130,60,0.16)',
+    eyebrowColor:      'rgba(130,85,30,0.72)',
+    nameColor:         'rgba(35,18,5,0.92)',
+    bodyColor:         'rgba(70,45,18,0.62)',
+    dividerColor:      'rgba(150,100,40,0.3)',
+    detailsLabelColor: 'rgba(130,85,30,0.58)',
+    detailsBodyColor:  'rgba(50,30,10,0.78)',
+    btnBg:             'rgba(150,100,40,0.1)',
+    btnBorder:         '1px solid rgba(150,100,40,0.45)',
+    btnColor:          'rgba(120,75,25,0.9)',
+    btnBlur:           'none',
+  },
+  dark_luxury: {
+    label:             'Dark Luxury',
+    description:       'Deep charcoal with warm gold typography',
+    cardBg:            'linear-gradient(145deg, #1e130a 0%, #251508 100%)',
+    cardBorder:        '1px solid rgba(201,150,74,0.2)',
+    cardShadow:        '0 12px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.4)',
+    eyebrowColor:      'rgba(201,150,74,0.65)',
+    nameColor:         'rgba(255,243,225,0.97)',
+    bodyColor:         'rgba(240,220,200,0.55)',
+    dividerColor:      'rgba(201,150,74,0.45)',
+    detailsLabelColor: 'rgba(201,150,74,0.55)',
+    detailsBodyColor:  'rgba(240,220,200,0.72)',
+    btnBg:             'rgba(201,150,74,0.09)',
+    btnBorder:         '1px solid rgba(201,150,74,0.42)',
+    btnColor:          'rgba(201,150,74,0.92)',
+    btnBlur:           'blur(8px)',
+  },
+  blush: {
+    label:             'Blush Romance',
+    description:       'Soft rose gradient — romantic and feminine',
+    cardBg:            'linear-gradient(150deg, #fef0f2 0%, #fce4e9 45%, #f8d4dc 100%)',
+    cardBorder:        '1px solid rgba(190,100,120,0.2)',
+    cardShadow:        '0 12px 48px rgba(160,70,90,0.22), 0 2px 10px rgba(0,0,0,0.1)',
+    innerBorder:       '1px solid rgba(190,100,120,0.12)',
+    eyebrowColor:      'rgba(160,70,90,0.68)',
+    nameColor:         'rgba(38,14,22,0.9)',
+    bodyColor:         'rgba(90,38,52,0.6)',
+    dividerColor:      'rgba(180,90,110,0.28)',
+    detailsLabelColor: 'rgba(160,70,90,0.58)',
+    detailsBodyColor:  'rgba(60,22,32,0.75)',
+    btnBg:             'rgba(180,90,110,0.1)',
+    btnBorder:         '1px solid rgba(180,90,110,0.38)',
+    btnColor:          'rgba(150,65,85,0.92)',
+    btnBlur:           'none',
+  },
+  minimal: {
+    label:             'Clean Minimal',
+    description:       'Pure white with clean, modern typography',
+    cardBg:            '#ffffff',
+    cardBorder:        '1px solid rgba(0,0,0,0.09)',
+    cardShadow:        '0 8px 40px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.07)',
+    eyebrowColor:      'rgba(0,0,0,0.32)',
+    nameColor:         'rgba(0,0,0,0.88)',
+    bodyColor:         'rgba(0,0,0,0.44)',
+    dividerColor:      'rgba(0,0,0,0.1)',
+    detailsLabelColor: 'rgba(0,0,0,0.32)',
+    detailsBodyColor:  'rgba(0,0,0,0.65)',
+    btnBg:             'rgba(0,0,0,0.04)',
+    btnBorder:         '1px solid rgba(0,0,0,0.18)',
+    btnColor:          'rgba(0,0,0,0.75)',
+    btnBlur:           'none',
+  },
+};
 
 // ─── Google Font: Caveat (sharpie feel) ──────────────────────────────────────
 const SHARPIE = '"Caveat", "Permanent Marker", cursive';
@@ -264,7 +358,7 @@ function EditableField({
   );
 }
 
-// ─── Floating invitation text — no box, no border, pure type ─────────────────
+// ─── Invitation card — themed physical card with solid background ─────────────
 function FloatingInvitation({
   coupleName,
   visible,
@@ -277,20 +371,23 @@ function FloatingInvitation({
   onSaveDetails,
   rsvpEnabled,
   coupleId,
+  cardTheme = 'dark_luxury',
 }: {
-  coupleName:       string;
-  visible:          boolean;
-  weddingDate?:     string | null;
+  coupleName:        string;
+  visible:           boolean;
+  weddingDate?:      string | null;
   weddingTimeStart?: string | null;
-  weddingTimeEnd?:  string | null;
-  weddingVenue?:    string | null;
-  weddingCity?:     string | null;
-  readOnly?:        boolean;
-  onSaveDetails?: (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) => Promise<void>;
-  rsvpEnabled?:     boolean;
-  coupleId?:        string;
+  weddingTimeEnd?:   string | null;
+  weddingVenue?:     string | null;
+  weddingCity?:      string | null;
+  readOnly?:         boolean;
+  onSaveDetails?:    (fields: { wedding_date?: string; wedding_venue?: string; wedding_city?: string; wedding_time_start?: string; wedding_time_end?: string }) => Promise<void>;
+  rsvpEnabled?:      boolean;
+  coupleId?:         string;
+  cardTheme?:        InvitationTheme;
 }) {
   const [saving, setSaving] = useState(false);
+  const t = CARD_THEMES[cardTheme] ?? CARD_THEMES.dark_luxury;
 
   async function handleSave(field: string, value: string) {
     if (!onSaveDetails) return;
@@ -318,172 +415,195 @@ function FloatingInvitation({
         zIndex:        30,
         textAlign:     'center',
         pointerEvents: visible ? 'auto' : 'none',
-        width:         'min(640px, 80vw)',
+        width:         'min(560px, 88vw)',
       }}
     >
-      {/* Saving indicator */}
-      {saving && (
-        <p style={{ position: 'absolute', top: -24, right: 0, fontFamily: '"Lato", sans-serif', fontSize: '0.58rem', color: 'rgba(201,150,74,0.45)', letterSpacing: '0.1em' }}>
-          saving…
-        </p>
-      )}
-
-      {/* Eyebrow */}
-      <p style={{
-        fontFamily:    '"Lato", sans-serif',
-        fontSize:      '0.62rem',
-        letterSpacing: '0.45em',
-        textTransform: 'uppercase',
-        color:         'rgba(201,150,74,0.65)',
-        marginBottom:  20,
+      {/* ── Physical card shell — blocks polaroids behind it ── */}
+      <div style={{
+        background:    t.cardBg,
+        border:        t.cardBorder,
+        boxShadow:     t.cardShadow,
+        borderRadius:  '3px',
+        padding:       'clamp(32px, 6vw, 56px) clamp(28px, 6vw, 52px)',
+        position:      'relative',
       }}>
-        ✦ &nbsp; You are invited &nbsp; ✦
-      </p>
 
-      {/* Couple name */}
-      <h2 style={{
-        fontFamily:    '"Playfair Display", Georgia, serif',
-        fontSize:      'clamp(3rem, 7vw, 5.5rem)',
-        fontStyle:     'italic',
-        fontWeight:    700,
-        color:         'rgba(255,243,225,0.97)',
-        lineHeight:    1.05,
-        marginBottom:  20,
-        letterSpacing: '-0.01em',
-        textShadow:    '0 0 60px rgba(201,150,74,0.22)',
-      }}>
-        {coupleName}
-      </h2>
+        {/* Optional inner decorative frame */}
+        {t.innerBorder && (
+          <div style={{
+            position:     'absolute',
+            inset:        10,
+            border:       t.innerBorder,
+            borderRadius: '2px',
+            pointerEvents:'none',
+          }} />
+        )}
 
-      {/* Divider */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center', marginBottom: 22 }}>
-        <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, rgba(201,150,74,0.45))' }} />
-        <span style={{ color: 'rgba(201,150,74,0.55)', fontSize: '0.58rem', letterSpacing: '0.25em' }}>◆ ◆ ◆</span>
-        <div style={{ flex: 1, height: 1, background: 'linear-gradient(to left, transparent, rgba(201,150,74,0.45))' }} />
-      </div>
+        {/* Saving indicator */}
+        {saving && (
+          <p style={{ position: 'absolute', top: 8, right: 14, fontFamily: '"Lato", sans-serif', fontSize: '0.58rem', color: t.eyebrowColor, letterSpacing: '0.1em' }}>
+            saving…
+          </p>
+        )}
 
-      {/* Tagline */}
-      <p style={{
-        fontFamily:    '"Lato", sans-serif',
-        fontSize:      'clamp(0.88rem, 2vw, 1.05rem)',
-        color:         'rgba(240,220,200,0.55)',
-        lineHeight:    1.85,
-        letterSpacing: '0.04em',
-        marginBottom:  28,
-      }}>
-        Join us as we celebrate our love<br />
-        and begin our forever together.
-      </p>
-
-      {/* RSVP button */}
-      {rsvpEnabled && coupleId && (
-        <div style={{ marginBottom: 28 }}>
-          <a
-            href={`/rsvp/lookup?couple_id=${coupleId}`}
-            style={{
-              display:       'inline-block',
-              fontFamily:    '"Lato", sans-serif',
-              fontSize:      '0.72rem',
-              letterSpacing: '0.25em',
-              textTransform: 'uppercase',
-              color:         'rgba(201,150,74,0.92)',
-              border:        '1px solid rgba(201,150,74,0.42)',
-              borderRadius:  '100px',
-              padding:       '10px 28px',
-              background:    'rgba(201,150,74,0.09)',
-              backdropFilter: 'blur(8px)',
-              textDecoration: 'none',
-              transition:    'background 0.2s',
-            }}
-          >
-            ✦ &nbsp; RSVP
-          </a>
-        </div>
-      )}
-
-      {/* Wedding details — floating type, no box */}
-      <div>
+        {/* Eyebrow */}
         <p style={{
-          fontFamily:    '"Playfair Display", serif',
-          fontSize:      '0.72rem',
-          fontStyle:     'italic',
-          color:         'rgba(201,150,74,0.55)',
-          marginBottom:  12,
-          letterSpacing: '0.12em',
+          fontFamily:    '"Lato", sans-serif',
+          fontSize:      '0.62rem',
+          letterSpacing: '0.45em',
           textTransform: 'uppercase',
+          color:         t.eyebrowColor,
+          marginBottom:  20,
         }}>
-          — Our Wedding Day —
+          ✦ &nbsp; You are invited &nbsp; ✦
         </p>
 
-        {readOnly ? (
-          <div style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.72)', lineHeight: 2 }}>
-            {hasDetails ? (
-              <>
-                {weddingDate  && <p>{weddingDate}</p>}
-                {(weddingTimeStart) && (
-                  <p>
-                    {weddingTimeStart.slice(0,5)}
-                    {weddingTimeEnd ? ` – ${weddingTimeEnd.slice(0,5)}` : ''}
-                  </p>
-                )}
-                {weddingVenue && <p>{weddingVenue}</p>}
-                {weddingCity  && <p>{weddingCity}</p>}
-              </>
-            ) : (
-              <p style={{ opacity: 0.28, fontSize: '0.82rem' }}>Details coming soon</p>
-            )}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <EditableField
-              type="date"
-              value={weddingDate ?? ''}
-              displayValue={weddingDate
-                ? new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-                : ''}
-              placeholder="Wedding date"
-              onSave={v => handleSave('wedding_date', v)}
-              style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2 }}
-            />
-            {/* Time start + end side by side */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-              <EditableField
-                type="time"
-                value={weddingTimeStart?.slice(0,5) ?? ''}
-                placeholder="Start"
-                onSave={v => handleSave('wedding_time_start', v)}
-                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2, width: 'auto', minWidth: 60 }}
-              />
-              {(weddingTimeStart || weddingTimeEnd) && (
-                <span style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.5)' }}>–</span>
-              )}
-              <EditableField
-                type="time"
-                value={weddingTimeEnd?.slice(0,5) ?? ''}
-                placeholder="End"
-                onSave={v => handleSave('wedding_time_end', v)}
-                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2, width: 'auto', minWidth: 60 }}
-              />
-            </div>
-            <EditableField
-              value={weddingVenue ?? ''}
-              placeholder="Venue name"
-              onSave={v => handleSave('wedding_venue', v)}
-              style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2 }}
-            />
-            <EditableField
-              value={weddingCity ?? ''}
-              placeholder="City / Location"
-              onSave={v => handleSave('wedding_city', v)}
-              style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(1rem, 2.4vw, 1.2rem)', color: 'rgba(240,220,200,0.82)', lineHeight: 2 }}
-            />
-            {!hasDetails && (
-              <p style={{ fontFamily: '"Lato", sans-serif', fontSize: '0.6rem', color: 'rgba(201,150,74,0.36)', letterSpacing: '0.14em', marginTop: 8 }}>
-                ✎ &nbsp; Click any field to edit
-              </p>
-            )}
+        {/* Couple name */}
+        <h2 style={{
+          fontFamily:    '"Playfair Display", Georgia, serif',
+          fontSize:      'clamp(2.4rem, 6vw, 4.5rem)',
+          fontStyle:     'italic',
+          fontWeight:    700,
+          color:         t.nameColor,
+          lineHeight:    1.05,
+          marginBottom:  20,
+          letterSpacing: '-0.01em',
+        }}>
+          {coupleName}
+        </h2>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center', marginBottom: 22 }}>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(to right, transparent, ${t.dividerColor})` }} />
+          <span style={{ color: t.dividerColor, fontSize: '0.58rem', letterSpacing: '0.25em' }}>◆ ◆ ◆</span>
+          <div style={{ flex: 1, height: 1, background: `linear-gradient(to left, transparent, ${t.dividerColor})` }} />
+        </div>
+
+        {/* Tagline */}
+        <p style={{
+          fontFamily:    '"Lato", sans-serif',
+          fontSize:      'clamp(0.82rem, 2vw, 0.98rem)',
+          color:         t.bodyColor,
+          lineHeight:    1.85,
+          letterSpacing: '0.04em',
+          marginBottom:  28,
+        }}>
+          Join us as we celebrate our love<br />
+          and begin our forever together.
+        </p>
+
+        {/* RSVP button */}
+        {rsvpEnabled && coupleId && (
+          <div style={{ marginBottom: 28 }}>
+            <a
+              href={`/rsvp/lookup?couple_id=${coupleId}`}
+              style={{
+                display:        'inline-block',
+                fontFamily:     '"Lato", sans-serif',
+                fontSize:       '0.72rem',
+                letterSpacing:  '0.25em',
+                textTransform:  'uppercase',
+                color:          t.btnColor,
+                border:         t.btnBorder,
+                borderRadius:   '100px',
+                padding:        '10px 28px',
+                background:     t.btnBg,
+                backdropFilter: t.btnBlur,
+                textDecoration: 'none',
+                transition:     'background 0.2s',
+              }}
+            >
+              ✦ &nbsp; RSVP
+            </a>
           </div>
         )}
+
+        {/* Wedding details */}
+        <div>
+          <p style={{
+            fontFamily:    '"Playfair Display", serif',
+            fontSize:      '0.72rem',
+            fontStyle:     'italic',
+            color:         t.detailsLabelColor,
+            marginBottom:  12,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}>
+            — Our Wedding Day —
+          </p>
+
+          {readOnly ? (
+            <div style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}>
+              {hasDetails ? (
+                <>
+                  {weddingDate && (
+                    <p>{new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  )}
+                  {weddingTimeStart && (
+                    <p>
+                      {weddingTimeStart.slice(0, 5)}
+                      {weddingTimeEnd ? ` – ${weddingTimeEnd.slice(0, 5)}` : ''}
+                    </p>
+                  )}
+                  {weddingVenue && <p>{weddingVenue}</p>}
+                  {weddingCity  && <p>{weddingCity}</p>}
+                </>
+              ) : (
+                <p style={{ opacity: 0.35, fontSize: '0.82rem' }}>Details coming soon</p>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <EditableField
+                type="date"
+                value={weddingDate ?? ''}
+                displayValue={weddingDate
+                  ? new Date(weddingDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                  : ''}
+                placeholder="Wedding date"
+                onSave={v => handleSave('wedding_date', v)}
+                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <EditableField
+                  type="time"
+                  value={weddingTimeStart?.slice(0, 5) ?? ''}
+                  placeholder="Start"
+                  onSave={v => handleSave('wedding_time_start', v)}
+                  style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2, width: 'auto', minWidth: 60 }}
+                />
+                {(weddingTimeStart || weddingTimeEnd) && (
+                  <span style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.bodyColor }}>–</span>
+                )}
+                <EditableField
+                  type="time"
+                  value={weddingTimeEnd?.slice(0, 5) ?? ''}
+                  placeholder="End"
+                  onSave={v => handleSave('wedding_time_end', v)}
+                  style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2, width: 'auto', minWidth: 60 }}
+                />
+              </div>
+              <EditableField
+                value={weddingVenue ?? ''}
+                placeholder="Venue name"
+                onSave={v => handleSave('wedding_venue', v)}
+                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
+              />
+              <EditableField
+                value={weddingCity ?? ''}
+                placeholder="City / Location"
+                onSave={v => handleSave('wedding_city', v)}
+                style={{ fontFamily: '"Lato", sans-serif', fontSize: 'clamp(0.95rem, 2.2vw, 1.1rem)', color: t.detailsBodyColor, lineHeight: 2 }}
+              />
+              {!hasDetails && (
+                <p style={{ fontFamily: '"Lato", sans-serif', fontSize: '0.6rem', color: t.eyebrowColor, opacity: 0.5, letterSpacing: '0.14em', marginTop: 8 }}>
+                  ✎ &nbsp; Click any field to edit
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
       </div>
     </motion.div>
   );
@@ -502,6 +622,7 @@ interface Props {
   readOnly?:          boolean;
   coupleId?:          string;
   rsvpEnabled?:       boolean;
+  invitationTheme?:   InvitationTheme | null;
 }
 
 export default function PolaroidHighlights({
@@ -516,6 +637,7 @@ export default function PolaroidHighlights({
   readOnly = false,
   coupleId,
   rsvpEnabled = false,
+  invitationTheme,
 }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [localHighlights, setLocalHighlights] = useState<Memory[]>(highlights);
@@ -639,7 +761,7 @@ export default function PolaroidHighlights({
             />
           ))}
 
-          {/* ── Floating invitation text ── */}
+          {/* ── Floating invitation card ── */}
           <FloatingInvitation
             coupleName={coupleName}
             visible={invitationVisible}
@@ -652,6 +774,7 @@ export default function PolaroidHighlights({
             onSaveDetails={readOnly ? undefined : handleSaveDetails}
             rsvpEnabled={rsvpEnabled}
             coupleId={coupleId}
+            cardTheme={invitationTheme ?? 'dark_luxury'}
           />
 
           {/* ── Progress dots ── */}
