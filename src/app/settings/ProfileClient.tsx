@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { CoupleProfile } from '@/lib/couple';
+import type { CoupleProfile, InvitationTheme } from '@/lib/couple';
+import { CARD_THEMES } from '@/components/highlights/PolaroidHighlights';
 import MemoriesAlbumsSection from '@/components/album/MemoriesAlbumsSection';
 import HighlightsPickerSection from '@/components/highlights/HighlightsPickerSection';
 
@@ -30,9 +31,12 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
   const [weddingSaving, setWeddingSaving] = useState(false);
   const [weddingMsg,    setWeddingMsg]    = useState('');
 
-  const [inviteLink, setInviteLink] = useState('');
-  const [generating, setGenerating] = useState(false);
-  const [copied,     setCopied]     = useState(false);
+  const [inviteLink,       setInviteLink]       = useState('');
+  const [generating,       setGenerating]       = useState(false);
+  const [copied,           setCopied]           = useState(false);
+  const [invitationTheme,  setInvitationTheme]  = useState<InvitationTheme>(profile.invitation_theme ?? 'dark_luxury');
+  const [themeSaving,      setThemeSaving]      = useState(false);
+  const [themeMsg,         setThemeMsg]         = useState('');
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -63,6 +67,19 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
     });
     setWeddingSaving(false);
     setWeddingMsg(res.ok ? '✓ Saved' : '✗ Save failed — try again');
+    if (res.ok) router.refresh();
+  }
+
+  async function handleSaveTheme(theme: InvitationTheme) {
+    setInvitationTheme(theme);
+    setThemeSaving(true); setThemeMsg('');
+    const res = await fetch('/api/couples', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ invitation_theme: theme }),
+    });
+    setThemeSaving(false);
+    setThemeMsg(res.ok ? '✓ Saved' : '✗ Save failed — try again');
     if (res.ok) router.refresh();
   }
 
@@ -162,6 +179,63 @@ export default function ProfileClient({ profile, shareUrl, coupleId }: Props) {
             )}
           </div>
         </form>
+      </section>
+
+      {/* Invitation card theme */}
+      <section className="bg-white rounded-2xl shadow-sm p-6">
+        <h2 className="font-serif text-xl text-ink mb-1">Invitation card style</h2>
+        <p className="font-sans text-sm text-ink-light mb-5">
+          Choose how your wedding invitation card looks when guests scroll through your highlights.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {(Object.keys(CARD_THEMES) as InvitationTheme[]).map(key => {
+            const t = CARD_THEMES[key];
+            const active = invitationTheme === key;
+            return (
+              <button
+                key={key}
+                onClick={() => handleSaveTheme(key)}
+                disabled={themeSaving}
+                className="flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all text-left"
+                style={{
+                  borderColor:  active ? '#7B1E3C' : 'transparent',
+                  background:   active ? 'rgba(123,30,60,0.04)' : '#f8f5f2',
+                  cursor:       themeSaving ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {/* Mini card preview */}
+                <div style={{
+                  width:        '100%',
+                  aspectRatio:  '3/2',
+                  background:   t.cardBg,
+                  border:       t.cardBorder,
+                  borderRadius: '3px',
+                  boxShadow:    '0 2px 8px rgba(0,0,0,0.15)',
+                  display:      'flex',
+                  flexDirection:'column',
+                  alignItems:   'center',
+                  justifyContent: 'center',
+                  gap:          4,
+                  padding:      '8px 6px',
+                }}>
+                  <div style={{ width: '60%', height: 2, background: t.eyebrowColor, borderRadius: 1, opacity: 0.6 }} />
+                  <div style={{ width: '80%', height: 4, background: t.nameColor, borderRadius: 1, opacity: 0.8 }} />
+                  <div style={{ width: '50%', height: 2, background: t.bodyColor, borderRadius: 1, opacity: 0.5 }} />
+                  <div style={{ width: '65%', height: 2, background: t.bodyColor, borderRadius: 1, opacity: 0.35 }} />
+                </div>
+                <div>
+                  <p className="font-sans text-xs font-semibold text-ink leading-tight">{t.label}</p>
+                  <p className="font-sans text-[10px] text-ink-light leading-tight mt-0.5">{t.description}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        {themeMsg && (
+          <p className="font-sans text-sm mt-3" style={{ color: themeMsg.startsWith('✓') ? '#2D8A4E' : '#7B1E3C' }}>
+            {themeMsg}
+          </p>
+        )}
       </section>
 
       {/* Wedding Highlights */}

@@ -9,6 +9,7 @@ import MemoryMap from '@/components/map/MemoryMap';
 import KioskMode from '@/components/kiosk/KioskMode';
 import FaqPreview from '@/components/faq/FaqPreview';
 import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
+import type { InvitationTheme } from '@/lib/couple';
 import type { FaqItem } from '@/components/faq/FaqAccordion';
 
 export const revalidate = 60; // revalidate guest view every 60s
@@ -26,7 +27,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   // Fetch couple profile (include album_mode)
   const { data: couple } = await supabase
     .from('couples')
-    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, album_mode, film_reel_enabled')
+    .select('id, name, start_date, bio, cover_photo_url, cover_video_url, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, album_mode, film_reel_enabled, invitation_theme')
     .eq('id', coupleId)
     .single();
 
@@ -46,6 +47,7 @@ export default async function PublicView({ params, searchParams }: Params) {
   const albumMemoryRows: AlbumMemoryRow[] = (albumMemRows ?? []) as AlbumMemoryRow[];
   const albumMode: string                 = (couple as Record<string, unknown>)?.album_mode as string ?? 'year';
   const filmReelEnabled: boolean          = Boolean((couple as Record<string, unknown>)?.film_reel_enabled);
+  const invitationTheme: InvitationTheme  = ((couple as Record<string, unknown>)?.invitation_theme as InvitationTheme) ?? 'dark_luxury';
   const highlights: Memory[] = (highlightRows ?? [])
     .map((row: { position: number; memory: unknown }) => row.memory as Memory)
     .filter(Boolean);
@@ -86,6 +88,7 @@ export default async function PublicView({ params, searchParams }: Params) {
         readOnly
         coupleId={coupleId}
         rsvpEnabled={couple.rsvp_enabled ?? false}
+        invitationTheme={invitationTheme}
       />
 
       <AlbumSection

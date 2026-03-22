@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect, type CSSProperties } from 'react';
 import ReactionBar from '@/components/guest/ReactionBar';
 import CommentSection from '@/components/guest/CommentSection';
 import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
@@ -56,7 +56,15 @@ const COVER_W = 152; // px per full-cover book
 const SPINE_W = 38;  // px per spine book
 const BOOK_GAP = 10; // px gap between books
 
-const POLAROID_ROTATIONS = [-1.8, 1.4, 0.8, -1.2];
+const POLAROID_ROTATIONS = [-6.5, 5.2, 7.8, -4.5];
+
+// Tape colour per slot — subtle variation gives a hand-assembled feel
+const TAPE_COLORS = [
+  'rgba(238,228,195,0.80)',  // classic cream
+  'rgba(220,232,220,0.76)',  // soft mint
+  'rgba(232,220,232,0.76)',  // soft lavender
+  'rgba(235,225,195,0.80)',  // warm straw
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -131,13 +139,18 @@ function buildFlipperHTML(mems: Memory[], baseIdx: number): string {
       if (!m) {
         return `<div style="background:rgba(232,220,200,0.5);border:1.5px dashed rgba(180,160,130,0.6);border-radius:2px;"></div>`;
       }
+      const tapeColor = TAPE_COLORS[i % 4];
+      const tapeStyle = `position:absolute;width:36px;height:13px;background:${tapeColor};background-image:linear-gradient(90deg,rgba(255,255,255,0.22) 0%,transparent 50%,rgba(255,255,255,0.18) 100%);box-shadow:0 1px 3px rgba(0,0,0,0.14);border-radius:1px;z-index:6;pointer-events:none;`;
+      const tapeTL = `<div style="${tapeStyle}top:-5px;left:6px;transform:rotate(-45deg);"></div>`;
+      const tapeTR = `<div style="${tapeStyle}top:-5px;right:6px;transform:rotate(45deg);"></div>`;
       const img = m.media_url
         ? `<img src="${escapeHtml(storageUrl(m.media_url, { width: 400, quality: 75 }))}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />`
         : `<span style="font-size:22px">📷</span>`;
       const caption = m.caption
-        ? `<div style="position:absolute;bottom:4px;left:5px;right:5px;text-align:center;font-family:'Dancing Script',cursive;font-size:10px;color:#5a3820;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.caption)}</div>`
+        ? `<div style="position:absolute;bottom:6px;left:7px;right:7px;text-align:center;font-family:'Dancing Script',cursive;font-size:11px;color:#5a3820;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.caption)}</div>`
         : '';
-      return `<div style="background:#fff;padding:5px 5px 24px;box-shadow:0 2px 6px rgba(0,0,0,0.14);display:flex;flex-direction:column;position:relative;transform:rotate(${rot}deg);overflow:hidden;">
+      return `<div style="background:#fff;padding:7px 7px 34px;box-shadow:0 3px 14px rgba(0,0,0,0.22);display:flex;flex-direction:column;position:relative;transform:rotate(${rot}deg);border-radius:1px;">
+        ${tapeTL}${tapeTR}
         <div style="flex:1;background:#e8dece;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;">${img}</div>
         ${caption}
       </div>`;
@@ -156,7 +169,8 @@ function PolaroidCard({
   slotIndex: number;
   onOpen: () => void;
 }) {
-  const rot = POLAROID_ROTATIONS[slotIndex % 4];
+  const rot       = POLAROID_ROTATIONS[slotIndex % 4];
+  const tapeColor = TAPE_COLORS[slotIndex % 4];
 
   if (!memory) {
     return (
@@ -170,36 +184,49 @@ function PolaroidCard({
     );
   }
 
+  const tapeBase: CSSProperties = {
+    position: 'absolute', width: 36, height: 13,
+    background: tapeColor,
+    backgroundImage: 'linear-gradient(90deg,rgba(255,255,255,0.22) 0%,transparent 50%,rgba(255,255,255,0.18) 100%)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.14)',
+    borderRadius: 1, zIndex: 6, pointerEvents: 'none',
+  };
+
   return (
     <div
       onClick={onOpen}
       className="album-polaroid-card"
       style={{
         background: '#fff',
-        padding: '5px 5px 24px',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
+        padding: '7px 7px 34px',
+        boxShadow: '0 3px 14px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.12)',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         transform: `rotate(${rot}deg)`,
         transition: 'transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s',
-        overflow: 'hidden',
-        borderRadius: 2,
+        borderRadius: 1,
+        zIndex: 1,
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement;
-        el.style.transform = `rotate(${rot}deg) scale(1.07) translateY(-4px)`;
-        el.style.boxShadow = '0 12px 36px rgba(0,0,0,0.28)';
-        el.style.zIndex    = '5';
+        el.style.transform = `rotate(${rot * 0.4}deg) scale(1.08) translateY(-6px)`;
+        el.style.boxShadow = '0 18px 48px rgba(0,0,0,0.34), 0 4px 8px rgba(0,0,0,0.2)';
+        el.style.zIndex    = '8';
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLDivElement;
         el.style.transform = `rotate(${rot}deg)`;
-        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.14)';
+        el.style.boxShadow = '0 3px 14px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.12)';
         el.style.zIndex    = '1';
       }}
     >
+      {/* Tape top-left */}
+      <div style={{ ...tapeBase, top: -5, left: 6, transform: 'rotate(-45deg)' }} />
+      {/* Tape top-right */}
+      <div style={{ ...tapeBase, top: -5, right: 6, transform: 'rotate(45deg)' }} />
+
       <div
         style={{
           flex: 1,
@@ -227,12 +254,12 @@ function PolaroidCard({
         <div
           style={{
             position: 'absolute',
-            bottom: 4,
-            left: 5,
-            right: 5,
+            bottom: 6,
+            left: 7,
+            right: 7,
             textAlign: 'center',
             fontFamily: "'Dancing Script', cursive",
-            fontSize: 10,
+            fontSize: 11,
             color: '#5a3820',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -264,8 +291,9 @@ function PolaroidGrid({
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gridTemplateRows: '1fr 1fr',
-        gap: 12,
+        gap: 'clamp(14px, 3vw, 28px)',
         height: '100%',
+        padding: 'clamp(8px, 1.5vw, 16px)',
       }}
     >
       {slots.map((m, i) => (
@@ -366,6 +394,15 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
     ro.observe(shelfRef.current);
     return () => ro.disconnect();
   }, [albums.length]);
+
+  // ── Mobile detection ────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 680);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // ── Album open state ────────────────────────────────────────────────────────
   const [openIdx,        setOpenIdx]        = useState<number | null>(null);
@@ -497,12 +534,12 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
       {/* ── Keyframe animations ─────────────────────────────────────────────── */}
       <style>{`
         @keyframes albumOpen {
-          from { opacity:0; transform: perspective(1600px) rotateY(-28deg) scale(0.82) translateX(-40px); }
-          to   { opacity:1; transform: perspective(1600px) rotateY(0deg)   scale(1)    translateX(0); }
+          from { opacity:0; transform: perspective(2000px) rotateY(-35deg) rotateX(4deg) scale(0.78) translateX(-60px); }
+          to   { opacity:1; transform: perspective(2000px) rotateY(0deg)   rotateX(0deg) scale(1)    translateX(0); }
         }
         @keyframes polaroidPop {
-          from { opacity:0; transform: scale(0.82) rotate(-2deg); }
-          to   { opacity:1; transform: scale(1)    rotate(-0.5deg); }
+          from { opacity:0; transform: scale(0.78) rotate(-4deg) translateY(12px); }
+          to   { opacity:1; transform: scale(1)    rotate(0deg)  translateY(0); }
         }
         .album-book {
           transition: transform 180ms ease-out, filter 180ms ease-out;
@@ -525,12 +562,24 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
           display:grid;
           grid-template-columns:1fr 1fr;
           grid-template-rows:1fr 1fr;
-          gap:12px;
-          padding:18px 16px;
-          overflow:hidden;
+          gap:clamp(14px, 3vw, 28px);
+          padding:clamp(12px, 2vw, 24px);
+          overflow:visible;
         }
         .flipper-face-back {
           transform: rotateY(180deg);
+        }
+        @media (max-width: 679px) {
+          .album-spread {
+            flex-direction: column !important;
+          }
+          .album-page-left, .album-page-right {
+            flex: none !important;
+            height: 50% !important;
+            border-right: none !important;
+            border-bottom: 2px solid #d0c4a8;
+          }
+          .album-page-right { border-bottom: none !important; }
         }
       `}</style>
 
@@ -795,23 +844,24 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
           onClick={e => { if (e.target === e.currentTarget) closeAlbum(); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(8,5,2,0.88)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background: 'rgba(6,4,2,0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20,
+            padding: isMobile ? 0 : 'clamp(8px, 2vh, 28px)',
           }}
         >
           <div
             key={openIdx}
             style={{
-              width: '100%', maxWidth: 880,
-              height: 'min(86vh, 600px)',
+              width: '100%',
+              maxWidth: isMobile ? '100vw' : 'min(96vw, 1320px)',
+              height: isMobile ? '100dvh' : 'min(94vh, 920px)',
               display: 'flex', flexDirection: 'column',
-              borderRadius: '3px 10px 10px 3px',
+              borderRadius: isMobile ? 0 : '3px 10px 10px 3px',
               overflow: 'hidden',
-              boxShadow: '0 50px 120px rgba(0,0,0,0.85)',
-              animation: 'albumOpen 0.55s cubic-bezier(0.22,1,0.36,1) both',
+              boxShadow: isMobile ? 'none' : '0 60px 140px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7)',
+              animation: 'albumOpen 0.65s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
             {/* Header */}
@@ -856,20 +906,22 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
             {/* Two-page spread */}
             <div
+              className="album-spread"
               style={{
                 flex: 1, display: 'flex', minHeight: 0,
                 perspective: '2400px',
                 position: 'relative',
+                overflow: 'hidden',
               }}
             >
               {/* Left page */}
               <div
+                className="album-page-left"
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
-                  padding: '18px 16px',
                   background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)',
                   borderRight: '2px solid #d0c4a8',
-                  position: 'relative', overflow: 'hidden',
+                  position: 'relative', overflow: 'visible',
                 }}
               >
                 {/* Spine curl shadow */}
@@ -891,11 +943,11 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
               {/* Right page */}
               <div
+                className="album-page-right"
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
-                  padding: '18px 16px',
                   background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)',
-                  position: 'relative', overflow: 'hidden',
+                  position: 'relative', overflow: 'visible',
                 }}
               >
                 {/* Spine curl shadow */}
