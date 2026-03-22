@@ -77,6 +77,7 @@ export default function CoverHero({
     <header
       ref={heroRef}
       className="relative h-screen flex items-center justify-center text-center overflow-hidden"
+      style={{ height: '100dvh' }}
     >
 
       {/* ── Background layer ── */}

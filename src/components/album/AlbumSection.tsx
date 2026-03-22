@@ -408,6 +408,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
   const [openIdx,        setOpenIdx]        = useState<number | null>(null);
   const [currentSpread,  setCurrentSpread]  = useState(0);
   const [focusedMemIdx,  setFocusedMemIdx]  = useState<number | null>(null);
+  const [mobilePageSide, setMobilePageSide] = useState<'left' | 'right'>('left');
 
   // ── Flip refs ───────────────────────────────────────────────────────────────
   const isFlippingRef  = useRef(false);
@@ -421,7 +422,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
   const currentAlbum = openIdx !== null ? albums[openIdx] : null;
 
-  const openAlbum = (idx: number) => { setOpenIdx(idx); setCurrentSpread(0); };
+  const openAlbum = (idx: number) => { setOpenIdx(idx); setCurrentSpread(0); setMobilePageSide('left'); };
   const closeAlbum = () => { setOpenIdx(null); setFocusedMemIdx(null); };
 
   // ── Page flip ───────────────────────────────────────────────────────────────
@@ -474,6 +475,27 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
   const flipPage   = (dir: number) => { if (currentAlbum) doFlip(currentSpread + dir, dir); };
   const jumpSpread = (idx: number) => { if (!isFlippingRef.current && idx !== currentSpread) doFlip(idx, idx > currentSpread ? 1 : -1); };
+
+  // ── Mobile single-page navigation ───────────────────────────────────────────
+  const mobileFlipPage = (dir: number) => {
+    if (!currentAlbum) return;
+    const spreads = numSpreads(currentAlbum.memories);
+    if (dir > 0) {
+      if (mobilePageSide === 'left') {
+        setMobilePageSide('right');
+      } else if (currentSpread < spreads - 1) {
+        setCurrentSpread(s => s + 1);
+        setMobilePageSide('left');
+      }
+    } else {
+      if (mobilePageSide === 'right') {
+        setMobilePageSide('left');
+      } else if (currentSpread > 0) {
+        setCurrentSpread(s => s - 1);
+        setMobilePageSide('right');
+      }
+    }
+  };
 
   // ── Focused view ────────────────────────────────────────────────────────────
   const [focusedKey, setFocusedKey] = useState(0); // increment to re-trigger animation
@@ -568,18 +590,6 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
         }
         .flipper-face-back {
           transform: rotateY(180deg);
-        }
-        @media (max-width: 679px) {
-          .album-spread {
-            flex-direction: column !important;
-          }
-          .album-page-left, .album-page-right {
-            flex: none !important;
-            height: 50% !important;
-            border-right: none !important;
-            border-bottom: 2px solid #d0c4a8;
-          }
-          .album-page-right { border-bottom: none !important; }
         }
       `}</style>
 
@@ -905,91 +915,110 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
             </div>
 
             {/* Two-page spread */}
-            <div
-              className="album-spread"
-              style={{
-                flex: 1, display: 'flex', minHeight: 0,
-                perspective: '2400px',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Left page */}
+            {isMobile ? (
+              /* ── Mobile: single-page view ── */
+              <div style={{
+                flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0,
+                background: mobilePageSide === 'left'
+                  ? 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)'
+                  : 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)',
+              }}>
+                {spread && (
+                  <PolaroidGrid
+                    memories={mobilePageSide === 'left' ? spread.left : spread.right}
+                    baseIdx={mobilePageSide === 'left' ? spread.leftBase : spread.rightBase}
+                    onOpen={openFocused}
+                  />
+                )}
+              </div>
+            ) : (
+              /* ── Desktop: two-page spread with 3D flip ── */
               <div
-                className="album-page-left"
+                className="album-spread"
                 style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)',
-                  borderRight: '2px solid #d0c4a8',
-                  position: 'relative', overflow: 'visible',
+                  flex: 1, display: 'flex', minHeight: 0,
+                  perspective: '2400px',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
-                {/* Spine curl shadow */}
-                <div style={{
-                  position: 'absolute', top: 0, right: 0, bottom: 0, width: 24,
-                  background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05))',
-                  pointerEvents: 'none', zIndex: 2,
-                }} />
-                <div ref={leftGridRef} style={{ flex: 1, minHeight: 0 }}>
-                  {spread && (
-                    <PolaroidGrid
-                      memories={spread.left}
-                      baseIdx={spread.leftBase}
-                      onOpen={openFocused}
-                    />
-                  )}
+                {/* Left page */}
+                <div
+                  className="album-page-left"
+                  style={{
+                    flex: 1, display: 'flex', flexDirection: 'column',
+                    background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)',
+                    borderRight: '2px solid #d0c4a8',
+                    position: 'relative', overflow: 'visible',
+                  }}
+                >
+                  {/* Spine curl shadow */}
+                  <div style={{
+                    position: 'absolute', top: 0, right: 0, bottom: 0, width: 24,
+                    background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05))',
+                    pointerEvents: 'none', zIndex: 2,
+                  }} />
+                  <div ref={leftGridRef} style={{ flex: 1, minHeight: 0 }}>
+                    {spread && (
+                      <PolaroidGrid
+                        memories={spread.left}
+                        baseIdx={spread.leftBase}
+                        onOpen={openFocused}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Right page */}
+                <div
+                  className="album-page-right"
+                  style={{
+                    flex: 1, display: 'flex', flexDirection: 'column',
+                    background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)',
+                    position: 'relative', overflow: 'visible',
+                  }}
+                >
+                  {/* Spine curl shadow */}
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, bottom: 0, width: 24,
+                    background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.05))',
+                    pointerEvents: 'none', zIndex: 2,
+                  }} />
+                  <div ref={rightGridRef} style={{ flex: 1, minHeight: 0 }}>
+                    {spread && (
+                      <PolaroidGrid
+                        memories={spread.right}
+                        baseIdx={spread.rightBase}
+                        onOpen={openFocused}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* 3D flipper — imperative, hidden until doFlip runs */}
+                <div
+                  ref={flipperRef}
+                  style={{
+                    display: 'none',
+                    position: 'absolute',
+                    top: 0, bottom: 0,
+                    transformStyle: 'preserve-3d',
+                    zIndex: 10,
+                  }}
+                >
+                  <div
+                    ref={flipFrontRef}
+                    className="flipper-face"
+                    style={{ background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)' }}
+                  />
+                  <div
+                    ref={flipBackRef}
+                    className="flipper-face flipper-face-back"
+                    style={{ background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)' }}
+                  />
                 </div>
               </div>
-
-              {/* Right page */}
-              <div
-                className="album-page-right"
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column',
-                  background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)',
-                  position: 'relative', overflow: 'visible',
-                }}
-              >
-                {/* Spine curl shadow */}
-                <div style={{
-                  position: 'absolute', top: 0, left: 0, bottom: 0, width: 24,
-                  background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.05))',
-                  pointerEvents: 'none', zIndex: 2,
-                }} />
-                <div ref={rightGridRef} style={{ flex: 1, minHeight: 0 }}>
-                  {spread && (
-                    <PolaroidGrid
-                      memories={spread.right}
-                      baseIdx={spread.rightBase}
-                      onOpen={openFocused}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* 3D flipper — imperative, hidden until doFlip runs */}
-              <div
-                ref={flipperRef}
-                style={{
-                  display: 'none',
-                  position: 'absolute',
-                  top: 0, bottom: 0,
-                  transformStyle: 'preserve-3d',
-                  zIndex: 10,
-                }}
-              >
-                <div
-                  ref={flipFrontRef}
-                  className="flipper-face"
-                  style={{ background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)' }}
-                />
-                <div
-                  ref={flipBackRef}
-                  className="flipper-face flipper-face-back"
-                  style={{ background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)' }}
-                />
-              </div>
-            </div>
+            )}
 
             {/* Footer */}
             <div
@@ -1009,15 +1038,17 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
                 borderRight: '1px solid rgba(255,255,255,0.08)',
               }} />
               <button
-                onClick={() => flipPage(-1)}
-                disabled={currentSpread === 0}
+                onClick={() => isMobile ? mobileFlipPage(-1) : flipPage(-1)}
+                disabled={isMobile
+                  ? (currentSpread === 0 && mobilePageSide === 'left')
+                  : currentSpread === 0}
                 style={{
                   width: 34, height: 34, borderRadius: '50%',
                   border: '1px solid rgba(90,58,26,0.3)',
                   background: 'rgba(90,58,26,0.1)',
                   color: '#2a1a08', fontSize: 20,
-                  cursor: currentSpread === 0 ? 'default' : 'pointer',
-                  opacity: currentSpread === 0 ? 0.28 : 1,
+                  cursor: (isMobile ? (currentSpread === 0 && mobilePageSide === 'left') : currentSpread === 0) ? 'default' : 'pointer',
+                  opacity: (isMobile ? (currentSpread === 0 && mobilePageSide === 'left') : currentSpread === 0) ? 0.28 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'background 0.15s',
                   lineHeight: 1,
@@ -1027,44 +1058,60 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 16 }}>
-                {Array.from({ length: total }, (_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => jumpSpread(i)}
+                {isMobile ? (
+                  <span
                     style={{
-                      width: i === currentSpread ? 10 : 7,
-                      height: i === currentSpread ? 10 : 7,
-                      borderRadius: '50%',
-                      border: 'none',
-                      background: i === currentSpread ? '#c9964a' : 'rgba(90,58,26,0.25)',
-                      cursor: 'pointer',
-                      transition: 'all 0.18s',
-                      padding: 0,
+                      fontFamily: "'Lato', sans-serif",
+                      fontSize: 11, fontWeight: 300,
+                      color: '#7a6040', letterSpacing: '0.12em',
                     }}
-                  />
-                ))}
-                <span
-                  style={{
-                    fontFamily: "'Lato', sans-serif",
-                    fontSize: 11, fontWeight: 300,
-                    color: '#7a6040', letterSpacing: '0.12em',
-                    marginLeft: 4,
-                  }}
-                >
-                  {currentSpread + 1} / {total}
-                </span>
+                  >
+                    {currentSpread * 2 + (mobilePageSide === 'left' ? 1 : 2)} / {total * 2}
+                  </span>
+                ) : (
+                  <>
+                    {Array.from({ length: total }, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => jumpSpread(i)}
+                        style={{
+                          width: i === currentSpread ? 10 : 7,
+                          height: i === currentSpread ? 10 : 7,
+                          borderRadius: '50%',
+                          border: 'none',
+                          background: i === currentSpread ? '#c9964a' : 'rgba(90,58,26,0.25)',
+                          cursor: 'pointer',
+                          transition: 'all 0.18s',
+                          padding: 0,
+                        }}
+                      />
+                    ))}
+                    <span
+                      style={{
+                        fontFamily: "'Lato', sans-serif",
+                        fontSize: 11, fontWeight: 300,
+                        color: '#7a6040', letterSpacing: '0.12em',
+                        marginLeft: 4,
+                      }}
+                    >
+                      {currentSpread + 1} / {total}
+                    </span>
+                  </>
+                )}
               </div>
 
               <button
-                onClick={() => flipPage(1)}
-                disabled={currentSpread >= total - 1}
+                onClick={() => isMobile ? mobileFlipPage(1) : flipPage(1)}
+                disabled={isMobile
+                  ? (currentSpread >= total - 1 && mobilePageSide === 'right')
+                  : currentSpread >= total - 1}
                 style={{
                   width: 34, height: 34, borderRadius: '50%',
                   border: '1px solid rgba(90,58,26,0.3)',
                   background: 'rgba(90,58,26,0.1)',
                   color: '#2a1a08', fontSize: 20,
-                  cursor: currentSpread >= total - 1 ? 'default' : 'pointer',
-                  opacity: currentSpread >= total - 1 ? 0.28 : 1,
+                  cursor: (isMobile ? (currentSpread >= total - 1 && mobilePageSide === 'right') : currentSpread >= total - 1) ? 'default' : 'pointer',
+                  opacity: (isMobile ? (currentSpread >= total - 1 && mobilePageSide === 'right') : currentSpread >= total - 1) ? 0.28 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'background 0.15s',
                   lineHeight: 1,
