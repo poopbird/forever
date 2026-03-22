@@ -21,6 +21,7 @@ interface AlbumWithMemories extends AlbumConfig {
   memories: Memory[];
   coverPhoto: string | null;
   palette: LeatherPalette;
+  floatAnim: { duration: string; delay: string };
 }
 
 interface LeatherPalette {
@@ -42,21 +43,23 @@ const LEATHER_PALETTES: LeatherPalette[] = [
   { gradient: 'linear-gradient(150deg,#3d2840 0%,#241530 60%,#180e22 100%)', width: 148, height: 192 },
 ];
 
-// Depth tiers cycle by index — front brightest, back darkest
-const DEPTH_TIERS = [
-  { brightness: 1.0,  shadow: '-4px 5px 0 #0a0704, 6px 18px 44px rgba(0,0,0,0.80)' },
-  { brightness: 0.88, shadow: '-3px 3px 0 #0a0704, 4px 10px 22px rgba(0,0,0,0.55)' },
-  { brightness: 0.76, shadow: '-2px 2px 0 #0a0704, 2px 5px 12px rgba(0,0,0,0.38)' },
+const FLOAT_ANIMS = [
+  { duration: '5.2s', delay: '0s' },
+  { duration: '4.4s', delay: '-1.8s' },
+  { duration: '5.8s', delay: '-3.5s' },
+  { duration: '4.8s', delay: '-0.9s' },
+  { duration: '5.5s', delay: '-2.3s' },
 ];
 
-// Natural lean angles for spine mode only — covers are always straight
-const SPINE_LEANS = [-3, 1.5, -0.5, 2, -1.8, 0.8, -2.2, 1.2];
+const POLAROID_ROTATIONS = [-6.5, 5.2, 7.8, -4.5];
 
-const COVER_W = 152; // px per full-cover book
-const SPINE_W = 38;  // px per spine book
-const BOOK_GAP = 10; // px gap between books
-
-const POLAROID_ROTATIONS = [-1.8, 1.4, 0.8, -1.2];
+// Tape colour per slot — subtle variation gives a hand-assembled feel
+const TAPE_COLORS = [
+  'rgba(238,228,195,0.80)',  // classic cream
+  'rgba(220,232,220,0.76)',  // soft mint
+  'rgba(232,220,232,0.76)',  // soft lavender
+  'rgba(235,225,195,0.80)',  // warm straw
+];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -131,13 +134,18 @@ function buildFlipperHTML(mems: Memory[], baseIdx: number): string {
       if (!m) {
         return `<div style="background:rgba(232,220,200,0.5);border:1.5px dashed rgba(180,160,130,0.6);border-radius:2px;"></div>`;
       }
+      const tapeColor = TAPE_COLORS[i % 4];
+      const tapeStyle = `position:absolute;width:36px;height:13px;background:${tapeColor};background-image:linear-gradient(90deg,rgba(255,255,255,0.22) 0%,transparent 50%,rgba(255,255,255,0.18) 100%);box-shadow:0 1px 3px rgba(0,0,0,0.14);border-radius:1px;z-index:6;pointer-events:none;`;
+      const tapeTL = `<div style="${tapeStyle}top:-5px;left:6px;transform:rotate(-45deg);"></div>`;
+      const tapeTR = `<div style="${tapeStyle}top:-5px;right:6px;transform:rotate(45deg);"></div>`;
       const img = m.media_url
         ? `<img src="${escapeHtml(storageUrl(m.media_url, { width: 400, quality: 75 }))}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />`
         : `<span style="font-size:22px">📷</span>`;
       const caption = m.caption
-        ? `<div style="position:absolute;bottom:4px;left:5px;right:5px;text-align:center;font-family:'Dancing Script',cursive;font-size:10px;color:#5a3820;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.caption)}</div>`
+        ? `<div style="position:absolute;bottom:6px;left:7px;right:7px;text-align:center;font-family:'Dancing Script',cursive;font-size:11px;color:#5a3820;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(m.caption)}</div>`
         : '';
-      return `<div style="background:#fff;padding:5px 5px 24px;box-shadow:0 2px 6px rgba(0,0,0,0.14);display:flex;flex-direction:column;position:relative;transform:rotate(${rot}deg);overflow:hidden;">
+      return `<div style="background:#fff;padding:7px 7px 34px;box-shadow:0 3px 14px rgba(0,0,0,0.22);display:flex;flex-direction:column;position:relative;transform:rotate(${rot}deg);border-radius:1px;">
+        ${tapeTL}${tapeTR}
         <div style="flex:1;background:#e8dece;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;">${img}</div>
         ${caption}
       </div>`;
@@ -156,7 +164,8 @@ function PolaroidCard({
   slotIndex: number;
   onOpen: () => void;
 }) {
-  const rot = POLAROID_ROTATIONS[slotIndex % 4];
+  const rot       = POLAROID_ROTATIONS[slotIndex % 4];
+  const tapeColor = TAPE_COLORS[slotIndex % 4];
 
   if (!memory) {
     return (
@@ -170,36 +179,58 @@ function PolaroidCard({
     );
   }
 
+  // Tape strip style factory
+  const tape = (top: number | 'auto', left: number | string | 'auto', right: number | string | 'auto', rotate: number) => ({
+    position: 'absolute' as const,
+    top:    top   === 'auto' ? 'auto' : top,
+    left:   left  === 'auto' ? 'auto' : left,
+    right:  right === 'auto' ? 'auto' : right,
+    width: 36, height: 13,
+    background: tapeColor,
+    backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.22) 0%, transparent 50%, rgba(255,255,255,0.18) 100%)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.14)',
+    transform: `rotate(${rotate}deg)`,
+    zIndex: 6,
+    pointerEvents: 'none' as const,
+    borderRadius: 1,
+  });
+
   return (
     <div
       onClick={onOpen}
       className="album-polaroid-card"
       style={{
         background: '#fff',
-        padding: '5px 5px 24px',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
+        padding: '7px 7px 34px',
+        boxShadow: '0 3px 14px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.12)',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         transform: `rotate(${rot}deg)`,
         transition: 'transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s',
-        overflow: 'hidden',
-        borderRadius: 2,
+        borderRadius: 1,
+        zIndex: 1,
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLDivElement;
-        el.style.transform = `rotate(${rot}deg) scale(1.07) translateY(-4px)`;
-        el.style.boxShadow = '0 12px 36px rgba(0,0,0,0.28)';
-        el.style.zIndex    = '5';
+        el.style.transform = `rotate(${rot * 0.4}deg) scale(1.08) translateY(-6px)`;
+        el.style.boxShadow = '0 18px 48px rgba(0,0,0,0.34), 0 4px 8px rgba(0,0,0,0.2)';
+        el.style.zIndex    = '8';
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLDivElement;
         el.style.transform = `rotate(${rot}deg)`;
-        el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.14)';
+        el.style.boxShadow = '0 3px 14px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.12)';
         el.style.zIndex    = '1';
       }}
     >
+      {/* Tape — top-left corner */}
+      <div style={tape(-5, 6, 'auto', -45)} />
+      {/* Tape — top-right corner */}
+      <div style={tape(-5, 'auto', 6, 45)} />
+
+      {/* Photo area */}
       <div
         style={{
           flex: 1,
@@ -223,21 +254,23 @@ function PolaroidCard({
           <span style={{ fontSize: 22 }}>📷</span>
         )}
       </div>
+
+      {/* Caption */}
       {memory.caption && (
         <div
           style={{
             position: 'absolute',
-            bottom: 4,
-            left: 5,
-            right: 5,
+            bottom: 6,
+            left: 7,
+            right: 7,
             textAlign: 'center',
             fontFamily: "'Dancing Script', cursive",
-            fontSize: 10,
+            fontSize: 11,
             color: '#5a3820',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            lineHeight: 1,
+            lineHeight: 1.2,
           }}
         >
           {memory.caption}
@@ -264,8 +297,9 @@ function PolaroidGrid({
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
         gridTemplateRows: '1fr 1fr',
-        gap: 12,
+        gap: 'clamp(14px, 3vw, 28px)',
         height: '100%',
+        padding: 'clamp(8px, 1.5vw, 16px)',
       }}
     >
       {slots.map((m, i) => (
@@ -330,6 +364,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
             memories:   mems,
             coverPhoto: cfg.cover_photo_url ?? photoMems[photoMems.length - 1]?.media_url ?? null,
             palette:    LEATHER_PALETTES[i % LEATHER_PALETTES.length],
+            floatAnim:  FLOAT_ANIMS[i % FLOAT_ANIMS.length],
           } as AlbumWithMemories;
         })
         .filter((a): a is AlbumWithMemories => a !== null);
@@ -345,27 +380,19 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
         memories: mems,
         coverPhoto: photoMems[photoMems.length - 1]?.media_url ?? null,
         palette: LEATHER_PALETTES[i % LEATHER_PALETTES.length],
+        floatAnim: FLOAT_ANIMS[i % FLOAT_ANIMS.length],
       };
     });
   }, [memories, albumConfigs, albumMemoryRows, albumMode]);
 
-  // ── Shelf layout: spine vs cover mode ───────────────────────────────────────
-  const shelfRef    = useRef<HTMLDivElement>(null);
-  const [isSpineMode, setIsSpineMode] = useState(false);
-
+  // ── Mobile detection ────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    if (!shelfRef.current) return;
-    const measure = () => {
-      const w = shelfRef.current!.offsetWidth;
-      const n = albums.length;
-      const coverTotal = n * COVER_W + Math.max(0, n - 1) * BOOK_GAP;
-      setIsSpineMode(coverTotal > w);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(shelfRef.current);
-    return () => ro.disconnect();
-  }, [albums.length]);
+    const check = () => setIsMobile(window.innerWidth < 680);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // ── Album open state ────────────────────────────────────────────────────────
   const [openIdx,        setOpenIdx]        = useState<number | null>(null);
@@ -496,27 +523,23 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
     <>
       {/* ── Keyframe animations ─────────────────────────────────────────────── */}
       <style>{`
+        @keyframes albumFloat {
+          0%,100% { transform: translateY(0px) rotate(0deg); }
+          33%      { transform: translateY(-12px) rotate(0.3deg); }
+          66%      { transform: translateY(-6px) rotate(-0.2deg); }
+        }
         @keyframes albumOpen {
-          from { opacity:0; transform: perspective(1600px) rotateY(-28deg) scale(0.82) translateX(-40px); }
-          to   { opacity:1; transform: perspective(1600px) rotateY(0deg)   scale(1)    translateX(0); }
+          from { opacity:0; transform: perspective(2000px) rotateY(-35deg) rotateX(4deg) scale(0.78) translateX(-60px); }
+          to   { opacity:1; transform: perspective(2000px) rotateY(0deg)   rotateX(0deg) scale(1)    translateX(0); }
         }
         @keyframes polaroidPop {
-          from { opacity:0; transform: scale(0.82) rotate(-2deg); }
-          to   { opacity:1; transform: scale(1)    rotate(-0.5deg); }
+          from { opacity:0; transform: scale(0.78) rotate(-4deg) translateY(12px); }
+          to   { opacity:1; transform: scale(1)    rotate(0deg)  translateY(0); }
         }
-        .album-book {
-          transition: transform 180ms ease-out, filter 180ms ease-out;
-          transform-origin: bottom center;
+        .album-book:hover .album-book-cover {
+          box-shadow: -5px 5px 0 #1a0e04, 6px 14px 40px rgba(0,0,0,0.7), 0 0 30px rgba(201,150,74,0.2) !important;
         }
-        .album-book:hover {
-          transform: translateY(-12px) rotate(0deg) !important;
-          filter: brightness(1.12) !important;
-          z-index: 20;
-        }
-        .album-book:hover .album-book-cover,
-        .album-book:hover .album-book-spine {
-          box-shadow: -5px 6px 0 #0a0704, 10px 28px 60px rgba(0,0,0,0.9) !important;
-        }
+        .album-book:hover { filter: brightness(1.12); animation-play-state: paused !important; }
         /* Flipper face styles */
         .flipper-face {
           position:absolute; inset:0;
@@ -525,12 +548,27 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
           display:grid;
           grid-template-columns:1fr 1fr;
           grid-template-rows:1fr 1fr;
-          gap:12px;
-          padding:18px 16px;
-          overflow:hidden;
+          gap:clamp(14px, 3vw, 28px);
+          padding:clamp(12px, 2vw, 24px);
+          overflow:visible;
         }
         .flipper-face-back {
           transform: rotateY(180deg);
+        }
+        /* Mobile: stack pages vertically */
+        @media (max-width: 679px) {
+          .album-spread {
+            flex-direction: column !important;
+          }
+          .album-page-left, .album-page-right {
+            flex: none !important;
+            height: 50% !important;
+            border-right: none !important;
+            border-bottom: 2px solid #d0c4a8;
+          }
+          .album-page-right {
+            border-bottom: none !important;
+          }
         }
       `}</style>
 
@@ -604,189 +642,139 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
           Open an album to relive the journey
         </p>
 
-        {/* Shelf container */}
-        <div style={{ width: '100%', maxWidth: 860 }}>
-          {/* Books row */}
-          <div
-            ref={shelfRef}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'flex-end',
-              gap: BOOK_GAP,
-              padding: '48px 32px 0',
-            }}
-          >
-            {albums.length === 0 ? (
-              <p style={{ color: '#7a6040', fontFamily: "'Lato', sans-serif", fontSize: 14 }}>
-                No memories yet — add your first memory to get started.
-              </p>
-            ) : isSpineMode ? (
-              /* ── Spine mode: all books show spine only, lean naturally ── */
-              albums.map((album, i) => {
-                const depth = DEPTH_TIERS[i % DEPTH_TIERS.length];
-                const lean  = SPINE_LEANS[i % SPINE_LEANS.length];
-                return (
+        {/* Shelf */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-end',
+            gap: 44,
+            flexWrap: 'wrap',
+            padding: '48px 20px 0',
+            maxWidth: 900,
+            width: '100%',
+          }}
+        >
+          {albums.length === 0 ? (
+            <p style={{ color: '#7a6040', fontFamily: "'Lato', sans-serif", fontSize: 14 }}>
+              No memories yet — add your first memory to get started.
+            </p>
+          ) : (
+            albums.map((album, i) => (
+              <div
+                key={album.id}
+                className="album-book"
+                onClick={() => openAlbum(i)}
+                style={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  animation: `albumFloat ${album.floatAnim.duration} ${album.floatAnim.delay} linear infinite`,
+                  willChange: 'transform',
+                  marginBottom: album.palette.height === 212 ? 12 : 0,
+                }}
+              >
+                {/* Book cover */}
+                <div
+                  className="album-book-cover"
+                  style={{
+                    width: album.palette.width,
+                    height: album.palette.height,
+                    background: album.palette.gradient,
+                    borderRadius: '3px 12px 12px 3px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    boxShadow: '-5px 5px 0 #1a0e04, 4px 10px 32px rgba(0,0,0,0.6)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    padding: '18px 14px',
+                    transition: 'box-shadow 0.3s',
+                  }}
+                >
+                  {/* Spine shadow */}
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, width: 12, height: '100%',
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.1), transparent)',
+                    zIndex: 4, pointerEvents: 'none',
+                  }} />
+                  {/* Right edge highlight */}
+                  <div style={{
+                    position: 'absolute', top: 0, right: 0, width: 3, height: '100%',
+                    background: 'linear-gradient(to left, rgba(255,255,255,0.12), transparent)',
+                    zIndex: 4, pointerEvents: 'none',
+                  }} />
+                  {/* Leather sheen */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'radial-gradient(ellipse 80% 50% at 30% 40%, rgba(255,255,255,0.05), transparent), radial-gradient(ellipse 60% 80% at 70% 60%, rgba(0,0,0,0.2), transparent)',
+                    zIndex: 1, pointerEvents: 'none',
+                  }} />
+                  {/* Small affixed cover photo */}
                   <div
-                    key={album.id}
-                    className="album-book"
-                    onClick={() => openAlbum(i)}
                     style={{
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      transform: `rotate(${lean}deg)`,
-                      filter: `brightness(${depth.brightness})`,
+                      position: 'relative', zIndex: 3,
+                      width: 70, height: 70,
+                      boxShadow: '0 0 0 3px rgba(255,255,255,0.9), 0 0 0 4px rgba(0,0,0,0.15), 0 3px 12px rgba(0,0,0,0.4)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      overflow: 'hidden', flexShrink: 0,
+                      background: 'rgba(0,0,0,0.25)',
                     }}
                   >
-                    <div
-                      className="album-book-spine"
-                      style={{
-                        width: SPINE_W,
-                        height: album.palette.height,
-                        background: album.palette.gradient,
-                        borderRadius: '2px 4px 4px 2px',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        boxShadow: depth.shadow,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {/* Spine left-edge shadow */}
-                      <div style={{
-                        position: 'absolute', left: 0, top: 0, bottom: 0, width: 8,
-                        background: 'linear-gradient(90deg, rgba(0,0,0,0.5), transparent)',
-                        pointerEvents: 'none',
-                      }} />
-                      {/* Spine text */}
-                      <span style={{
-                        writingMode: 'vertical-rl',
-                        transform: 'rotate(180deg)',
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontStyle: 'italic',
-                        fontSize: 11,
-                        color: 'rgba(232,220,200,0.75)',
-                        letterSpacing: '0.1em',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        maxHeight: 140,
-                        position: 'relative',
-                        zIndex: 1,
-                      }}>
-                        {album.label}
-                      </span>
-                    </div>
+                    {album.coverPhoto ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={storageUrl(album.coverPhoto, { width: 200, quality: 75 })}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: 26 }}>📷</span>
+                    )}
                   </div>
-                );
-              })
-            ) : (
-              /* ── Cover mode: all books show full cover, straight ── */
-              albums.map((album, i) => {
-                const depth = DEPTH_TIERS[i % DEPTH_TIERS.length];
-                return (
+                  {/* Year label */}
                   <div
-                    key={album.id}
-                    className="album-book"
-                    onClick={() => openAlbum(i)}
                     style={{
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      filter: `brightness(${depth.brightness})`,
+                      position: 'relative', zIndex: 3,
+                      fontFamily: "'Dancing Script', cursive",
+                      fontSize: 15, color: 'rgba(255,255,255,0.82)',
+                      textAlign: 'center', lineHeight: 1.5,
+                      textShadow: '0 1px 4px rgba(0,0,0,0.5)',
                     }}
                   >
-                    <div
-                      className="album-book-cover"
-                      style={{
-                        width: album.palette.width,
-                        height: album.palette.height,
-                        background: album.palette.gradient,
-                        borderRadius: '3px 6px 6px 3px',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        boxShadow: depth.shadow,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 12,
-                        padding: '18px 14px',
-                      }}
-                    >
-                      {/* Spine shadow */}
-                      <div style={{
-                        position: 'absolute', top: 0, left: 0, width: 12, height: '100%',
-                        background: 'linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.1), transparent)',
-                        zIndex: 4, pointerEvents: 'none',
-                      }} />
-                      {/* Page-block edge */}
-                      <div style={{
-                        position: 'absolute', top: 4, right: 0, bottom: 4, width: 5,
-                        background: 'linear-gradient(90deg, rgba(240,230,210,0.06), rgba(240,230,210,0.18))',
-                        borderRadius: '0 3px 3px 0',
-                        zIndex: 4, pointerEvents: 'none',
-                      }} />
-                      {/* Leather sheen */}
-                      <div style={{
-                        position: 'absolute', inset: 0,
-                        backgroundImage: 'radial-gradient(ellipse 80% 50% at 30% 40%, rgba(255,255,255,0.05), transparent), radial-gradient(ellipse 60% 80% at 70% 60%, rgba(0,0,0,0.2), transparent)',
-                        zIndex: 1, pointerEvents: 'none',
-                      }} />
-                      {/* Cover photo */}
-                      <div style={{
-                        position: 'relative', zIndex: 3,
-                        width: 84, height: 84,
-                        boxShadow: '0 3px 14px rgba(0,0,0,0.55)',
-                        border: '1.5px solid rgba(255,255,255,0.07)',
-                        overflow: 'hidden', flexShrink: 0,
-                        background: 'rgba(0,0,0,0.25)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        {album.coverPhoto ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={storageUrl(album.coverPhoto, { width: 220, quality: 75 })}
-                            alt=""
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                          />
-                        ) : (
-                          <span style={{ fontSize: 26 }}>📷</span>
-                        )}
-                      </div>
-                      {/* Label */}
-                      <div style={{
-                        position: 'relative', zIndex: 3,
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: 13, fontWeight: 400,
-                        color: 'rgba(232,220,200,0.88)',
-                        textAlign: 'center', letterSpacing: '0.05em', lineHeight: 1.3,
-                        textShadow: '0 1px 4px rgba(0,0,0,0.5)',
-                      }}>
-                        {album.label}
-                      </div>
-                    </div>
+                    {album.label.replace(' – ', '\n–\n').split('\n').map((line, l) => (
+                      <span key={l} style={{ display: 'block' }}>{line}</span>
+                    ))}
                   </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Wooden shelf plank */}
-          <div style={{
-            height: 16,
-            background: 'linear-gradient(180deg, #6b4820 0%, #3e2510 50%, #2a1808 100%)',
-            borderRadius: '2px 2px 4px 4px',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.75), 0 1px 0 rgba(255,210,130,0.1) inset',
-            position: 'relative',
-          }}>
-            <div style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-              background: 'linear-gradient(90deg, transparent 5%, rgba(255,210,130,0.15) 30%, rgba(255,210,130,0.08) 70%, transparent 95%)',
-              borderRadius: '2px 2px 0 0',
-            }} />
-          </div>
+                </div>
+                <span
+                  style={{
+                    marginTop: 10,
+                    fontFamily: "'Lato', sans-serif",
+                    fontSize: 10, fontWeight: 300,
+                    letterSpacing: '0.18em', textTransform: 'uppercase',
+                    color: 'rgba(201,150,74,0.45)',
+                  }}
+                >
+                  click to open
+                </span>
+              </div>
+            ))
+          )}
         </div>
+
+        {/* Wooden shelf plank */}
+        <div
+          style={{
+            width: '100%', maxWidth: 560, height: 18,
+            background: 'linear-gradient(to bottom, #6b4a28 0%, #4a2e14 40%, #3a2010 100%)',
+            borderRadius: 3,
+            boxShadow: '0 6px 20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }}
+        />
       </section>
 
       {/* ── Album overlay ────────────────────────────────────────────────────── */}
@@ -795,23 +783,24 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
           onClick={e => { if (e.target === e.currentTarget) closeAlbum(); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
-            background: 'rgba(8,5,2,0.88)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background: 'rgba(6,4,2,0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 20,
+            padding: isMobile ? 0 : 'clamp(8px, 2vh, 28px)',
           }}
         >
           <div
             key={openIdx}
             style={{
-              width: '100%', maxWidth: 880,
-              height: 'min(86vh, 600px)',
+              width: '100%',
+              maxWidth: isMobile ? '100vw' : 'min(96vw, 1320px)',
+              height: isMobile ? '100dvh' : 'min(94vh, 920px)',
               display: 'flex', flexDirection: 'column',
-              borderRadius: '3px 10px 10px 3px',
+              borderRadius: isMobile ? 0 : '3px 10px 10px 3px',
               overflow: 'hidden',
-              boxShadow: '0 50px 120px rgba(0,0,0,0.85)',
-              animation: 'albumOpen 0.55s cubic-bezier(0.22,1,0.36,1) both',
+              boxShadow: isMobile ? 'none' : '0 60px 140px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.7)',
+              animation: 'albumOpen 0.65s cubic-bezier(0.22,1,0.36,1) both',
             }}
           >
             {/* Header */}
@@ -856,26 +845,28 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
             {/* Two-page spread */}
             <div
+              className="album-spread"
               style={{
                 flex: 1, display: 'flex', minHeight: 0,
                 perspective: '2400px',
                 position: 'relative',
+                overflow: 'hidden',
               }}
             >
               {/* Left page */}
               <div
+                className="album-page-left"
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
-                  padding: '18px 16px',
                   background: 'linear-gradient(108deg, #f2ead8 0%, #ece2ca 100%)',
                   borderRight: '2px solid #d0c4a8',
-                  position: 'relative', overflow: 'hidden',
+                  position: 'relative', overflow: 'visible',
                 }}
               >
                 {/* Spine curl shadow */}
                 <div style={{
-                  position: 'absolute', top: 0, right: 0, bottom: 0, width: 24,
-                  background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.05))',
+                  position: 'absolute', top: 0, right: 0, bottom: 0, width: 32,
+                  background: 'linear-gradient(to right, transparent, rgba(0,0,0,0.07))',
                   pointerEvents: 'none', zIndex: 2,
                 }} />
                 <div ref={leftGridRef} style={{ flex: 1, minHeight: 0 }}>
@@ -891,17 +882,17 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
               {/* Right page */}
               <div
+                className="album-page-right"
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
-                  padding: '18px 16px',
                   background: 'linear-gradient(252deg, #f0e8d4 0%, #eadfc8 100%)',
-                  position: 'relative', overflow: 'hidden',
+                  position: 'relative', overflow: 'visible',
                 }}
               >
                 {/* Spine curl shadow */}
                 <div style={{
-                  position: 'absolute', top: 0, left: 0, bottom: 0, width: 24,
-                  background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.05))',
+                  position: 'absolute', top: 0, left: 0, bottom: 0, width: 32,
+                  background: 'linear-gradient(to left, transparent, rgba(0,0,0,0.07))',
                   pointerEvents: 'none', zIndex: 2,
                 }} />
                 <div ref={rightGridRef} style={{ flex: 1, minHeight: 0 }}>
