@@ -10,10 +10,15 @@ import { NextResponse } from 'next/server';
  *   - new user, no couple → create couple → /setup
  *   - returning user      → next param (defaults to /)
  */
+// Only these paths are safe redirect targets after OAuth.
+// Anything else (external URLs, javascript:, //) is rejected.
+const SAFE_NEXT_PATHS = new Set(['/', '/settings', '/setup']);
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code        = searchParams.get('code');
-  const next        = searchParams.get('next') ?? '/';
+  const rawNext     = searchParams.get('next') ?? '/';
+  const next        = SAFE_NEXT_PATHS.has(rawNext) ? rawNext : '/';
   const inviteToken = searchParams.get('invite_token');
 
   if (code) {

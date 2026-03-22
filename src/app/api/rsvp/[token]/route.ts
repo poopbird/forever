@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 const GUEST_FIELDS = new Set([
   'rsvp_status', 'plus_one_attending', 'plus_one_name',
@@ -31,7 +32,13 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
+  // 10 submissions per token per hour — prevents RSVP spam
+  const ip = getClientIp(request);
   const { token } = await params;
+  if (!checkRateLimit(`rsvp-submit:${token}:${ip}`, 10, 60 * 60_000)) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
   const admin = createAdminClient();
 
   // Fetch the guest + couple lock date
