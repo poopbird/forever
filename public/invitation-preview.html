@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Invitation Card Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #1a1410;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    padding: 48px 24px;
+    font-family: 'Lato', sans-serif;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: rgba(255,243,225,0.55);
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    width: 100%;
+    max-width: 1400px;
+  }
+  .card-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .theme-label {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,243,225,0.3);
+  }
+
+  /* ── Shared card shell ── */
+  .card {
+    width: 360px;
+    max-width: 100%;
+    border-radius: 3px;
+    padding: clamp(32px, 6vw, 52px) clamp(28px, 5vw, 48px);
+    text-align: center;
+    position: relative;
+  }
+  .card .inner-frame {
+    position: absolute;
+    inset: 10px;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .couple-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .divider-line { flex: 1; height: 1px; }
+  .divider-gems { font-size: 0.52rem; letter-spacing: 0.25em; }
+  .tagline {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.88rem;
+    line-height: 1.9;
+    letter-spacing: 0.04em;
+    margin-bottom: 22px;
+  }
+  .rsvp-btn {
+    display: inline-block;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    border-radius: 100px;
+    padding: 9px 26px;
+    text-decoration: none;
+    margin-bottom: 24px;
+    cursor: pointer;
+  }
+  .details-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.68rem;
+    font-style: italic;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .detail-line {
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    line-height: 2;
+  }
+
+  /* ── THEME 1: Ivory Classic ── */
+  .classic {
+    background: linear-gradient(160deg, #faf6ee 0%, #f3e8d5 100%);
+    border: 1px solid rgba(180,130,60,0.35);
+    box-shadow: 0 12px 60px rgba(0,0,0,0.38), 0 2px 12px rgba(0,0,0,0.22);
+  }
+  .classic .inner-frame { border: 1px solid rgba(180,130,60,0.16); }
+  .classic .eyebrow     { color: rgba(130,85,30,0.72); }
+  .classic .couple-name { color: rgba(35,18,5,0.92); }
+  .classic .divider-line-l { background: linear-gradient(to right, transparent, rgba(150,100,40,0.3)); }
+  .classic .divider-line-r { background: linear-gradient(to left,  transparent, rgba(150,100,40,0.3)); }
+  .classic .divider-gems  { color: rgba(150,100,40,0.3); }
+  .classic .tagline        { color: rgba(70,45,18,0.62); }
+  .classic .rsvp-btn       { background: rgba(150,100,40,0.1); border: 1px solid rgba(150,100,40,0.45); color: rgba(120,75,25,0.9); }
+  .classic .details-label  { color: rgba(130,85,30,0.58); }
+  .classic .detail-line    { color: rgba(50,30,10,0.78); }
+
+  /* ── THEME 2: Dark Luxury ── */
+  .dark-luxury {
+    background: linear-gradient(145deg, #1e130a 0%, #251508 100%);
+    border: 1px solid rgba(201,150,74,0.2);
+    box-shadow: 0 12px 60px rgba(0,0,0,0.55), 0 4px 20px rgba(0,0,0,0.4);
+  }
+  .dark-luxury .eyebrow    { color: rgba(201,150,74,0.65); }
+  .dark-luxury .couple-name{ color: rgba(255,243,225,0.97); }
+  .dark-luxury .divider-line-l { background: linear-gradient(to right, transparent, rgba(201,150,74,0.45)); }
+  .dark-luxury .divider-line-r { background: linear-gradient(to left,  transparent, rgba(201,150,74,0.45)); }
+  .dark-luxury .divider-gems   { color: rgba(201,150,74,0.45); }
+  .dark-luxury .tagline        { color: rgba(240,220,200,0.55); }
+  .dark-luxury .rsvp-btn       { background: rgba(201,150,74,0.09); border: 1px solid rgba(201,150,74,0.42); color: rgba(201,150,74,0.92); }
+  .dark-luxury .details-label  { color: rgba(201,150,74,0.55); }
+  .dark-luxury .detail-line    { color: rgba(240,220,200,0.72); }
+
+  /* ── THEME 3: Blush Romance ── */
+  .blush {
+    background: linear-gradient(150deg, #fef0f2 0%, #fce4e9 45%, #f8d4dc 100%);
+    border: 1px solid rgba(190,100,120,0.2);
+    box-shadow: 0 12px 48px rgba(160,70,90,0.22), 0 2px 10px rgba(0,0,0,0.1);
+  }
+  .blush .inner-frame  { border: 1px solid rgba(190,100,120,0.12); }
+  .blush .eyebrow      { color: rgba(160,70,90,0.68); }
+  .blush .couple-name  { color: rgba(38,14,22,0.9); }
+  .blush .divider-line-l { background: linear-gradient(to right, transparent, rgba(180,90,110,0.28)); }
+  .blush .divider-line-r { background: linear-gradient(to left,  transparent, rgba(180,90,110,0.28)); }
+  .blush .divider-gems   { color: rgba(180,90,110,0.28); }
+  .blush .tagline        { color: rgba(90,38,52,0.6); }
+  .blush .rsvp-btn       { background: rgba(180,90,110,0.1); border: 1px solid rgba(180,90,110,0.38); color: rgba(150,65,85,0.92); }
+  .blush .details-label  { color: rgba(160,70,90,0.58); }
+  .blush .detail-line    { color: rgba(60,22,32,0.75); }
+
+  /* ── THEME 4: Clean Minimal ── */
+  .minimal {
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.09);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.14), 0 1px 4px rgba(0,0,0,0.07);
+  }
+  .minimal .eyebrow     { color: rgba(0,0,0,0.32); }
+  .minimal .couple-name { color: rgba(0,0,0,0.88); }
+  .minimal .divider-line-l { background: linear-gradient(to right, transparent, rgba(0,0,0,0.1)); }
+  .minimal .divider-line-r { background: linear-gradient(to left,  transparent, rgba(0,0,0,0.1)); }
+  .minimal .divider-gems   { color: rgba(0,0,0,0.1); }
+  .minimal .tagline        { color: rgba(0,0,0,0.44); }
+  .minimal .rsvp-btn       { background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.18); color: rgba(0,0,0,0.75); }
+  .minimal .details-label  { color: rgba(0,0,0,0.32); }
+  .minimal .detail-line    { color: rgba(0,0,0,0.65); }
+</style>
+</head>
+<body>
+
+<h1>✦ &nbsp; Invitation Card Themes &nbsp; ✦</h1>
+
+<div class="grid">
+
+  <!-- ── 1. Ivory Classic ── -->
+  <div class="card-wrap">
+    <span class="theme-label">Ivory Classic</span>
+    <div class="card classic">
+      <div class="inner-frame"></div>
+      <p class="eyebrow">✦ &nbsp; You are invited &nbsp; ✦</p>
+      <h2 class="couple-name">Sarah &amp; James</h2>
+      <div class="divider">
+        <div class="divider-line divider-line-l"></div>
+        <span class="divider-gems">◆ ◆ ◆</span>
+        <div class="divider-line divider-line-r"></div>
+      </div>
+      <p class="tagline">
+        Join us as we celebrate our love<br />
+        and begin our forever together.
+      </p>
+      <div style="margin-bottom:22px">
+        <span class="rsvp-btn">✦ &nbsp; RSVP</span>
+      </div>
+      <p class="details-label">— Our Wedding Day —</p>
+      <p class="detail-line">14 June 2025</p>
+      <p class="detail-line">3:00 – 11:00 PM</p>
+      <p class="detail-line">The Grand Pavilion</p>
+      <p class="detail-line">London</p>
+    </div>
+  </div>
+
+  <!-- ── 2. Dark Luxury ── -->
+  <div class="card-wrap">
+    <span class="theme-label">Dark Luxury</span>
+    <div class="card dark-luxury">
+      <p class="eyebrow">✦ &nbsp; You are invited &nbsp; ✦</p>
+      <h2 class="couple-name">Sarah &amp; James</h2>
+      <div class="divider">
+        <div class="divider-line divider-line-l"></div>
+        <span class="divider-gems">◆ ◆ ◆</span>
+        <div class="divider-line divider-line-r"></div>
+      </div>
+      <p class="tagline">
+        Join us as we celebrate our love<br />
+        and begin our forever together.
+      </p>
+      <div style="margin-bottom:22px">
+        <span class="rsvp-btn">✦ &nbsp; RSVP</span>
+      </div>
+      <p class="details-label">— Our Wedding Day —</p>
+      <p class="detail-line">14 June 2025</p>
+      <p class="detail-line">3:00 – 11:00 PM</p>
+      <p class="detail-line">The Grand Pavilion</p>
+      <p class="detail-line">London</p>
+    </div>
+  </div>
+
+  <!-- ── 3. Blush Romance ── -->
+  <div class="card-wrap">
+    <span class="theme-label">Blush Romance</span>
+    <div class="card blush">
+      <div class="inner-frame"></div>
+      <p class="eyebrow">✦ &nbsp; You are invited &nbsp; ✦</p>
+      <h2 class="couple-name">Sarah &amp; James</h2>
+      <div class="divider">
+        <div class="divider-line divider-line-l"></div>
+        <span class="divider-gems">◆ ◆ ◆</span>
+        <div class="divider-line divider-line-r"></div>
+      </div>
+      <p class="tagline">
+        Join us as we celebrate our love<br />
+        and begin our forever together.
+      </p>
+      <div style="margin-bottom:22px">
+        <span class="rsvp-btn">✦ &nbsp; RSVP</span>
+      </div>
+      <p class="details-label">— Our Wedding Day —</p>
+      <p class="detail-line">14 June 2025</p>
+      <p class="detail-line">3:00 – 11:00 PM</p>
+      <p class="detail-line">The Grand Pavilion</p>
+      <p class="detail-line">London</p>
+    </div>
+  </div>
+
+  <!-- ── 4. Clean Minimal ── -->
+  <div class="card-wrap">
+    <span class="theme-label">Clean Minimal</span>
+    <div class="card minimal">
+      <p class="eyebrow">✦ &nbsp; You are invited &nbsp; ✦</p>
+      <h2 class="couple-name">Sarah &amp; James</h2>
+      <div class="divider">
+        <div class="divider-line divider-line-l"></div>
+        <span class="divider-gems">◆ ◆ ◆</span>
+        <div class="divider-line divider-line-r"></div>
+      </div>
+      <p class="tagline">
+        Join us as we celebrate our love<br />
+        and begin our forever together.
+      </p>
+      <div style="margin-bottom:22px">
+        <span class="rsvp-btn">✦ &nbsp; RSVP</span>
+      </div>
+      <p class="details-label">— Our Wedding Day —</p>
+      <p class="detail-line">14 June 2025</p>
+      <p class="detail-line">3:00 – 11:00 PM</p>
+      <p class="detail-line">The Grand Pavilion</p>
+      <p class="detail-line">London</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
