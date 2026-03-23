@@ -41,6 +41,10 @@ export default function RsvpPolaroidShell({
   children,
 }: RsvpPolaroidShellProps) {
   const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
+  // Light-frame themes use dark-on-light colors — override for the dark #0d0b08 photo section
+  const hasLightFrame = t.frameBg === '#ffffff' || t.frameBg === '#f3ead8';
+  const eyebrowOnDark = hasLightFrame ? 'rgba(201,150,74,0.62)'  : t.eyebrowColor;
+  const detailOnLight = hasLightFrame ? 'rgba(0,0,0,0.48)'       : t.labelColor;
 
   // Build the detail line for the caption footer
   const detailParts: string[] = [];
@@ -168,7 +172,7 @@ export default function RsvpPolaroidShell({
               fontSize:      '0.52rem',
               letterSpacing: '0.42em',
               textTransform: 'uppercase',
-              color:         t.eyebrowColor,
+              color:         eyebrowOnDark,
               textAlign:     'center',
               marginBottom:  20,
             }}
@@ -211,7 +215,7 @@ export default function RsvpPolaroidShell({
               fontSize:      '0.58rem',
               letterSpacing: '0.16em',
               textTransform: 'uppercase',
-              color:         t.labelColor,
+              color:         detailOnLight,
               margin:        '8px 0 0',
             }}
           >
