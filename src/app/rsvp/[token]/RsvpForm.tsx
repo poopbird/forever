@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import type { RsvpGuest, RsvpStatus, DietaryPreset } from '@/types';
 import type { InvitationTheme } from '@/lib/couple';
-import { storageUrl } from '@/lib/storageUrl';
 import { CARD_THEMES } from '@/components/highlights/PolaroidHighlights';
 
 const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
@@ -345,7 +344,7 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
                   {cardPhoto ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={storageUrl(cardPhoto, { width: 600, quality: 85 })}
+                      src={cardPhoto}
                       alt={s === 'attending' ? 'Attending' : 'Declining'}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                     />

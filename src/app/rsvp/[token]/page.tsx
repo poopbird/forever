@@ -6,14 +6,6 @@ import RsvpPolaroidShell from './RsvpPolaroidShell';
 
 export const dynamic = 'force-dynamic';
 
-// Theme-matched page backgrounds
-const PAGE_BG: Record<InvitationTheme, string> = {
-  polaroid_white:  '#ede8df',
-  garden_bloom:    '#1a2e18',
-  sage_linen:      '#222b20',
-  midnight_indigo: '#050714',
-};
-
 interface Props {
   params: Promise<{ token: string }>;
 }
@@ -24,7 +16,7 @@ export default async function RsvpPage({ params }: Props) {
 
   const { data: guest } = await admin
     .from('rsvp_guests')
-    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at, invitation_theme, invitation_photo_url, rsvp_attending_photo_url, rsvp_declining_photo_url)')
+    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at, invitation_theme, rsvp_attending_photo_url, rsvp_declining_photo_url)')
     .eq('token', token)
     .single();
 
@@ -40,7 +32,6 @@ export default async function RsvpPage({ params }: Props) {
     rsvp_enabled: boolean;
     rsvp_locked_at: string | null;
     invitation_theme: InvitationTheme | null;
-    invitation_photo_url: string | null;
     rsvp_attending_photo_url: string | null;
     rsvp_declining_photo_url: string | null;
   } | null;
@@ -52,23 +43,9 @@ export default async function RsvpPage({ params }: Props) {
     ? new Date() > new Date(new Date(couple.rsvp_locked_at).setHours(23, 59, 59, 999))
     : false;
 
-  // Fetch up to 6 memory photos to display on desktop side panels
-  const { data: sideMemories } = await admin
-    .from('memories')
-    .select('media_url')
-    .eq('couple_id', guest.couple_id)
-    .eq('media_type', 'photo')
-    .not('media_url', 'is', null)
-    .order('created_at', { ascending: false })
-    .limit(6);
-
-  const sidePhotos = sideMemories?.map(m => m.media_url as string).filter(Boolean) ?? [];
-
-  const pageBg = PAGE_BG[invitationTheme] ?? '#0d0b08';
-
   return (
     <main
-      style={{ background: pageBg, minHeight: '100vh' }}
+      style={{ background: '#0d0b08', minHeight: '100vh' }}
       className="flex flex-col items-center justify-center py-16 px-4"
     >
       <RsvpPolaroidShell
@@ -79,8 +56,6 @@ export default async function RsvpPage({ params }: Props) {
         weddingTimeEnd={couple?.wedding_time_end}
         weddingVenue={couple?.wedding_venue}
         weddingCity={couple?.wedding_city}
-        invitationPhotoUrl={couple?.invitation_photo_url ?? null}
-        sidePhotos={sidePhotos}
       >
         {!couple?.rsvp_enabled ? (
           <div className="text-center flex flex-col gap-2 py-4">
