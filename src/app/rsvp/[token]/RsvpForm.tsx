@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import type { RsvpGuest, RsvpStatus, DietaryPreset } from '@/types';
+import type { InvitationTheme } from '@/lib/couple';
+import { CARD_THEMES } from '@/components/highlights/PolaroidHighlights';
 
 const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
   { value: 'none',        label: 'No restrictions' },
@@ -13,10 +15,13 @@ const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
 ];
 
 interface Props {
-  guest: RsvpGuest;
+  guest:           RsvpGuest;
+  invitationTheme: InvitationTheme;
 }
 
-export default function RsvpForm({ guest }: Props) {
+export default function RsvpForm({ guest, invitationTheme }: Props) {
+  const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
+
   const [status,            setStatus]            = useState<RsvpStatus>(guest.rsvp_status);
   const [plusOneAttending,  setPlusOneAttending]  = useState<boolean | null>(guest.plus_one_attending);
   const [plusOneName,       setPlusOneName]       = useState(guest.plus_one_name ?? '');
@@ -46,10 +51,10 @@ export default function RsvpForm({ guest }: Props) {
     };
 
     if (showPlusOne) {
-      payload.plus_one_attending           = plusOneAttending;
-      payload.plus_one_name                = plusOneIsGoing ? plusOneName.trim() || null : null;
-      payload.plus_one_dietary_preset      = plusOneIsGoing ? (plusDietaryPreset || null) : null;
-      payload.plus_one_dietary_notes       = plusOneIsGoing ? (plusDietaryNotes.trim() || null) : null;
+      payload.plus_one_attending      = plusOneAttending;
+      payload.plus_one_name           = plusOneIsGoing ? plusOneName.trim() || null : null;
+      payload.plus_one_dietary_preset = plusOneIsGoing ? (plusDietaryPreset || null) : null;
+      payload.plus_one_dietary_notes  = plusOneIsGoing ? (plusDietaryNotes.trim() || null) : null;
     }
 
     const res = await fetch(`/api/rsvp/${guest.token}`, {
@@ -68,7 +73,6 @@ export default function RsvpForm({ guest }: Props) {
 
     setSaved(true);
 
-    // Fire confirmation email best-effort — don't block UI on failure
     fetch('/api/email/confirmation', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,26 +80,25 @@ export default function RsvpForm({ guest }: Props) {
     }).catch(() => {/* silent */});
   }
 
-  const gold  = 'rgba(201,150,74,';
-  const cream = 'rgba(232,213,176,';
-
+  // ── Shared input styles (always on dark #0d0b08 background) ──────────────
   const labelStyle: React.CSSProperties = {
-    fontFamily:    'var(--font-mono, monospace)',
-    fontSize:      10,
+    fontFamily:    '"DM Sans", sans-serif',
+    fontWeight:    300,
+    fontSize:      '0.58rem',
     textTransform: 'uppercase',
-    letterSpacing: '0.2em',
-    color:         `${gold}0.6)`,
+    letterSpacing: '0.22em',
+    color:         t.eyebrowColor,
     display:       'block',
     marginBottom:  6,
   };
 
   const inputStyle: React.CSSProperties = {
     width:        '100%',
-    background:   'rgba(255,255,255,0.04)',
-    border:       `1px solid ${gold}0.22)`,
-    borderRadius: 8,
+    background:   'rgba(255,255,255,0.05)',
+    border:       `1px solid ${t.ruleColor}`,
+    borderRadius: '3px',
     padding:      '10px 14px',
-    color:        `${cream}0.9)`,
+    color:        t.valueColor,
     fontSize:     14,
     fontFamily:   'inherit',
     outline:      'none',
@@ -103,24 +106,103 @@ export default function RsvpForm({ guest }: Props) {
 
   const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer' };
 
+  // ── Success screen ────────────────────────────────────────────────────────
   if (saved) {
     return (
-      <div className="text-center py-6 flex flex-col gap-4">
-        <span style={{ fontSize: 40 }}>{status === 'attending' ? '🎉' : '💌'}</span>
-        <p className="font-serif" style={{ fontSize: 22, color: `${cream}0.9)` }}>
-          {status === 'attending' ? "We can't wait to celebrate with you!" : "We'll miss you there."}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0 8px', gap: 0 }}>
+        {/* Mini polaroid */}
+        <div
+          style={{
+            background:   t.frameBg,
+            boxShadow:    '0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.25)',
+            borderRadius: '2px',
+            padding:      '8px 8px 0',
+            width:        138,
+            transform:    'rotate(-1.5deg)',
+          }}
+        >
+          <div
+            style={{
+              width:          '100%',
+              aspectRatio:    '1',
+              background:     status === 'attending'
+                ? 'rgba(201,150,74,0.14)'
+                : 'rgba(100,100,120,0.16)',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              fontSize:       38,
+            }}
+          >
+            {status === 'attending' ? '🎉' : '💌'}
+          </div>
+          <div
+            style={{
+              background: t.footerBg,
+              padding:    '9px 8px 18px',
+              textAlign:  'center',
+            }}
+          >
+            <p
+              style={{
+                fontFamily: t.nameFont,
+                fontSize:   '0.85rem',
+                fontWeight: t.nameWeight,
+                fontStyle:  t.nameStyle,
+                color:      t.nameColor,
+                margin:     0,
+                lineHeight: 1.2,
+              }}
+            >
+              {status === 'attending' ? 'See you there!' : "We'll miss you"}
+            </p>
+          </div>
+        </div>
+
+        <p
+          style={{
+            marginTop:  22,
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize:   '0.82rem',
+            color:      'rgba(232,213,176,0.82)',
+            textAlign:  'center',
+            lineHeight: 1.5,
+          }}
+        >
+          {status === 'attending'
+            ? "We can't wait to celebrate with you!"
+            : "We'll miss you there."}
         </p>
-        <p className="font-mono text-xs" style={{ color: `${gold}0.55)` }}>
-          {email.trim()
-            ? `A confirmation has been sent to ${email.trim()}.`
-            : status === 'attending'
-              ? 'Your RSVP has been recorded. See you soon!'
-              : 'Your response has been recorded.'}
-        </p>
+        {email.trim() && (
+          <p
+            style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontSize:   '0.62rem',
+              letterSpacing: '0.05em',
+              color:      t.eyebrowColor,
+              textAlign:  'center',
+              marginTop:  6,
+            }}
+          >
+            A confirmation has been sent to {email.trim()}.
+          </p>
+        )}
         <button
           onClick={() => setSaved(false)}
-          className="mt-4 font-mono uppercase tracking-widest rounded-full px-5 py-2 text-xs transition-all"
-          style={{ border: `1px solid ${gold}0.3)`, color: `${gold}0.7)` }}
+          style={{
+            marginTop:     18,
+            fontFamily:    t.btnFont,
+            fontStyle:     t.btnStyle ?? 'normal',
+            fontSize:      '0.64rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            background:    t.btnBg,
+            border:        t.btnBorder,
+            color:         t.btnColor,
+            borderRadius:  '3px',
+            padding:       '9px 22px',
+            cursor:        'pointer',
+          }}
         >
           Edit response
         </button>
@@ -129,38 +211,123 @@ export default function RsvpForm({ guest }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div>
-        <p style={{ ...labelStyle, marginBottom: 12 }}>
-          Hi {guest.name} — will you be joining us?
-        </p>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        <div className="flex gap-3">
-          {(['attending', 'declined'] as RsvpStatus[]).map(s => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatus(s)}
-              className="flex-1 rounded-xl py-3 font-mono uppercase tracking-widest text-xs transition-all duration-200"
-              style={{
-                border:     `1px solid ${gold}${status === s ? '0.6)' : '0.22)'})`,
-                background: status === s
-                  ? s === 'attending' ? `${gold}0.16)` : 'rgba(180,60,60,0.12)'
-                  : 'transparent',
-                color: status === s
-                  ? s === 'attending' ? `${gold}1)` : 'rgba(220,100,100,0.9)'
-                  : `${gold}0.5)`,
-              }}
-            >
-              {s === 'attending' ? '✓ Attending' : '✗ Declining'}
-            </button>
-          ))}
-        </div>
+      {/* ── Guest greeting ── */}
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <p
+          style={{
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    300,
+            fontSize:      '0.52rem',
+            letterSpacing: '0.35em',
+            textTransform: 'uppercase',
+            color:         t.eyebrowColor,
+            marginBottom:  8,
+          }}
+        >
+          Welcome
+        </p>
+        <p
+          style={{
+            fontFamily:    t.nameFont,
+            fontWeight:    t.nameWeight,
+            fontStyle:     t.nameStyle,
+            fontSize:      'clamp(1.1rem, 4vw, 1.35rem)',
+            color:         t.nameColor,
+            margin:        '0 0 10px',
+            lineHeight:    1.2,
+          }}
+        >
+          {guest.name}
+        </p>
+        <p
+          style={{
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    300,
+            fontSize:      '0.58rem',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color:         t.eyebrowColor,
+            margin:        0,
+          }}
+        >
+          Will you be joining us?
+        </p>
       </div>
 
-      {/* Guest dietary */}
+      {/* ── Attendance selector — mini-polaroid buttons ── */}
+      <div style={{ display: 'flex', gap: 10 }}>
+        {(['attending', 'declined'] as RsvpStatus[]).map((s, i) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStatus(s)}
+            style={{
+              flex:         1,
+              background:   t.frameBg,
+              border:       'none',
+              borderRadius: '2px',
+              padding:      '8px 8px 0',
+              cursor:       'pointer',
+              transform:    status === s
+                ? 'rotate(0deg) scale(1.05)'
+                : i === 0 ? 'rotate(-2.5deg)' : 'rotate(2.5deg)',
+              boxShadow: status === s
+                ? t.frameShadow
+                : '0 3px 10px rgba(0,0,0,0.45)',
+              transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
+              opacity:    status === s ? 1 : 0.68,
+            }}
+          >
+            {/* Photo area */}
+            <div
+              style={{
+                width:          '100%',
+                aspectRatio:    '1',
+                background:     status === s
+                  ? s === 'attending'
+                    ? 'rgba(201,150,74,0.16)'
+                    : 'rgba(180,60,60,0.14)'
+                  : 'rgba(0,0,0,0.28)',
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                fontSize:       22,
+                color:          status === s
+                  ? s === 'attending'
+                    ? 'rgba(201,150,74,0.92)'
+                    : 'rgba(200,80,80,0.88)'
+                  : 'rgba(255,255,255,0.22)',
+                transition:     'all 0.2s ease',
+              }}
+            >
+              {s === 'attending' ? '✓' : '✗'}
+            </div>
+            {/* Caption */}
+            <div
+              style={{
+                background:    t.footerBg,
+                padding:       '6px 4px 10px',
+                textAlign:     'center',
+                fontFamily:    t.btnFont,
+                fontStyle:     t.btnStyle ?? 'normal',
+                fontSize:      '0.56rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color:         status === s ? t.btnColor : t.labelColor,
+                transition:    'color 0.2s ease',
+              }}
+            >
+              {s === 'attending' ? 'Attending' : 'Declining'}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Guest dietary ── */}
       {isAttending && (
-        <div className="flex flex-col gap-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div>
             <label style={labelStyle}>Your dietary requirements</label>
             <select
@@ -188,25 +355,41 @@ export default function RsvpForm({ guest }: Props) {
         </div>
       )}
 
-      {/* Plus one */}
+      {/* ── Plus one ── */}
       {showPlusOne && (
         <div
-          className="rounded-xl p-4 flex flex-col gap-4"
-          style={{ border: `1px solid ${gold}0.15)`, background: `${gold}0.04)` }}
+          style={{
+            borderRadius: '3px',
+            padding:      '14px 16px',
+            display:      'flex',
+            flexDirection:'column',
+            gap:          14,
+            border:       `1px solid ${t.ruleColor}`,
+            background:   'rgba(255,255,255,0.02)',
+          }}
         >
           <p style={labelStyle}>Will you be bringing a plus one?</p>
 
-          <div className="flex gap-3">
+          <div style={{ display: 'flex', gap: 10 }}>
             {[true, false].map(v => (
               <button
                 key={String(v)}
                 type="button"
                 onClick={() => setPlusOneAttending(v)}
-                className="flex-1 rounded-xl py-2.5 font-mono uppercase tracking-widest text-xs transition-all duration-200"
                 style={{
-                  border:     `1px solid ${gold}${plusOneAttending === v ? '0.6)' : '0.22)'})`,
-                  background: plusOneAttending === v ? `${gold}0.14)` : 'transparent',
-                  color:      plusOneAttending === v ? `${gold}1)` : `${gold}0.5)`,
+                  flex:         1,
+                  borderRadius: '3px',
+                  padding:      '9px 0',
+                  fontFamily:   t.btnFont,
+                  fontStyle:    t.btnStyle ?? 'normal',
+                  fontSize:     '0.64rem',
+                  letterSpacing:'0.1em',
+                  textTransform:'uppercase',
+                  cursor:       'pointer',
+                  transition:   'all 0.2s ease',
+                  border:       plusOneAttending === v ? t.btnBorder : `1px solid ${t.ruleColor}`,
+                  background:   plusOneAttending === v ? t.btnBg : 'transparent',
+                  color:        plusOneAttending === v ? t.btnColor : t.eyebrowColor,
                 }}
               >
                 {v ? 'Yes' : 'No'}
@@ -256,7 +439,7 @@ export default function RsvpForm({ guest }: Props) {
         </div>
       )}
 
-      {/* Email — pre-filled if on record, always editable, optional */}
+      {/* ── Email ── */}
       <div>
         <label style={labelStyle}>
           Email address{!guest.email && ' (optional — for confirmation)'}
@@ -269,26 +452,44 @@ export default function RsvpForm({ guest }: Props) {
           style={inputStyle}
         />
         {guest.email && (
-          <p style={{ fontFamily: 'monospace', fontSize: 10, color: `${gold}0.4)`, marginTop: 4 }}>
+          <p
+            style={{
+              fontFamily:    '"DM Sans", sans-serif',
+              fontSize:      '0.58rem',
+              color:         t.eyebrowColor,
+              marginTop:     4,
+            }}
+          >
             A confirmation will be sent here. Edit if needed.
           </p>
         )}
       </div>
 
       {error && (
-        <p className="text-xs font-mono" style={{ color: 'rgba(220,100,100,0.85)' }}>
+        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: '0.72rem', color: 'rgba(220,100,100,0.85)' }}>
           {error}
         </p>
       )}
 
+      {/* ── Submit ── */}
       <button
         type="submit"
         disabled={saving}
-        className="w-full rounded-full py-3 font-mono uppercase tracking-widest text-xs transition-all duration-300 disabled:opacity-50"
         style={{
-          background: `${gold}0.14)`,
-          border:     `1px solid ${gold}0.45)`,
-          color:      `${gold}0.95)`,
+          width:         '100%',
+          padding:       '12px 0',
+          fontFamily:    t.btnFont,
+          fontStyle:     t.btnStyle ?? 'normal',
+          fontSize:      '0.7rem',
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          background:    t.btnBg,
+          border:        t.btnBorder,
+          color:         t.btnColor,
+          borderRadius:  '3px',
+          cursor:        saving ? 'not-allowed' : 'pointer',
+          opacity:       saving ? 0.5 : 1,
+          transition:    'all 0.2s ease',
         }}
       >
         {saving ? 'Saving…' : 'Confirm RSVP'}

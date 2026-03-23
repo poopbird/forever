@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
+import type { InvitationTheme } from '@/lib/couple';
 import RsvpForm from './RsvpForm';
+import RsvpPolaroidShell from './RsvpPolaroidShell';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +16,7 @@ export default async function RsvpPage({ params }: Props) {
 
   const { data: guest } = await admin
     .from('rsvp_guests')
-    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at)')
+    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at, invitation_theme)')
     .eq('token', token)
     .single();
 
@@ -29,7 +31,11 @@ export default async function RsvpPage({ params }: Props) {
     wedding_city: string | null;
     rsvp_enabled: boolean;
     rsvp_locked_at: string | null;
+    invitation_theme: InvitationTheme | null;
   } | null;
+
+  const invitationTheme: InvitationTheme =
+    (couple?.invitation_theme as InvitationTheme) ?? 'polaroid_white';
 
   const isLocked = couple?.rsvp_locked_at
     ? new Date() > new Date(new Date(couple.rsvp_locked_at).setHours(23, 59, 59, 999))
@@ -38,57 +44,23 @@ export default async function RsvpPage({ params }: Props) {
   return (
     <main
       style={{ background: '#0d0b08', minHeight: '100vh' }}
-      className="flex flex-col items-center justify-start py-16 px-4"
+      className="flex flex-col items-center justify-center py-16 px-4"
     >
-      {/* Header */}
-      <div className="text-center mb-10">
-        <p
-          className="font-mono uppercase tracking-[0.45em]"
-          style={{ fontSize: 10, color: 'rgba(201,150,74,0.5)', marginBottom: 10 }}
-        >
-          You&apos;re invited
-        </p>
-        <h1
-          className="font-serif"
-          style={{ fontSize: 36, color: 'rgba(232,213,176,0.92)', letterSpacing: '-0.01em' }}
-        >
-          {couple?.name ?? 'Our Wedding'}
-        </h1>
-        {(couple?.wedding_date || couple?.wedding_venue || couple?.wedding_city) && (
-          <p
-            className="font-mono mt-3"
-            style={{ fontSize: 12, color: 'rgba(201,150,74,0.6)' }}
-          >
-            {[
-              couple.wedding_date
-                ? new Date(couple.wedding_date + 'T00:00:00').toLocaleDateString('en-GB', {
-                    day: 'numeric', month: 'long', year: 'numeric',
-                  })
-                : null,
-              couple.wedding_time_start
-                ? couple.wedding_time_end
-                  ? `${couple.wedding_time_start.slice(0,5)} – ${couple.wedding_time_end.slice(0,5)}`
-                  : couple.wedding_time_start.slice(0,5)
-                : null,
-              couple.wedding_venue,
-              couple.wedding_city,
-            ].filter(Boolean).join(' · ')}
-          </p>
-        )}
-      </div>
-
-      {/* Form card */}
-      <div
-        className="w-full max-w-md rounded-2xl p-8"
-        style={{
-          background:   'rgba(255,255,255,0.03)',
-          border:       '1px solid rgba(201,150,74,0.18)',
-          backdropFilter: 'blur(8px)',
-        }}
+      <RsvpPolaroidShell
+        invitationTheme={invitationTheme}
+        coupleName={couple?.name ?? 'Our Wedding'}
+        weddingDate={couple?.wedding_date}
+        weddingTimeStart={couple?.wedding_time_start}
+        weddingTimeEnd={couple?.wedding_time_end}
+        weddingVenue={couple?.wedding_venue}
+        weddingCity={couple?.wedding_city}
       >
         {!couple?.rsvp_enabled ? (
-          <div className="text-center flex flex-col gap-2">
-            <p className="font-mono text-sm" style={{ color: 'rgba(201,150,74,0.6)' }}>
+          <div className="text-center flex flex-col gap-2 py-4">
+            <p
+              className="font-mono text-sm"
+              style={{ color: 'rgba(201,150,74,0.6)' }}
+            >
               RSVP is not open yet. Check back soon.
             </p>
             {couple?.rsvp_locked_at && (
@@ -101,13 +73,13 @@ export default async function RsvpPage({ params }: Props) {
             )}
           </div>
         ) : isLocked ? (
-          <p className="text-center font-mono text-sm" style={{ color: 'rgba(201,150,74,0.6)' }}>
+          <p className="text-center font-mono text-sm py-4" style={{ color: 'rgba(201,150,74,0.6)' }}>
             The RSVP deadline has passed. Please contact the couple directly.
           </p>
         ) : (
-          <RsvpForm guest={guest} />
+          <RsvpForm guest={guest} invitationTheme={invitationTheme} />
         )}
-      </div>
+      </RsvpPolaroidShell>
     </main>
   );
 }

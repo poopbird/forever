@@ -10,7 +10,7 @@ import { storageUrl } from '@/lib/storageUrl';
 // All 4 themes share the same polaroid structure:
 //   [frame border 10px top/sides] [photo 1:1 square] [footer with details]
 // Dimensions: width min(400px, 85vw) · photo 1:1 · matches website POLAROID_W×H = 220×220
-interface CardThemeConfig {
+export interface CardThemeConfig {
   label:          string;
   description:    string;
   // Polaroid frame
