@@ -100,8 +100,9 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
 
   // ── Shared input styles (always on dark #0d0b08 background) ──────────────
   const labelStyle: React.CSSProperties = {
-    fontFamily:    '"DM Sans", sans-serif',
+    fontFamily:    t.btnFont,
     fontWeight:    300,
+    fontStyle:     t.btnStyle ?? 'normal',
     fontSize:      '0.58rem',
     textTransform: 'uppercase',
     letterSpacing: '0.22em',
@@ -111,18 +112,34 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
   };
 
   const inputStyle: React.CSSProperties = {
-    width:        '100%',
-    background:   'rgba(255,255,255,0.05)',
-    border:       `1px solid ${onDark.rule}`,
-    borderRadius: '3px',
-    padding:      '10px 14px',
-    color:        onDark.value,
-    fontSize:     14,
-    fontFamily:   'inherit',
-    outline:      'none',
+    width:           '100%',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    border:          `1px solid ${onDark.rule}`,
+    borderRadius:    '3px',
+    padding:         '10px 14px',
+    color:           onDark.value,
+    fontSize:        14,
+    fontFamily:      t.btnFont,
+    fontStyle:       'normal',
+    outline:         'none',
   };
 
-  const selectStyle: React.CSSProperties = { ...inputStyle, cursor: 'pointer' };
+  // Custom chevron SVG — colour matches label tint for the current theme
+  const arrowHex   = hasLightFrame ? 'C9964A' : 'ffffff';
+  const arrowAlpha = hasLightFrame ? '0.75' : '0.35';
+  const arrowSvg   = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${arrowHex}' stroke-opacity='${arrowAlpha}' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
+
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    cursor:             'pointer',
+    appearance:         'none' as const,
+    WebkitAppearance:   'none' as const,
+    backgroundImage:    arrowSvg,
+    backgroundRepeat:   'no-repeat',
+    backgroundPosition: 'right 14px center',
+    backgroundSize:     '10px 6px',
+    paddingRight:       36,
+  };
 
   // ── Success screen ────────────────────────────────────────────────────────
   if (saved) {
@@ -180,7 +197,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
         <p
           style={{
             marginTop:  22,
-            fontFamily: '"DM Sans", sans-serif',
+            fontFamily: t.btnFont,
+            fontStyle:  t.btnStyle ?? 'normal',
             fontSize:   '0.82rem',
             color:      'rgba(232,213,176,0.82)',
             textAlign:  'center',
@@ -194,7 +212,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
         {email.trim() && (
           <p
             style={{
-              fontFamily: '"DM Sans", sans-serif',
+              fontFamily: t.btnFont,
+              fontStyle:  t.btnStyle ?? 'normal',
               fontSize:   '0.62rem',
               letterSpacing: '0.05em',
               color:      onDark.label,
@@ -235,7 +254,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
       <div style={{ textAlign: 'center', marginBottom: 4 }}>
         <p
           style={{
-            fontFamily:    '"DM Sans", sans-serif',
+            fontFamily:    t.btnFont,
+            fontStyle:     t.btnStyle ?? 'normal',
             fontWeight:    300,
             fontSize:      '0.52rem',
             letterSpacing: '0.35em',
@@ -261,7 +281,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
         </p>
         <p
           style={{
-            fontFamily:    '"DM Sans", sans-serif',
+            fontFamily:    t.btnFont,
+            fontStyle:     t.btnStyle ?? 'normal',
             fontWeight:    300,
             fontSize:      '0.58rem',
             letterSpacing: '0.18em',
@@ -495,7 +516,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
         {guest.email && (
           <p
             style={{
-              fontFamily:    '"DM Sans", sans-serif',
+              fontFamily:    t.btnFont,
+              fontStyle:     t.btnStyle ?? 'normal',
               fontSize:      '0.58rem',
               color:         onDark.label,
               marginTop:     4,
@@ -507,7 +529,7 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
       </div>
 
       {error && (
-        <p style={{ fontFamily: '"DM Sans", sans-serif', fontSize: '0.72rem', color: 'rgba(220,100,100,0.85)' }}>
+        <p style={{ fontFamily: t.btnFont, fontStyle: t.btnStyle ?? 'normal', fontSize: '0.72rem', color: 'rgba(220,100,100,0.85)' }}>
           {error}
         </p>
       )}
