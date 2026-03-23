@@ -20,6 +20,8 @@ interface Props {
   inviteMessageTemplate:  string | null;
   calendarDescription:    string | null;
   siteUrl:                string;
+  attendingPhotoUrl:      string | null;
+  decliningPhotoUrl:      string | null;
 }
 
 // ── Bulk add row type ──────────────────────────────────────────────────────────
@@ -87,6 +89,8 @@ export default function RsvpSection({
   inviteMessageTemplate: initialTemplate,
   calendarDescription: initialCalendarDesc,
   siteUrl,
+  attendingPhotoUrl: initialAttendingPhoto,
+  decliningPhotoUrl: initialDecliningPhoto,
 }: Props) {
   const [enabled,          setEnabled]          = useState(initialEnabled);
   const [lockedAt,         setLockedAt]         = useState(initialLocked ?? '');
@@ -95,6 +99,13 @@ export default function RsvpSection({
   const [showPreview,      setShowPreview]      = useState(false);
   const [calendarDesc,     setCalendarDesc]     = useState(initialCalendarDesc ?? '');
   const msgTemplateRef = useRef<HTMLTextAreaElement>(null);
+
+  // Card photo state
+  const [attendingPhoto,  setAttendingPhoto]  = useState(initialAttendingPhoto ?? '');
+  const [decliningPhoto,  setDecliningPhoto]  = useState(initialDecliningPhoto ?? '');
+  const [cardUploading,   setCardUploading]   = useState<'attending' | 'declining' | null>(null);
+  const cardInputRef   = useRef<HTMLInputElement>(null);
+  const pendingCardRef = useRef<'attending' | 'declining' | null>(null);
   const [guests,    setGuests]    = useState<RsvpGuest[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [saving,    setSaving]    = useState(false);
@@ -172,6 +183,50 @@ export default function RsvpSection({
     });
     setSaving(false);
     setSaveMsg(res.ok ? '✓ Saved' : '✗ Save failed');
+  }
+
+  // ── Card photo upload ──────────────────────────────────────────────────────
+  async function handleCardPhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    const card = pendingCardRef.current;
+    e.target.value = '';
+    if (!file || !card) return;
+    setCardUploading(card);
+
+    const fd = new FormData();
+    fd.append('file', file);
+    const up = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!up.ok) { setCardUploading(null); return; }
+    const { url } = await up.json();
+
+    await fetch('/api/couples', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        card === 'attending'
+          ? { rsvp_attending_photo_url: url }
+          : { rsvp_declining_photo_url: url }
+      ),
+    });
+
+    if (card === 'attending') setAttendingPhoto(url);
+    else setDecliningPhoto(url);
+    setCardUploading(null);
+    pendingCardRef.current = null;
+  }
+
+  async function removeCardPhoto(card: 'attending' | 'declining') {
+    await fetch('/api/couples', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        card === 'attending'
+          ? { rsvp_attending_photo_url: null }
+          : { rsvp_declining_photo_url: null }
+      ),
+    });
+    if (card === 'attending') setAttendingPhoto('');
+    else setDecliningPhoto('');
   }
 
   // ── Single add ─────────────────────────────────────────────────────────────
@@ -538,6 +593,84 @@ export default function RsvpSection({
           <p className="font-sans text-xs text-ink-light mt-1">
             Pending guests with an email or phone will be reminded automatically.
           </p>
+        </div>
+
+        {/* ── Card photos ── */}
+        <div>
+          <label className={labelCls}>Card photos (optional)</label>
+          <p className="font-sans text-xs text-ink-light mb-3">
+            Upload a photo for each polaroid card on the RSVP form. Leave blank to show a ✓ / ✗ symbol instead.
+          </p>
+          <div className="flex gap-6">
+            {(['attending', 'declining'] as const).map(card => {
+              const photo      = card === 'attending' ? attendingPhoto : decliningPhoto;
+              const uploading  = cardUploading === card;
+              return (
+                <div key={card} className="flex flex-col items-center gap-1.5">
+                  {/* Mini polaroid preview / upload trigger */}
+                  <button
+                    type="button"
+                    title={`Upload ${card} card photo`}
+                    disabled={cardUploading !== null}
+                    onClick={() => { pendingCardRef.current = card; cardInputRef.current?.click(); }}
+                    style={{
+                      background:   '#f7f4ef',
+                      border:       'none',
+                      borderRadius: '2px',
+                      padding:      '6px 6px 0',
+                      width:        96,
+                      boxShadow:    '0 3px 10px rgba(0,0,0,0.18)',
+                      cursor:       cardUploading !== null ? 'not-allowed' : 'pointer',
+                      opacity:      uploading ? 0.6 : 1,
+                    }}
+                  >
+                    <div style={{
+                      width: '100%', aspectRatio: '1', overflow: 'hidden',
+                      background: '#e8e0d0', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {uploading ? (
+                        <span style={{ fontSize: 11, color: '#9a7840', fontFamily: 'sans-serif' }}>Uploading…</span>
+                      ) : photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={photo} alt={card} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      ) : (
+                        <span style={{ fontSize: 22, color: 'rgba(0,0,0,0.22)' }}>
+                          {card === 'attending' ? '✓' : '✗'}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{
+                      padding: '5px 4px 8px', textAlign: 'center',
+                      fontFamily: 'sans-serif', fontSize: '0.5rem',
+                      letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9a7840',
+                    }}>
+                      {card === 'attending' ? 'Attending' : 'Declining'}
+                    </div>
+                  </button>
+
+                  {photo && !uploading ? (
+                    <button
+                      type="button"
+                      onClick={() => removeCardPhoto(card)}
+                      className="font-sans text-xs text-ink-light hover:text-red-600 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  ) : !uploading ? (
+                    <span className="font-sans text-xs text-ink-light">Click to upload</span>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+          <input
+            ref={cardInputRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={handleCardPhotoSelect}
+          />
         </div>
 
         {/* ── Calendar event description ── */}

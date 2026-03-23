@@ -8,6 +8,7 @@ const ALLOWED_PROFILE_FIELDS = new Set([
   'wedding_date', 'wedding_venue', 'wedding_city', 'wedding_time_start', 'wedding_time_end',
   'rsvp_enabled', 'rsvp_locked_at', 'reminder_days_before', 'invite_message_template',
   'calendar_description', 'album_mode', 'film_reel_enabled', 'invitation_theme', 'invitation_photo_url',
+  'rsvp_attending_photo_url', 'rsvp_declining_photo_url',
 ]);
 
 /** GET /api/couples — return album_mode (and other light config) for the current couple */

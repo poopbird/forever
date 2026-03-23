@@ -16,7 +16,7 @@ export default async function RsvpPage({ params }: Props) {
 
   const { data: guest } = await admin
     .from('rsvp_guests')
-    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at, invitation_theme)')
+    .select('*, couples(name, wedding_date, wedding_time_start, wedding_time_end, wedding_venue, wedding_city, rsvp_enabled, rsvp_locked_at, invitation_theme, rsvp_attending_photo_url, rsvp_declining_photo_url)')
     .eq('token', token)
     .single();
 
@@ -32,6 +32,8 @@ export default async function RsvpPage({ params }: Props) {
     rsvp_enabled: boolean;
     rsvp_locked_at: string | null;
     invitation_theme: InvitationTheme | null;
+    rsvp_attending_photo_url: string | null;
+    rsvp_declining_photo_url: string | null;
   } | null;
 
   const invitationTheme: InvitationTheme =
@@ -77,7 +79,12 @@ export default async function RsvpPage({ params }: Props) {
             The RSVP deadline has passed. Please contact the couple directly.
           </p>
         ) : (
-          <RsvpForm guest={guest} invitationTheme={invitationTheme} />
+          <RsvpForm
+            guest={guest}
+            invitationTheme={invitationTheme}
+            attendingPhotoUrl={couple?.rsvp_attending_photo_url ?? null}
+            decliningPhotoUrl={couple?.rsvp_declining_photo_url ?? null}
+          />
         )}
       </RsvpPolaroidShell>
     </main>

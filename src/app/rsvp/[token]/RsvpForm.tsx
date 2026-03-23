@@ -15,11 +15,13 @@ const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
 ];
 
 interface Props {
-  guest:           RsvpGuest;
-  invitationTheme: InvitationTheme;
+  guest:              RsvpGuest;
+  invitationTheme:    InvitationTheme;
+  attendingPhotoUrl:  string | null;
+  decliningPhotoUrl:  string | null;
 }
 
-export default function RsvpForm({ guest, invitationTheme }: Props) {
+export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, decliningPhotoUrl }: Props) {
   const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
 
   const [status,            setStatus]            = useState<RsvpStatus>(guest.rsvp_status);
@@ -281,29 +283,52 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             }}
           >
             {/* Photo area */}
-            <div
-              style={{
-                width:          '100%',
-                aspectRatio:    '1',
-                background:     status === s
-                  ? s === 'attending'
-                    ? 'rgba(201,150,74,0.16)'
-                    : 'rgba(180,60,60,0.14)'
-                  : 'rgba(0,0,0,0.28)',
-                display:        'flex',
-                alignItems:     'center',
-                justifyContent: 'center',
-                fontSize:       22,
-                color:          status === s
-                  ? s === 'attending'
-                    ? 'rgba(201,150,74,0.92)'
-                    : 'rgba(200,80,80,0.88)'
-                  : 'rgba(255,255,255,0.22)',
-                transition:     'all 0.2s ease',
-              }}
-            >
-              {s === 'attending' ? '✓' : '✗'}
-            </div>
+            {(() => {
+              const cardPhoto = s === 'attending' ? attendingPhotoUrl : decliningPhotoUrl;
+              return (
+                <div
+                  style={{
+                    width:          '100%',
+                    aspectRatio:    '1',
+                    overflow:       'hidden',
+                    background:     cardPhoto
+                      ? 'transparent'
+                      : status === s
+                        ? s === 'attending'
+                          ? 'rgba(201,150,74,0.16)'
+                          : 'rgba(180,60,60,0.14)'
+                        : 'rgba(0,0,0,0.06)',
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    transition:     'all 0.2s ease',
+                  }}
+                >
+                  {cardPhoto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cardPhoto}
+                      alt={s === 'attending' ? 'Attending' : 'Declining'}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize:   22,
+                        color:      status === s
+                          ? s === 'attending'
+                            ? 'rgba(201,150,74,0.92)'
+                            : 'rgba(200,80,80,0.88)'
+                          : 'rgba(255,255,255,0.30)',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {s === 'attending' ? '✓' : '✗'}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
             {/* Caption */}
             <div
               style={{
