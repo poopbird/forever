@@ -545,7 +545,7 @@ function FloatingInvitation({
         <div style={{
           position:      'relative',
           width:         '100%',
-          aspectRatio:   '1 / 1',
+          aspectRatio:   '4 / 5',
           overflow:      'hidden',
           background:    t.photoFallback,
           zIndex:        1,
@@ -583,7 +583,7 @@ function FloatingInvitation({
             <img
               src={storageUrl(invitationPhotoUrl, { width: 800, quality: 85 })}
               alt="Invitation"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
               onError={() => setImgError(true)}
             />
           ) : null}

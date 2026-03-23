@@ -243,7 +243,7 @@ function PolaroidCard({
           <img
             src={storageUrl(memory.media_url, { width: 400, quality: 75 })}
             alt={memory.caption || ''}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
             loading="lazy"
           />
         ) : (
@@ -1202,7 +1202,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
               {/* Photo */}
               <div
                 style={{
-                  width: '100%', aspectRatio: '1',
+                  width: '100%', aspectRatio: '4 / 5',
                   background: '#e0d4c0',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   overflow: 'hidden',
@@ -1213,7 +1213,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
                   <img
                     src={storageUrl(focusedMemory.media_url, { width: 800, quality: 80 })}
                     alt={focusedMemory.caption || ''}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
                   />
                 ) : (
                   <span style={{ fontSize: 64 }}>📷</span>
