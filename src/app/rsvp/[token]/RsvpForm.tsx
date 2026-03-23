@@ -15,12 +15,30 @@ const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
 ];
 
 interface Props {
-  guest:           RsvpGuest;
-  invitationTheme: InvitationTheme;
+  guest:              RsvpGuest;
+  invitationTheme:    InvitationTheme;
+  attendingPhotoUrl:  string | null;
+  decliningPhotoUrl:  string | null;
 }
 
-export default function RsvpForm({ guest, invitationTheme }: Props) {
+export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, decliningPhotoUrl }: Props) {
   const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
+
+  // The form section always renders on a dark #0d0b08 background.
+  // Light-frame themes (polaroid_white, garden_bloom) have dark-text theme colors
+  // designed for their white/cream backgrounds — substitute readable light equivalents.
+  const hasLightFrame = t.frameBg === '#ffffff' || t.frameBg === '#f3ead8';
+  const onDark = {
+    label:     hasLightFrame ? 'rgba(201,150,74,0.70)'               : t.eyebrowColor,
+    value:     hasLightFrame ? 'rgba(232,213,176,0.90)'              : t.valueColor,
+    rule:      hasLightFrame ? 'rgba(255,255,255,0.12)'              : t.ruleColor,
+    name:      hasLightFrame ? 'rgba(232,213,176,0.96)'              : t.nameColor,
+    btnBorder: hasLightFrame ? '1px solid rgba(201,150,74,0.30)'     : t.btnBorder,
+    btnBg:     hasLightFrame ? 'rgba(201,150,74,0.12)'               : t.btnBg,
+    btnColor:  hasLightFrame ? 'rgba(232,213,176,0.92)'              : t.btnColor,
+    // card captions sit on the card's footerBg (white for light themes, dark for dark themes)
+    caption:   hasLightFrame ? 'rgba(0,0,0,0.52)'                    : t.labelColor,
+  };
 
   const [status,            setStatus]            = useState<RsvpStatus>(guest.rsvp_status);
   const [plusOneAttending,  setPlusOneAttending]  = useState<boolean | null>(guest.plus_one_attending);
@@ -87,7 +105,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
     fontSize:      '0.58rem',
     textTransform: 'uppercase',
     letterSpacing: '0.22em',
-    color:         t.eyebrowColor,
+    color:         onDark.label,
     display:       'block',
     marginBottom:  6,
   };
@@ -95,10 +113,10 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
   const inputStyle: React.CSSProperties = {
     width:        '100%',
     background:   'rgba(255,255,255,0.05)',
-    border:       `1px solid ${t.ruleColor}`,
+    border:       `1px solid ${onDark.rule}`,
     borderRadius: '3px',
     padding:      '10px 14px',
-    color:        t.valueColor,
+    color:        onDark.value,
     fontSize:     14,
     fontFamily:   'inherit',
     outline:      'none',
@@ -179,7 +197,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
               fontFamily: '"DM Sans", sans-serif',
               fontSize:   '0.62rem',
               letterSpacing: '0.05em',
-              color:      t.eyebrowColor,
+              color:      onDark.label,
               textAlign:  'center',
               marginTop:  6,
             }}
@@ -196,9 +214,9 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             fontSize:      '0.64rem',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            background:    t.btnBg,
-            border:        t.btnBorder,
-            color:         t.btnColor,
+            background:    onDark.btnBg,
+            border:        onDark.btnBorder,
+            color:         onDark.btnColor,
             borderRadius:  '3px',
             padding:       '9px 22px',
             cursor:        'pointer',
@@ -222,7 +240,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             fontSize:      '0.52rem',
             letterSpacing: '0.35em',
             textTransform: 'uppercase',
-            color:         t.eyebrowColor,
+            color:         onDark.label,
             marginBottom:  8,
           }}
         >
@@ -234,7 +252,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             fontWeight:    t.nameWeight,
             fontStyle:     t.nameStyle,
             fontSize:      'clamp(1.1rem, 4vw, 1.35rem)',
-            color:         t.nameColor,
+            color:         onDark.name,
             margin:        '0 0 10px',
             lineHeight:    1.2,
           }}
@@ -248,7 +266,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             fontSize:      '0.58rem',
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color:         t.eyebrowColor,
+            color:         onDark.label,
             margin:        0,
           }}
         >
@@ -281,29 +299,52 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             }}
           >
             {/* Photo area */}
-            <div
-              style={{
-                width:          '100%',
-                aspectRatio:    '1',
-                background:     status === s
-                  ? s === 'attending'
-                    ? 'rgba(201,150,74,0.16)'
-                    : 'rgba(180,60,60,0.14)'
-                  : 'rgba(0,0,0,0.28)',
-                display:        'flex',
-                alignItems:     'center',
-                justifyContent: 'center',
-                fontSize:       22,
-                color:          status === s
-                  ? s === 'attending'
-                    ? 'rgba(201,150,74,0.92)'
-                    : 'rgba(200,80,80,0.88)'
-                  : 'rgba(255,255,255,0.22)',
-                transition:     'all 0.2s ease',
-              }}
-            >
-              {s === 'attending' ? '✓' : '✗'}
-            </div>
+            {(() => {
+              const cardPhoto = s === 'attending' ? attendingPhotoUrl : decliningPhotoUrl;
+              return (
+                <div
+                  style={{
+                    width:          '100%',
+                    aspectRatio:    '1',
+                    overflow:       'hidden',
+                    background:     cardPhoto
+                      ? 'transparent'
+                      : status === s
+                        ? s === 'attending'
+                          ? 'rgba(201,150,74,0.16)'
+                          : 'rgba(180,60,60,0.14)'
+                        : 'rgba(0,0,0,0.06)',
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    transition:     'all 0.2s ease',
+                  }}
+                >
+                  {cardPhoto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cardPhoto}
+                      alt={s === 'attending' ? 'Attending' : 'Declining'}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize:   22,
+                        color:      status === s
+                          ? s === 'attending'
+                            ? 'rgba(201,150,74,0.92)'
+                            : 'rgba(200,80,80,0.88)'
+                          : 'rgba(255,255,255,0.30)',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {s === 'attending' ? '✓' : '✗'}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
             {/* Caption */}
             <div
               style={{
@@ -315,7 +356,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
                 fontSize:      '0.56rem',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                color:         status === s ? t.btnColor : t.labelColor,
+                color:         status === s ? t.btnColor : onDark.caption,
                 transition:    'color 0.2s ease',
               }}
             >
@@ -364,7 +405,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             display:      'flex',
             flexDirection:'column',
             gap:          14,
-            border:       `1px solid ${t.ruleColor}`,
+            border:       `1px solid ${onDark.rule}`,
             background:   'rgba(255,255,255,0.02)',
           }}
         >
@@ -387,9 +428,9 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
                   textTransform:'uppercase',
                   cursor:       'pointer',
                   transition:   'all 0.2s ease',
-                  border:       plusOneAttending === v ? t.btnBorder : `1px solid ${t.ruleColor}`,
-                  background:   plusOneAttending === v ? t.btnBg : 'transparent',
-                  color:        plusOneAttending === v ? t.btnColor : t.eyebrowColor,
+                  border:       plusOneAttending === v ? onDark.btnBorder : `1px solid ${onDark.rule}`,
+                  background:   plusOneAttending === v ? onDark.btnBg : 'transparent',
+                  color:        plusOneAttending === v ? onDark.btnColor : onDark.label,
                 }}
               >
                 {v ? 'Yes' : 'No'}
@@ -456,7 +497,7 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
             style={{
               fontFamily:    '"DM Sans", sans-serif',
               fontSize:      '0.58rem',
-              color:         t.eyebrowColor,
+              color:         onDark.label,
               marginTop:     4,
             }}
           >
@@ -483,9 +524,9 @@ export default function RsvpForm({ guest, invitationTheme }: Props) {
           fontSize:      '0.7rem',
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
-          background:    t.btnBg,
-          border:        t.btnBorder,
-          color:         t.btnColor,
+          background:    onDark.btnBg,
+          border:        onDark.btnBorder,
+          color:         onDark.btnColor,
           borderRadius:  '3px',
           cursor:        saving ? 'not-allowed' : 'pointer',
           opacity:       saving ? 0.5 : 1,

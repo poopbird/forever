@@ -29,6 +29,8 @@ export default async function RsvpSettingsPage() {
           inviteMessageTemplate={rsvp?.invite_message_template ?? null}
           calendarDescription={rsvp?.calendar_description ?? null}
           siteUrl={siteUrl}
+          attendingPhotoUrl={rsvp?.rsvp_attending_photo_url ?? null}
+          decliningPhotoUrl={rsvp?.rsvp_declining_photo_url ?? null}
         />
       </section>
     </div>
