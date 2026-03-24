@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { RsvpGuest, RsvpStatus, DietaryPreset } from '@/types';
 import type { InvitationTheme } from '@/lib/couple';
 import { CARD_THEMES } from '@/components/highlights/PolaroidHighlights';
+import { storageUrl } from '@/lib/storageUrl';
 
 const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
   { value: 'none',        label: 'No restrictions' },
@@ -15,29 +16,47 @@ const DIETARY_OPTIONS: { value: DietaryPreset; label: string }[] = [
 ];
 
 interface Props {
-  guest:              RsvpGuest;
-  invitationTheme:    InvitationTheme;
-  attendingPhotoUrl:  string | null;
-  decliningPhotoUrl:  string | null;
+  guest:             RsvpGuest;
+  invitationTheme:   InvitationTheme;
+  attendingPhotoUrl: string | null;
+  decliningPhotoUrl: string | null;
 }
 
 export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, decliningPhotoUrl }: Props) {
   const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
 
-  // The form section always renders on a dark #0d0b08 background.
-  // Light-frame themes (polaroid_white, garden_bloom) have dark-text theme colors
-  // designed for their white/cream backgrounds — substitute readable light equivalents.
-  const hasLightFrame = t.frameBg === '#ffffff' || t.frameBg === '#f3ead8';
-  const onDark = {
-    label:     hasLightFrame ? 'rgba(201,150,74,0.70)'               : t.eyebrowColor,
-    value:     hasLightFrame ? 'rgba(232,213,176,0.90)'              : t.valueColor,
-    rule:      hasLightFrame ? 'rgba(255,255,255,0.12)'              : t.ruleColor,
-    name:      hasLightFrame ? 'rgba(232,213,176,0.96)'              : t.nameColor,
-    btnBorder: hasLightFrame ? '1px solid rgba(201,150,74,0.30)'     : t.btnBorder,
-    btnBg:     hasLightFrame ? 'rgba(201,150,74,0.12)'               : t.btnBg,
-    btnColor:  hasLightFrame ? 'rgba(232,213,176,0.92)'              : t.btnColor,
-    // card captions sit on the card's footerBg (white for light themes, dark for dark themes)
-    caption:   hasLightFrame ? 'rgba(0,0,0,0.52)'                    : t.labelColor,
+  // Page-aware color tokens — RsvpForm now renders on the theme page bg
+  const isLight = invitationTheme === 'polaroid_white';
+
+  const fc = {
+    // form card surface
+    cardBg:      isLight ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.04)',
+    cardBorder:  isLight ? 'rgba(0,0,0,0.08)'       : t.ruleColor,
+    // labels + inputs
+    label:       isLight ? 'rgba(0,0,0,0.44)'        : t.eyebrowColor,
+    value:       isLight ? 'rgba(0,0,0,0.82)'        : t.valueColor,
+    inputBg:     isLight ? 'rgba(0,0,0,0.04)'        : 'rgba(255,255,255,0.05)',
+    inputBorder: isLight ? 'rgba(0,0,0,0.12)'        : t.ruleColor,
+    inputText:   isLight ? 'rgba(0,0,0,0.80)'        : t.valueColor,
+    // submit button — solid accent
+    btnBg:    isLight
+      ? '#c9964a'
+      : invitationTheme === 'garden_bloom' ? '#6a8f58'
+      : invitationTheme === 'sage_linen'   ? '#7a9268'
+      : '#c9964a',   // midnight_indigo
+    btnText:  isLight ? '#ffffff' : (invitationTheme === 'garden_bloom' ? 'rgba(235,245,225,0.96)' : '#ffffff'),
+    // inline toggle buttons (yes/no)
+    toggleBg:       isLight ? 'rgba(0,0,0,0.06)'    : 'rgba(255,255,255,0.06)',
+    toggleBorder:   isLight ? 'rgba(0,0,0,0.14)'    : t.ruleColor,
+    toggleActiveBg: isLight ? '#c9964a'              : t.btnBg,
+    toggleActiveText: isLight ? '#ffffff'            : t.btnColor,
+    toggleActiveBorder: isLight ? 'none'             : t.btnBorder,
+    // sub-note text
+    note: isLight ? 'rgba(0,0,0,0.38)' : t.labelColor,
+    // edit response button
+    editBg:     isLight ? 'rgba(0,0,0,0.06)'   : 'rgba(255,255,255,0.07)',
+    editBorder: isLight ? 'rgba(0,0,0,0.12)'   : t.ruleColor,
+    editText:   isLight ? 'rgba(0,0,0,0.60)'   : t.labelColor,
   };
 
   const [status,            setStatus]            = useState<RsvpStatus>(guest.rsvp_status);
@@ -90,7 +109,6 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
     }
 
     setSaved(true);
-
     fetch('/api/email/confirmation', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -98,35 +116,33 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
     }).catch(() => {/* silent */});
   }
 
-  // ── Shared input styles (always on dark #0d0b08 background) ──────────────
+  // ── Shared input styles ────────────────────────────────────────────────────
   const labelStyle: React.CSSProperties = {
-    fontFamily:    t.btnFont,
+    fontFamily:    '"DM Sans", sans-serif',
     fontWeight:    300,
-    fontStyle:     t.btnStyle ?? 'normal',
-    fontSize:      '0.58rem',
+    fontSize:      '0.56rem',
     textTransform: 'uppercase',
-    letterSpacing: '0.22em',
-    color:         onDark.label,
+    letterSpacing: '0.24em',
+    color:         fc.label,
     display:       'block',
-    marginBottom:  6,
+    marginBottom:  7,
   };
 
   const inputStyle: React.CSSProperties = {
     width:           '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    border:          `1px solid ${onDark.rule}`,
-    borderRadius:    '3px',
+    backgroundColor: fc.inputBg,
+    border:          `1px solid ${fc.inputBorder}`,
+    borderRadius:    4,
     padding:         '10px 14px',
-    color:           onDark.value,
-    fontSize:        14,
-    fontFamily:      t.btnFont,
-    fontStyle:       'normal',
+    color:           fc.inputText,
+    fontSize:        '0.85rem',
+    fontFamily:      '"DM Sans", sans-serif',
     outline:         'none',
+    boxSizing:       'border-box',
   };
 
-  // Custom chevron SVG — colour matches label tint for the current theme
-  const arrowHex   = hasLightFrame ? 'C9964A' : 'ffffff';
-  const arrowAlpha = hasLightFrame ? '0.75' : '0.35';
+  const arrowHex   = isLight ? 'A06428' : 'ffffff';
+  const arrowAlpha = isLight ? '0.65'   : '0.30';
   const arrowSvg   = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${arrowHex}' stroke-opacity='${arrowAlpha}' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
 
   const selectStyle: React.CSSProperties = {
@@ -134,110 +150,110 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
     cursor:             'pointer',
     appearance:         'none' as const,
     WebkitAppearance:   'none' as const,
-    backgroundImage:    arrowSvg,
+    backgroundImage:    `${arrowSvg}, none`,
     backgroundRepeat:   'no-repeat',
     backgroundPosition: 'right 14px center',
     backgroundSize:     '10px 6px',
+    backgroundBlendMode:'normal',
     paddingRight:       36,
+    backgroundColor:    fc.inputBg,
   };
 
-  // ── Success screen ────────────────────────────────────────────────────────
+  // ── Success screen ─────────────────────────────────────────────────────────
   if (saved) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0 8px', gap: 0 }}>
-        {/* Mini polaroid */}
-        <div
-          style={{
-            background:   t.frameBg,
-            boxShadow:    '0 8px 32px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.25)',
-            borderRadius: '2px',
-            padding:      '8px 8px 0',
-            width:        138,
-            transform:    'rotate(-1.5deg)',
-          }}
-        >
-          <div
-            style={{
-              width:          '100%',
-              aspectRatio:    '1',
-              background:     status === 'attending'
-                ? 'rgba(201,150,74,0.14)'
-                : 'rgba(100,100,120,0.16)',
-              display:        'flex',
-              alignItems:     'center',
-              justifyContent: 'center',
-              fontSize:       38,
-            }}
-          >
+      <div style={{
+        display:        'flex',
+        flexDirection:  'column',
+        alignItems:     'center',
+        gap:            0,
+        padding:        '8px 0',
+      }}>
+        {/* Large success polaroid */}
+        <div style={{
+          background:   t.frameBg,
+          boxShadow:    isLight
+            ? '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)'
+            : '0 8px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.30)',
+          borderRadius: 2,
+          padding:      '10px 10px 0',
+          width:        160,
+          transform:    'rotate(-1.5deg)',
+        }}>
+          <div style={{
+            width:          '100%',
+            aspectRatio:    '1',
+            background:     status === 'attending'
+              ? 'rgba(201,150,74,0.14)'
+              : 'rgba(100,100,120,0.16)',
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'center',
+            fontSize:       44,
+          }}>
             {status === 'attending' ? '🎉' : '💌'}
           </div>
-          <div
-            style={{
-              background: t.footerBg,
-              padding:    '9px 8px 18px',
-              textAlign:  'center',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: t.nameFont,
-                fontSize:   '0.85rem',
-                fontWeight: t.nameWeight,
-                fontStyle:  t.nameStyle,
-                color:      t.nameColor,
-                margin:     0,
-                lineHeight: 1.2,
-              }}
-            >
+          <div style={{
+            background: t.footerBg,
+            padding:    '10px 8px 20px',
+            textAlign:  'center',
+          }}>
+            <p style={{
+              fontFamily: t.nameFont,
+              fontSize:   '0.90rem',
+              fontWeight: t.nameWeight,
+              fontStyle:  t.nameStyle,
+              color:      t.nameColor,
+              margin:     0,
+              lineHeight: 1.2,
+            }}>
               {status === 'attending' ? 'See you there!' : "We'll miss you"}
             </p>
           </div>
         </div>
 
-        <p
-          style={{
-            marginTop:  22,
-            fontFamily: t.btnFont,
-            fontStyle:  t.btnStyle ?? 'normal',
-            fontSize:   '0.82rem',
-            color:      'rgba(232,213,176,0.82)',
-            textAlign:  'center',
-            lineHeight: 1.5,
-          }}
-        >
+        <p style={{
+          marginTop:     22,
+          fontFamily:    '"DM Sans", sans-serif',
+          fontWeight:    300,
+          fontSize:      '0.85rem',
+          color:         fc.value,
+          textAlign:     'center',
+          lineHeight:    1.6,
+        }}>
           {status === 'attending'
             ? "We can't wait to celebrate with you!"
             : "We'll miss you there."}
         </p>
+
         {email.trim() && (
-          <p
-            style={{
-              fontFamily: t.btnFont,
-              fontStyle:  t.btnStyle ?? 'normal',
-              fontSize:   '0.62rem',
-              letterSpacing: '0.05em',
-              color:      onDark.label,
-              textAlign:  'center',
-              marginTop:  6,
-            }}
-          >
+          <p style={{
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    300,
+            fontSize:      '0.62rem',
+            letterSpacing: '0.05em',
+            color:         fc.note,
+            textAlign:     'center',
+            marginTop:     4,
+          }}>
             A confirmation has been sent to {email.trim()}.
           </p>
         )}
+
         <button
           onClick={() => setSaved(false)}
           style={{
-            marginTop:     18,
-            fontFamily:    t.btnFont,
-            fontStyle:     t.btnStyle ?? 'normal',
-            fontSize:      '0.64rem',
-            letterSpacing: '0.15em',
+            marginTop:     20,
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    400,
+            fontSize:      '0.60rem',
+            letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            background:    onDark.btnBg,
-            border:        onDark.btnBorder,
-            color:         onDark.btnColor,
-            borderRadius:  '3px',
-            padding:       '9px 22px',
+            background:    fc.editBg,
+            border:        `1px solid ${fc.editBorder}`,
+            color:         fc.editText,
+            borderRadius:  4,
+            padding:       '9px 24px',
             cursor:        'pointer',
           }}
         >
@@ -248,315 +264,334 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* ── Guest greeting ── */}
-      <div style={{ textAlign: 'center', marginBottom: 4 }}>
-        <p
-          style={{
-            fontFamily:    t.btnFont,
-            fontStyle:     t.btnStyle ?? 'normal',
-            fontWeight:    300,
-            fontSize:      '0.52rem',
-            letterSpacing: '0.35em',
-            textTransform: 'uppercase',
-            color:         onDark.label,
-            marginBottom:  8,
-          }}
-        >
+      {/* ── Guest greeting ───────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 20 }}>
+        <p style={{
+          fontFamily:    '"DM Sans", sans-serif',
+          fontWeight:    300,
+          fontSize:      '0.52rem',
+          letterSpacing: '0.38em',
+          textTransform: 'uppercase',
+          color:         fc.label,
+          marginBottom:  6,
+        }}>
           Welcome
         </p>
-        <p
-          style={{
-            fontFamily:    t.nameFont,
-            fontWeight:    t.nameWeight,
-            fontStyle:     t.nameStyle,
-            fontSize:      'clamp(1.1rem, 4vw, 1.35rem)',
-            color:         onDark.name,
-            margin:        '0 0 10px',
-            lineHeight:    1.2,
-          }}
-        >
+        <p style={{
+          fontFamily:    t.nameFont,
+          fontWeight:    t.nameWeight,
+          fontStyle:     t.nameStyle,
+          fontSize:      'clamp(1.1rem, 4vw, 1.4rem)',
+          color:         fc.value,
+          margin:        '0 0 4px',
+          lineHeight:    1.2,
+        }}>
           {guest.name}
         </p>
-        <p
-          style={{
-            fontFamily:    t.btnFont,
-            fontStyle:     t.btnStyle ?? 'normal',
-            fontWeight:    300,
-            fontSize:      '0.58rem',
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color:         onDark.label,
-            margin:        0,
-          }}
-        >
+        <p style={{
+          fontFamily:    '"DM Sans", sans-serif',
+          fontWeight:    300,
+          fontSize:      '0.62rem',
+          letterSpacing: '0.10em',
+          color:         fc.note,
+          margin:        0,
+        }}>
           Will you be joining us?
         </p>
       </div>
 
-      {/* ── Attendance selector — mini-polaroid buttons ── */}
-      <div style={{ display: 'flex', gap: 10 }}>
-        {(['attending', 'declined'] as RsvpStatus[]).map((s, i) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setStatus(s)}
-            style={{
-              flex:         1,
-              background:   t.frameBg,
-              border:       'none',
-              borderRadius: '2px',
-              padding:      '8px 8px 0',
-              cursor:       'pointer',
-              transform:    status === s
-                ? 'rotate(0deg) scale(1.05)'
-                : i === 0 ? 'rotate(-2.5deg)' : 'rotate(2.5deg)',
-              boxShadow: status === s
-                ? t.frameShadow
-                : '0 3px 10px rgba(0,0,0,0.45)',
-              transition: 'all 0.25s cubic-bezier(0.34,1.56,0.64,1)',
-              opacity:    status === s ? 1 : 0.68,
-            }}
-          >
-            {/* Photo area */}
-            {(() => {
-              const cardPhoto = s === 'attending' ? attendingPhotoUrl : decliningPhotoUrl;
-              return (
-                <div
-                  style={{
-                    width:          '100%',
-                    aspectRatio:    '1',
-                    overflow:       'hidden',
-                    background:     cardPhoto
-                      ? 'transparent'
-                      : status === s
-                        ? s === 'attending'
-                          ? 'rgba(201,150,74,0.16)'
-                          : 'rgba(180,60,60,0.14)'
-                        : 'rgba(0,0,0,0.06)',
-                    display:        'flex',
-                    alignItems:     'center',
-                    justifyContent: 'center',
-                    transition:     'all 0.2s ease',
-                  }}
-                >
-                  {cardPhoto ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={cardPhoto}
-                      alt={s === 'attending' ? 'Attending' : 'Declining'}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        fontSize:   22,
-                        color:      status === s
-                          ? s === 'attending'
-                            ? 'rgba(201,150,74,0.92)'
-                            : 'rgba(200,80,80,0.88)'
-                          : 'rgba(255,255,255,0.30)',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      {s === 'attending' ? '✓' : '✗'}
-                    </span>
-                  )}
-                </div>
-              );
-            })()}
-            {/* Caption */}
-            <div
+      {/* ── Attendance cards — large polaroid buttons ─────────────────────── */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        {(['attending', 'declined'] as RsvpStatus[]).map((s, i) => {
+          const isSelected  = status === s;
+          const cardPhoto   = s === 'attending' ? attendingPhotoUrl : decliningPhotoUrl;
+          const photoSrc    = cardPhoto ? storageUrl(cardPhoto, { width: 600, quality: 85 }) : null;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
               style={{
-                background:    t.footerBg,
-                padding:       '6px 4px 10px',
-                textAlign:     'center',
-                fontFamily:    t.btnFont,
-                fontStyle:     t.btnStyle ?? 'normal',
-                fontSize:      '0.56rem',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color:         status === s ? t.btnColor : onDark.caption,
-                transition:    'color 0.2s ease',
+                flex:         1,
+                background:   t.frameBg,
+                border:       'none',
+                borderRadius: 2,
+                padding:      '8px 8px 0',
+                cursor:       'pointer',
+                transform:    isSelected
+                  ? 'rotate(0deg) scale(1.04)'
+                  : i === 0 ? 'rotate(-2deg)' : 'rotate(2deg)',
+                boxShadow:    isSelected
+                  ? (isLight
+                      ? '0 8px 24px rgba(0,0,0,0.22), 0 0 0 2px #c9964a'
+                      : `0 8px 28px rgba(0,0,0,0.55), 0 0 0 2px ${fc.btnBg}`)
+                  : '0 3px 12px rgba(0,0,0,0.30)',
+                opacity:      isSelected ? 1 : 0.62,
+                transition:   'all 0.28s cubic-bezier(0.34,1.56,0.64,1)',
               }}
             >
-              {s === 'attending' ? 'Attending' : 'Declining'}
-            </div>
-          </button>
-        ))}
+              {/* Photo */}
+              <div style={{
+                width:          '100%',
+                aspectRatio:    '1',
+                overflow:       'hidden',
+                background:     photoSrc
+                  ? 'transparent'
+                  : isSelected
+                    ? s === 'attending'
+                      ? 'rgba(201,150,74,0.16)'
+                      : 'rgba(100,100,120,0.16)'
+                    : 'rgba(120,120,120,0.08)',
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+                transition:     'background 0.2s ease',
+              }}>
+                {photoSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={photoSrc}
+                    alt={s === 'attending' ? 'Attending' : 'Declining'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <span style={{
+                    fontSize:   28,
+                    color:      isSelected
+                      ? s === 'attending' ? 'rgba(201,150,74,0.90)' : 'rgba(160,100,100,0.80)'
+                      : 'rgba(150,150,150,0.30)',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    {s === 'attending' ? '✓' : '✗'}
+                  </span>
+                )}
+              </div>
+
+              {/* Caption footer */}
+              <div style={{
+                background: t.footerBg,
+                padding:    '8px 6px 16px',
+                textAlign:  'center',
+              }}>
+                <p style={{
+                  fontFamily:    t.nameFont,
+                  fontWeight:    t.nameWeight,
+                  fontStyle:     t.nameStyle,
+                  fontSize:      'clamp(0.75rem, 2.5vw, 0.95rem)',
+                  color:         t.nameColor,
+                  margin:        '0 0 2px',
+                  lineHeight:    1.2,
+                }}>
+                  {s === 'attending' ? 'Joyfully Attend' : 'Regretfully Decline'}
+                </p>
+                <p style={{
+                  fontFamily:    '"DM Sans", sans-serif',
+                  fontWeight:    300,
+                  fontStyle:     'normal',
+                  fontSize:      '0.46rem',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color:         t.labelColor,
+                  margin:        0,
+                }}>
+                  {s === 'attending' ? "I'll be there" : 'Regretfully absent'}
+                </p>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── Guest dietary ── */}
-      {isAttending && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label style={labelStyle}>Your dietary requirements</label>
-            <select
-              value={dietaryPreset}
-              onChange={e => setDietaryPreset(e.target.value as DietaryPreset | '')}
-              style={selectStyle}
-            >
-              <option value="">Select…</option>
-              {DIETARY_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
+      {/* ── Form card ─────────────────────────────────────────────────────── */}
+      <div style={{
+        background:    fc.cardBg,
+        border:        `1px solid ${fc.cardBorder}`,
+        borderRadius:  8,
+        padding:       '22px 20px',
+        display:       'flex',
+        flexDirection: 'column',
+        gap:           18,
+        backdropFilter: 'blur(8px)',
+      }}>
 
-          <div>
-            <label style={labelStyle}>Any other dietary notes? (optional)</label>
-            <textarea
-              value={dietaryNotes}
-              onChange={e => setDietaryNotes(e.target.value)}
-              rows={2}
-              placeholder="e.g. severe nut allergy"
-              style={{ ...inputStyle, resize: 'none' }}
-            />
-          </div>
-        </div>
-      )}
+        {/* Guest dietary — only when attending */}
+        {isAttending && (
+          <>
+            <div>
+              <label style={labelStyle}>Your dietary requirements</label>
+              <select
+                value={dietaryPreset}
+                onChange={e => setDietaryPreset(e.target.value as DietaryPreset | '')}
+                style={selectStyle}
+              >
+                <option value="">Select…</option>
+                {DIETARY_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
 
-      {/* ── Plus one ── */}
-      {showPlusOne && (
-        <div
-          style={{
-            borderRadius: '3px',
+            <div>
+              <label style={labelStyle}>Any other dietary notes? (optional)</label>
+              <textarea
+                value={dietaryNotes}
+                onChange={e => setDietaryNotes(e.target.value)}
+                rows={2}
+                placeholder="e.g. severe nut allergy"
+                style={{ ...inputStyle, resize: 'none' }}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Plus one — expands inside form card */}
+        {showPlusOne && (
+          <div style={{
+            borderRadius: 4,
             padding:      '14px 16px',
             display:      'flex',
             flexDirection:'column',
             gap:          14,
-            border:       `1px solid ${onDark.rule}`,
-            background:   'rgba(255,255,255,0.02)',
-          }}
-        >
-          <p style={labelStyle}>Will you be bringing a plus one?</p>
+            border:       `1px solid ${fc.inputBorder}`,
+            background:   isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.02)',
+          }}>
+            <p style={labelStyle}>Will you be bringing a plus one?</p>
 
-          <div style={{ display: 'flex', gap: 10 }}>
-            {[true, false].map(v => (
-              <button
-                key={String(v)}
-                type="button"
-                onClick={() => setPlusOneAttending(v)}
-                style={{
-                  flex:         1,
-                  borderRadius: '3px',
-                  padding:      '9px 0',
-                  fontFamily:   t.btnFont,
-                  fontStyle:    t.btnStyle ?? 'normal',
-                  fontSize:     '0.64rem',
-                  letterSpacing:'0.1em',
-                  textTransform:'uppercase',
-                  cursor:       'pointer',
-                  transition:   'all 0.2s ease',
-                  border:       plusOneAttending === v ? onDark.btnBorder : `1px solid ${onDark.rule}`,
-                  background:   plusOneAttending === v ? onDark.btnBg : 'transparent',
-                  color:        plusOneAttending === v ? onDark.btnColor : onDark.label,
-                }}
-              >
-                {v ? 'Yes' : 'No'}
-              </button>
-            ))}
-          </div>
-
-          {plusOneIsGoing && (
-            <>
-              <div>
-                <label style={labelStyle}>Plus one name (optional)</label>
-                <input
-                  type="text"
-                  value={plusOneName}
-                  onChange={e => setPlusOneName(e.target.value)}
-                  placeholder="Their name"
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Plus one dietary requirements</label>
-                <select
-                  value={plusDietaryPreset}
-                  onChange={e => setPlusDietaryPreset(e.target.value as DietaryPreset | '')}
-                  style={selectStyle}
+            <div style={{ display: 'flex', gap: 10 }}>
+              {[true, false].map(v => (
+                <button
+                  key={String(v)}
+                  type="button"
+                  onClick={() => setPlusOneAttending(v)}
+                  style={{
+                    flex:          1,
+                    borderRadius:  4,
+                    padding:       '9px 0',
+                    fontFamily:    '"DM Sans", sans-serif',
+                    fontWeight:    400,
+                    fontSize:      '0.64rem',
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    cursor:        'pointer',
+                    transition:    'all 0.2s ease',
+                    border:        plusOneAttending === v
+                      ? fc.toggleActiveBorder
+                      : `1px solid ${fc.toggleBorder}`,
+                    background:    plusOneAttending === v ? fc.toggleActiveBg   : fc.toggleBg,
+                    color:         plusOneAttending === v ? fc.toggleActiveText : fc.label,
+                  }}
                 >
-                  <option value="">Select…</option>
-                  {DIETARY_OPTIONS.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
-              </div>
+                  {v ? 'Yes' : 'No'}
+                </button>
+              ))}
+            </div>
 
-              <div>
-                <label style={labelStyle}>Plus one dietary notes (optional)</label>
-                <textarea
-                  value={plusDietaryNotes}
-                  onChange={e => setPlusDietaryNotes(e.target.value)}
-                  rows={2}
-                  placeholder="e.g. lactose intolerant"
-                  style={{ ...inputStyle, resize: 'none' }}
-                />
-              </div>
-            </>
+            {plusOneIsGoing && (
+              <>
+                <div>
+                  <label style={labelStyle}>Plus one name (optional)</label>
+                  <input
+                    type="text"
+                    value={plusOneName}
+                    onChange={e => setPlusOneName(e.target.value)}
+                    placeholder="Their name"
+                    style={inputStyle}
+                  />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Plus one dietary requirements</label>
+                  <select
+                    value={plusDietaryPreset}
+                    onChange={e => setPlusDietaryPreset(e.target.value as DietaryPreset | '')}
+                    style={selectStyle}
+                  >
+                    <option value="">Select…</option>
+                    {DIETARY_OPTIONS.map(o => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Plus one dietary notes (optional)</label>
+                  <textarea
+                    value={plusDietaryNotes}
+                    onChange={e => setPlusDietaryNotes(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. lactose intolerant"
+                    style={{ ...inputStyle, resize: 'none' }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Email */}
+        <div>
+          <label style={labelStyle}>
+            Email address{!guest.email && ' (optional — for confirmation)'}
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            style={inputStyle}
+          />
+          {guest.email && (
+            <p style={{
+              fontFamily: '"DM Sans", sans-serif',
+              fontWeight: 300,
+              fontSize:   '0.58rem',
+              color:      fc.note,
+              marginTop:  4,
+            }}>
+              A confirmation will be sent here. Edit if needed.
+            </p>
           )}
         </div>
-      )}
 
-      {/* ── Email ── */}
-      <div>
-        <label style={labelStyle}>
-          Email address{!guest.email && ' (optional — for confirmation)'}
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="your@email.com"
-          style={inputStyle}
-        />
-        {guest.email && (
-          <p
-            style={{
-              fontFamily:    t.btnFont,
-              fontStyle:     t.btnStyle ?? 'normal',
-              fontSize:      '0.58rem',
-              color:         onDark.label,
-              marginTop:     4,
-            }}
-          >
-            A confirmation will be sent here. Edit if needed.
+        {error && (
+          <p style={{
+            fontFamily: '"DM Sans", sans-serif',
+            fontSize:   '0.72rem',
+            color:      'rgba(220,100,100,0.88)',
+          }}>
+            {error}
           </p>
         )}
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={saving}
+          style={{
+            width:         '100%',
+            padding:       '13px 0',
+            fontFamily:    '"DM Sans", sans-serif',
+            fontWeight:    500,
+            fontSize:      '0.68rem',
+            letterSpacing: '0.20em',
+            textTransform: 'uppercase',
+            background:    fc.btnBg,
+            border:        'none',
+            color:         fc.btnText,
+            borderRadius:  6,
+            cursor:        saving ? 'not-allowed' : 'pointer',
+            opacity:       saving ? 0.55 : 1,
+            transition:    'opacity 0.2s ease, transform 0.15s ease',
+            boxShadow:     isLight
+              ? '0 4px 16px rgba(201,150,74,0.30)'
+              : '0 4px 16px rgba(0,0,0,0.30)',
+          }}
+        >
+          {saving ? 'Saving…' : 'Confirm My Response →'}
+        </button>
       </div>
-
-      {error && (
-        <p style={{ fontFamily: t.btnFont, fontStyle: t.btnStyle ?? 'normal', fontSize: '0.72rem', color: 'rgba(220,100,100,0.85)' }}>
-          {error}
-        </p>
-      )}
-
-      {/* ── Submit ── */}
-      <button
-        type="submit"
-        disabled={saving}
-        style={{
-          width:         '100%',
-          padding:       '12px 0',
-          fontFamily:    t.btnFont,
-          fontStyle:     t.btnStyle ?? 'normal',
-          fontSize:      '0.7rem',
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          background:    onDark.btnBg,
-          border:        onDark.btnBorder,
-          color:         onDark.btnColor,
-          borderRadius:  '3px',
-          cursor:        saving ? 'not-allowed' : 'pointer',
-          opacity:       saving ? 0.5 : 1,
-          transition:    'all 0.2s ease',
-        }}
-      >
-        {saving ? 'Saving…' : 'Confirm RSVP'}
-      </button>
     </form>
   );
 }

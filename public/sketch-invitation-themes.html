@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forever — Invitation Card Themes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Cinzel:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=Dancing+Script:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&family=Jost:wght@200;300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Sorts+Mill+Goudy:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: rgba(201,150,74,0.8);
+    --gold-dim: rgba(201,150,74,0.45);
+    --cream: #f0e8dc;
+    --ui-text: rgba(232,224,212,0.55);
+  }
+
+  body {
+    background: #0e0c0a;
+    color: #e8e0d4;
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    padding: 52px 48px 36px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .page-header .label {
+    font-size: 0.6rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .page-header h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+  .page-header p {
+    font-size: 0.82rem;
+    color: rgba(232,224,212,0.45);
+    letter-spacing: 0.04em;
+    max-width: 560px;
+    line-height: 1.85;
+  }
+  .dim-note {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: rgba(201,150,74,0.6);
+    background: rgba(201,150,74,0.07);
+    border: 1px solid rgba(201,150,74,0.2);
+    border-radius: 100px;
+    padding: 4px 14px;
+  }
+
+  /* ── Theme tabs ── */
+  .tabs {
+    display: flex;
+    padding: 28px 48px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    overflow-x: auto;
+    gap: 0;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 12px 26px;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(232,224,212,0.38);
+    transition: all 0.2s;
+    white-space: nowrap;
+    position: relative;
+    bottom: -1px;
+  }
+  .tab-btn:hover { color: rgba(232,224,212,0.7); }
+  .tab-btn.active { color: var(--cream); border-bottom-color: var(--gold); }
+
+  /* ── Main stage ── */
+  .stage {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    min-height: 720px;
+  }
+  @media (max-width: 900px) {
+    .stage { grid-template-columns: 1fr; }
+    .sidebar { border-left: none !important; border-top: 1px solid rgba(255,255,255,0.06); }
+    .page-header, .tabs { padding-left: 24px; padding-right: 24px; }
+  }
+
+  /* Card preview panel */
+  .card-preview {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-preview.active { display: flex; }
+  .card-preview::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 65% 65% at 50% 50%, var(--stage-glow, rgba(201,150,74,0.05)) 0%, transparent 70%);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    border-left: 1px solid rgba(255,255,255,0.06);
+    padding: 44px 32px;
+    display: none;
+    overflow-y: auto;
+  }
+  .sidebar.active { display: block; }
+  .sidebar .theme-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--cream);
+    margin-bottom: 6px;
+  }
+  .sidebar .theme-tagline {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .sidebar .theme-desc {
+    font-size: 0.82rem;
+    line-height: 1.9;
+    color: var(--ui-text);
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .sb-section { margin-bottom: 28px; }
+  .sb-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(232,224,212,0.28);
+    margin-bottom: 12px;
+  }
+  .token-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .token {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .token .k {
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(232,224,212,0.28);
+    margin-bottom: 5px;
+  }
+  .token .v {
+    font-size: 0.76rem;
+    color: rgba(232,224,212,0.72);
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+  .font-row { display: flex; flex-direction: column; gap: 8px; }
+  .font-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .font-role {
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(232,224,212,0.28);
+    min-width: 52px;
+  }
+  .font-name {
+    font-size: 0.78rem;
+    color: rgba(232,224,212,0.72);
+  }
+
+  /* ── Thumbnail strip ── */
+  .thumb-strip {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 0;
+  }
+  .thumb-btn {
+    flex: 1;
+    padding: 20px 16px;
+    background: none;
+    border: none;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+  }
+  .thumb-btn:last-child { border-right: none; }
+  .thumb-btn:hover { background: rgba(255,255,255,0.02); }
+  .thumb-btn.active { background: rgba(201,150,74,0.05); }
+  .thumb-mini {
+    width: 52px;
+    height: 66px;
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .thumb-photo {
+    width: 100%;
+    height: 56%;
+  }
+  .thumb-footer {
+    width: 100%;
+    height: 44%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-name-line {
+    width: 70%; height: 2px; border-radius: 1px;
+  }
+  .thumb-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232,224,212,0.35);
+    transition: color 0.2s;
+  }
+  .thumb-btn.active .thumb-label { color: var(--gold); }
+
+  /* ══════════════════════════════════════════════════
+     SHARED POLAROID CARD STRUCTURE
+     All 4 themes share this same polaroid wrapper —
+     square photo (1:1) + themed footer.
+
+     Recommended width: min(400px, 85vw)
+     → Mobile 375px: card = 319px (fills nicely, spotlight)
+     → Tablet 768px: card = 400px (portrait centred)
+     → Desktop 1440px: card = 400px (centred, cinematic)
+
+     Photo aspect-ratio: 1/1
+     → Matches website: POLAROID_W × POLAROID_H = 220 × 220
+  ══════════════════════════════════════════════════ */
+  .polaroid-card {
+    width: min(400px, 85vw);
+    position: relative;
+    z-index: 1;
+  }
+  .polaroid-card .pol-frame {
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  /* Photo section — square, matches website ratio */
+  .polaroid-card .pol-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Footer — all wedding details */
+  .polaroid-card .pol-footer {
+    padding: 20px 22px 28px;
+    text-align: center;
+    position: relative;
+  }
+  .polaroid-card .pol-eyebrow {
+    font-size: 0.55rem;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .polaroid-card .pol-names {
+    line-height: 1.0;
+    margin-bottom: 14px;
+    display: block;
+  }
+  .polaroid-card .pol-rule {
+    width: 32px;
+    height: 1px;
+    margin: 0 auto 14px;
+  }
+  /* Details grid */
+  .polaroid-card .pol-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .polaroid-card .pol-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+  }
+  .polaroid-card .pol-lbl {
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    min-width: 36px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .polaroid-card .pol-val {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-align: left;
+  }
+  .polaroid-card .pol-sep {
+    width: 28px;
+    height: 1px;
+    margin: 4px auto 4px;
+    opacity: 0.3;
+  }
+  .polaroid-card .pol-btn {
+    display: inline-block;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 22px;
+    border-radius: 100px;
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════════════════════════
+     THEME 1 — POLAROID CLASSIC
+     Pure white print. Clean, timeless, modern.
+     Photo: warm neutral gradient (couple photo placeholder)
+     Frame: bright white with characteristic thick bottom
+     Typography: Alex Brush (names) + DM Sans (details)
+  ══════════════════════════════════════════════════ */
+  #preview-1 { --stage-glow: rgba(255,248,235,0.05); }
+
+  .card-polaroid .pol-frame {
+    background: #ffffff;
+    box-shadow:
+      0 28px 80px rgba(0,0,0,0.28),
+      0 4px 20px rgba(0,0,0,0.14),
+      inset 0 0 0 10px #ffffff;
+    padding: 10px 10px 0;
+  }
+  .card-polaroid .pol-photo {
+    background: linear-gradient(145deg, #d6c8b4 0%, #c4ae96 35%, #b09278 60%, #9a7c64 100%);
+  }
+  /* couple silhouette suggestion */
+  .card-polaroid .pol-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 60% at 38% 100%, rgba(0,0,0,0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 35% 50% at 65% 100%, rgba(0,0,0,0.16) 0%, transparent 55%);
+  }
+  .card-polaroid .pol-footer {
+    background: #ffffff;
+    padding: 22px 22px 30px;
+  }
+  .card-polaroid .pol-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(0,0,0,0.3);
+  }
+  .card-polaroid .pol-names {
+    font-family: 'Alex Brush', cursive;
+    font-size: clamp(2.4rem, 8vw, 3.2rem);
+    color: rgba(0,0,0,0.86);
+  }
+  .card-polaroid .pol-rule { background: rgba(0,0,0,0.12); }
+  .card-polaroid .pol-lbl {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(0,0,0,0.28);
+  }
+  .card-polaroid .pol-val {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    color: rgba(0,0,0,0.72);
+  }
+  .card-polaroid .pol-sep { background: rgba(0,0,0,0.15); }
+  .card-polaroid .pol-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    color: rgba(0,0,0,0.6);
+    border: 1px solid rgba(0,0,0,0.18);
+    background: rgba(0,0,0,0.03);
+  }
+
+  /* ══════════════════════════════════════════════════
+     THEME 2 — GARDEN BLOOM
+     Aged parchment print. Warm botanical. Romantic.
+     Photo: lush garden tones with botanical overlay
+     Frame: cream/parchment (#f3ead8) like aged photo paper
+     Typography: Playfair Display (names) + EB Garamond (details)
+  ══════════════════════════════════════════════════ */
+  #preview-2 { --stage-glow: rgba(120,160,80,0.06); }
+
+  .card-garden .pol-frame {
+    background: #f3ead8;
+    box-shadow:
+      0 28px 80px rgba(0,0,0,0.26),
+      0 4px 20px rgba(15,40,15,0.14);
+    padding: 10px 10px 0;
+  }
+  .card-garden .pol-photo {
+    background: linear-gradient(155deg, #8aaa6e 0%, #6e9052 28%, #4e7038 55%, #3a5828 80%, #2c4420 100%);
+    position: relative;
+  }
+  /* Botanical corner illustration */
+  .card-garden .garden-svg {
+    position: absolute;
+    bottom: 0; right: 0;
+    opacity: 0.22;
+    pointer-events: none;
+  }
+  /* Bottom vignette so footer text reads on the photo */
+  .card-garden .pol-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 100%);
+  }
+  .card-garden .pol-footer {
+    background: #f3ead8;
+    padding: 20px 22px 28px;
+    position: relative;
+  }
+  /* Delicate corner leaf accents in footer */
+  .card-garden .corner-leaf {
+    position: absolute;
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .card-garden .corner-leaf.tl { top: 8px; left: 8px; }
+  .card-garden .corner-leaf.tr { top: 8px; right: 8px; transform: scaleX(-1); }
+  .card-garden .pol-eyebrow {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    color: rgba(40,74,40,0.5);
+  }
+  .card-garden .pol-names {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.1rem, 7vw, 2.9rem);
+    font-weight: 700;
+    font-style: italic;
+    color: #1e3a1e;
+  }
+  .card-garden .amp {
+    font-family: 'Dancing Script', cursive;
+    font-size: 0.65em;
+    font-style: normal;
+    font-weight: 400;
+    color: rgba(80,120,60,0.65);
+  }
+  .card-garden .pol-rule { background: rgba(42,78,42,0.2); }
+  .card-garden .pol-lbl {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    color: rgba(42,78,42,0.45);
+  }
+  .card-garden .pol-val {
+    font-family: 'EB Garamond', serif;
+    color: rgba(30,58,30,0.82);
+  }
+  .card-garden .pol-sep { background: rgba(42,78,42,0.18); }
+  .card-garden .pol-btn {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    color: rgba(30,58,30,0.7);
+    border: 1px solid rgba(42,78,42,0.28);
+    background: rgba(42,78,42,0.06);
+  }
+
+  /* ══════════════════════════════════════════════════
+     THEME 3 — SAGE LINEN
+     Dark sage print. Earthy, sophisticated, nature-forward.
+     Photo: muted forest/earth tones
+     Frame: deep sage (#3d4f3b) — tinted polaroid border
+     Typography: Sorts Mill Goudy (names) + DM Sans (details)
+  ══════════════════════════════════════════════════ */
+  #preview-3 { --stage-glow: rgba(80,100,70,0.1); }
+
+  .card-sage .pol-frame {
+    background: #3d4f3b;
+    box-shadow:
+      0 28px 80px rgba(0,0,0,0.5),
+      0 4px 20px rgba(0,0,0,0.3),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
+    padding: 10px 10px 0;
+    position: relative;
+  }
+  /* Linen noise texture over entire frame */
+  .card-sage .pol-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.18;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    border-radius: 2px;
+  }
+  .card-sage .pol-photo {
+    background: linear-gradient(150deg, #7a9268 0%, #5e7850 28%, #4a6040 55%, #384c30 80%, #2c3c24 100%);
+    position: relative;
+    z-index: 1;
+  }
+  .card-sage .pol-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 45%, rgba(0,0,0,0.35) 100%);
+  }
+  .card-sage .pol-footer {
+    background: #3d4f3b;
+    padding: 20px 22px 28px;
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .card-sage .pol-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(180,210,160,0.45);
+    font-style: italic;
+  }
+  .card-sage .pol-names {
+    font-family: 'Sorts Mill Goudy', serif;
+    font-size: clamp(2rem, 7vw, 2.75rem);
+    color: rgba(235,245,225,0.95);
+    font-style: italic;
+  }
+  .card-sage .pol-rule { background: rgba(180,210,160,0.22); }
+  .card-sage .pol-lbl {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(180,210,160,0.38);
+  }
+  .card-sage .pol-val {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(235,245,225,0.78);
+  }
+  .card-sage .pol-sep { background: rgba(180,210,160,0.18); }
+  .card-sage .pol-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    letter-spacing: 0.28em;
+    color: rgba(180,210,160,0.75);
+    border: 1px solid rgba(180,210,160,0.25);
+    background: rgba(180,210,160,0.06);
+  }
+
+  /* ══════════════════════════════════════════════════
+     THEME 4 — MIDNIGHT INDIGO
+     Celestial night-sky print. Dark navy. Luminous.
+     Photo: animated star field — the night sky as the "photo"
+     Frame: deep navy (#0e0f1e) — developed-in-moonlight look
+     Typography: Cinzel (names) + DM Sans (details)
+  ══════════════════════════════════════════════════ */
+  #preview-4 { --stage-glow: rgba(80,80,160,0.1); }
+
+  .card-midnight .pol-frame {
+    background: #0e0f1e;
+    border: 1px solid rgba(180,170,220,0.1);
+    box-shadow:
+      0 28px 80px rgba(0,0,0,0.65),
+      0 4px 24px rgba(60,60,130,0.25),
+      inset 0 0 0 1px rgba(180,170,220,0.06);
+    padding: 10px 10px 0;
+  }
+  .card-midnight .pol-photo {
+    background: linear-gradient(145deg, #0e0f1e 0%, #121428 50%, #0a0b18 100%);
+    position: relative;
+  }
+  /* Subtle nebula gradient */
+  .card-midnight .pol-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 30% 60%, rgba(80,60,140,0.22) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 75% 25%, rgba(40,60,120,0.18) 0%, transparent 55%);
+  }
+  /* Star container */
+  .card-midnight .stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .card-midnight .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--dur, 3s) ease-in-out infinite;
+    animation-delay: var(--del, 0s);
+    opacity: var(--op, 0.6);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: var(--op, 0.6); transform: scale(1); }
+    50%       { opacity: calc(var(--op, 0.6) * 0.25); transform: scale(0.6); }
+  }
+  .card-midnight .pol-footer {
+    background: linear-gradient(180deg, #0e0f1e 0%, #0b0c1a 100%);
+    padding: 20px 22px 28px;
+    border-top: 1px solid rgba(180,170,220,0.08);
+  }
+  .card-midnight .pol-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(160,150,220,0.45);
+    letter-spacing: 0.45em;
+  }
+  .card-midnight .pol-names {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+    font-weight: 300;
+    letter-spacing: 0.14em;
+    color: rgba(240,235,255,0.96);
+    line-height: 1.2;
+  }
+  .card-midnight .pol-rule {
+    background: linear-gradient(to right, transparent, rgba(160,150,220,0.35), transparent);
+    width: 60px;
+  }
+  .card-midnight .pol-lbl {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(160,150,220,0.38);
+  }
+  .card-midnight .pol-val {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    color: rgba(220,215,255,0.72);
+  }
+  .card-midnight .pol-sep { background: rgba(160,150,220,0.18); }
+  .card-midnight .pol-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.58rem;
+    font-weight: 300;
+    letter-spacing: 0.32em;
+    color: rgba(160,150,220,0.78);
+    border: 1px solid rgba(160,150,220,0.22);
+    background: rgba(100,90,180,0.06);
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Page header ──────────────────────────────────── -->
+<div class="page-header">
+  <div class="label">Forever · Design Studio</div>
+  <h1>Invitation Card Themes</h1>
+  <p>Four polaroid-style invitation card designs — each shares the same square photo format matching the website's 220 × 220 px memory polaroids, then adds a themed footer with wedding details.</p>
+  <span class="dim-note">Card width: min(400px, 85vw) · Photo: 1 : 1 square · Footer: themed</span>
+</div>
+
+<!-- ── Tabs ─────────────────────────────────────────── -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTheme(1)">01 — Polaroid Classic</button>
+  <button class="tab-btn" onclick="showTheme(2)">02 — Garden Bloom</button>
+  <button class="tab-btn" onclick="showTheme(3)">03 — Sage Linen</button>
+  <button class="tab-btn" onclick="showTheme(4)">04 — Midnight Indigo</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     STAGE
+══════════════════════════════════════════════════ -->
+<div class="stage">
+
+  <!-- ── THEME 1: POLAROID CLASSIC ── -->
+  <div class="card-preview active" id="preview-1">
+    <div class="polaroid-card card-polaroid">
+      <div class="pol-frame">
+        <div class="pol-photo">
+          <!-- Photo placeholder: warm couple-toned gradient -->
+        </div>
+        <div class="pol-footer">
+          <span class="pol-eyebrow">You are invited</span>
+          <span class="pol-names">Daniel &amp; Andrea</span>
+          <div class="pol-rule"></div>
+          <div class="pol-details">
+            <div class="pol-row">
+              <span class="pol-lbl">Date</span>
+              <span class="pol-val">Saturday, 19 Sep 2026</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Time</span>
+              <span class="pol-val">3:00 PM – 10:00 PM</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Venue</span>
+              <span class="pol-val">Grand Hyatt Singapore</span>
+            </div>
+          </div>
+          <a class="pol-btn" href="#">RSVP</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar active" id="sidebar-1">
+    <div class="theme-name">Polaroid Classic</div>
+    <div class="theme-tagline">Pure white · Modern · Timeless</div>
+    <div class="theme-desc">
+      The original polaroid aesthetic — crisp white borders, a warm photo, clean typography.
+      Names in flowing Alex Brush script echo a handwritten note slipped under the door.
+      Details in DM Sans stay sharp and scannable at every size.
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Colour Tokens</div>
+      <div class="token-grid">
+        <div class="token"><div class="k">Frame</div><div class="v"><span class="swatch" style="background:#fff;border-color:rgba(0,0,0,0.15)"></span>#ffffff</div></div>
+        <div class="token"><div class="k">Photo</div><div class="v"><span class="swatch" style="background:#c4ae96"></span>Warm neutral</div></div>
+        <div class="token"><div class="k">Names</div><div class="v"><span class="swatch" style="background:#161616"></span>rgba(0,0,0,.86)</div></div>
+        <div class="token"><div class="k">Details</div><div class="v"><span class="swatch" style="background:#4a4a4a"></span>rgba(0,0,0,.72)</div></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Typography</div>
+      <div class="font-row">
+        <div class="font-item"><span class="font-role">Names</span><span class="font-name" style="font-family:'Alex Brush',cursive;font-size:1.1rem">Alex Brush</span></div>
+        <div class="font-item"><span class="font-role">Details</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-weight:300">DM Sans 300</span></div>
+        <div class="font-item"><span class="font-role">Labels</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-size:0.68rem;letter-spacing:0.2em">DM SANS 300</span></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Unique Features</div>
+      <div class="theme-desc" style="margin-bottom:0;padding-bottom:0;border:none;font-size:0.78rem">
+        Bright white border on all sides (10 px top/sides, 0 bottom — footer defines depth).
+        Warm gradient photo placeholder for couples without a cover photo set.
+        Script names at 3.2 rem — bold focal point, instantly readable.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── THEME 2: GARDEN BLOOM ── -->
+  <div class="card-preview" id="preview-2">
+    <div class="polaroid-card card-garden">
+      <div class="pol-frame">
+        <div class="pol-photo">
+          <!-- Botanical SVG overlay — bottom right corner -->
+          <svg class="garden-svg" width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Main stem -->
+            <path d="M10 130 C30 100, 50 80, 70 50" stroke="#1e3a1e" stroke-width="1.5" fill="none"/>
+            <!-- Left branch -->
+            <path d="M40 95 C20 75, 10 55, 20 35" stroke="#1e3a1e" stroke-width="1" fill="none"/>
+            <!-- Right branch -->
+            <path d="M60 70 C80 55, 100 50, 110 35" stroke="#1e3a1e" stroke-width="1" fill="none"/>
+            <!-- Leaves on main stem -->
+            <ellipse cx="28" cy="108" rx="10" ry="5" fill="#2a5c2a" opacity="0.7" transform="rotate(-30 28 108)"/>
+            <ellipse cx="52" cy="82" rx="12" ry="5" fill="#2a5c2a" opacity="0.6" transform="rotate(-50 52 82)"/>
+            <ellipse cx="64" cy="60" rx="10" ry="4" fill="#2a5c2a" opacity="0.5" transform="rotate(-60 64 60)"/>
+            <!-- Rose bud top -->
+            <circle cx="70" cy="48" r="7" fill="#8c3040" opacity="0.5"/>
+            <path d="M65 48 Q70 40 75 48 Q70 52 65 48" fill="#a83848" opacity="0.6"/>
+            <path d="M70 43 Q76 48 70 53 Q64 48 70 43" fill="#c04058" opacity="0.5"/>
+            <!-- Small roses on branches -->
+            <circle cx="20" cy="33" r="5" fill="#8c3040" opacity="0.4"/>
+            <circle cx="110" cy="33" r="5" fill="#8c3040" opacity="0.35"/>
+            <!-- Small leaves -->
+            <ellipse cx="15" cy="42" rx="6" ry="3" fill="#2a5c2a" opacity="0.45" transform="rotate(20 15 42)"/>
+            <ellipse cx="100" cy="45" rx="6" ry="3" fill="#2a5c2a" opacity="0.4" transform="rotate(-25 100 45)"/>
+          </svg>
+        </div>
+        <div class="pol-footer">
+          <!-- Delicate corner leaves -->
+          <svg class="corner-leaf tl" width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M2 26 C4 18, 10 10, 18 4" stroke="#1e3a1e" stroke-width="1" fill="none"/>
+            <ellipse cx="8" cy="18" rx="5" ry="2.5" fill="#2a5c2a" opacity="0.5" transform="rotate(-40 8 18)"/>
+            <ellipse cx="14" cy="11" rx="4" ry="2" fill="#2a5c2a" opacity="0.4" transform="rotate(-55 14 11)"/>
+          </svg>
+          <svg class="corner-leaf tr" width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M2 26 C4 18, 10 10, 18 4" stroke="#1e3a1e" stroke-width="1" fill="none"/>
+            <ellipse cx="8" cy="18" rx="5" ry="2.5" fill="#2a5c2a" opacity="0.5" transform="rotate(-40 8 18)"/>
+            <ellipse cx="14" cy="11" rx="4" ry="2" fill="#2a5c2a" opacity="0.4" transform="rotate(-55 14 11)"/>
+          </svg>
+          <span class="pol-eyebrow">Together with their families</span>
+          <span class="pol-names">Daniel <span class="amp">&amp;</span> Andrea</span>
+          <div class="pol-rule"></div>
+          <div class="pol-details">
+            <div class="pol-row">
+              <span class="pol-lbl">Date</span>
+              <span class="pol-val">Saturday, 19 Sep 2026</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Time</span>
+              <span class="pol-val">3:00 PM – 10:00 PM</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Venue</span>
+              <span class="pol-val">Grand Hyatt Singapore</span>
+            </div>
+          </div>
+          <a class="pol-btn" href="#">RSVP</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar" id="sidebar-2">
+    <div class="theme-name">Garden Bloom</div>
+    <div class="theme-tagline">Parchment · Botanical · Romantic</div>
+    <div class="theme-desc">
+      Aged parchment print with hand-drawn botanical illustration bleeding into the photo corner.
+      Playfair Display Bold Italic for the couple's names — classical, authoritative, warm.
+      EB Garamond carries the detail text with old-world grace.
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Colour Tokens</div>
+      <div class="token-grid">
+        <div class="token"><div class="k">Frame</div><div class="v"><span class="swatch" style="background:#f3ead8"></span>#f3ead8</div></div>
+        <div class="token"><div class="k">Photo</div><div class="v"><span class="swatch" style="background:#5e7850"></span>Forest green</div></div>
+        <div class="token"><div class="k">Names</div><div class="v"><span class="swatch" style="background:#1e3a1e"></span>#1e3a1e</div></div>
+        <div class="token"><div class="k">Accent</div><div class="v"><span class="swatch" style="background:#8c3040"></span>#8c3040 rose</div></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Typography</div>
+      <div class="font-row">
+        <div class="font-item"><span class="font-role">Names</span><span class="font-name" style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700">Playfair Display Bold Italic</span></div>
+        <div class="font-item"><span class="font-role">Ampersand</span><span class="font-name" style="font-family:'Dancing Script',cursive">&amp; Dancing Script</span></div>
+        <div class="font-item"><span class="font-role">Details</span><span class="font-name" style="font-family:'EB Garamond',serif;font-style:italic">EB Garamond Italic</span></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Unique Features</div>
+      <div class="theme-desc" style="margin-bottom:0;padding-bottom:0;border:none;font-size:0.78rem">
+        Parchment-tinted polaroid border (#f3ead8) — like aged photo paper.
+        Hand-drawn botanical SVG in photo corner at 22% opacity.
+        Tiny leaf sprigs at top corners of the footer as decorative anchors.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── THEME 3: SAGE LINEN ── -->
+  <div class="card-preview" id="preview-3">
+    <div class="polaroid-card card-sage">
+      <div class="pol-frame">
+        <div class="pol-photo">
+          <!-- earthy forest photo placeholder -->
+        </div>
+        <div class="pol-footer">
+          <span class="pol-eyebrow">You are invited</span>
+          <span class="pol-names">Daniel &amp; Andrea</span>
+          <div class="pol-rule"></div>
+          <div class="pol-details">
+            <div class="pol-row">
+              <span class="pol-lbl">Date</span>
+              <span class="pol-val">Saturday, 19 Sep 2026</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Time</span>
+              <span class="pol-val">3:00 PM – 10:00 PM</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Venue</span>
+              <span class="pol-val">Grand Hyatt Singapore</span>
+            </div>
+          </div>
+          <a class="pol-btn" href="#">RSVP</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar" id="sidebar-3">
+    <div class="theme-name">Sage Linen</div>
+    <div class="theme-tagline">Deep sage · Earthy · Sophisticated</div>
+    <div class="theme-desc">
+      A sage-tinted polaroid border — as if the photo paper itself was dyed. Linen noise texture
+      adds tactile warmth. Sorts Mill Goudy Italic gives the names an old-world, hand-set feel.
+      DM Sans 300 keeps details light and legible against the dark frame.
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Colour Tokens</div>
+      <div class="token-grid">
+        <div class="token"><div class="k">Frame</div><div class="v"><span class="swatch" style="background:#3d4f3b"></span>#3d4f3b</div></div>
+        <div class="token"><div class="k">Photo</div><div class="v"><span class="swatch" style="background:#4a6040"></span>Forest depth</div></div>
+        <div class="token"><div class="k">Names</div><div class="v"><span class="swatch" style="background:#eaf5e2"></span>rgba(235,245,225,.95)</div></div>
+        <div class="token"><div class="k">Accent</div><div class="v"><span class="swatch" style="background:#b4d2a0"></span>Sage leaf</div></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Typography</div>
+      <div class="font-row">
+        <div class="font-item"><span class="font-role">Names</span><span class="font-name" style="font-family:'Sorts Mill Goudy',serif;font-style:italic;color:rgba(235,245,225,0.9)">Sorts Mill Goudy Italic</span></div>
+        <div class="font-item"><span class="font-role">Details</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-weight:300;color:rgba(235,245,225,0.7)">DM Sans 300</span></div>
+        <div class="font-item"><span class="font-role">Labels</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.65rem;letter-spacing:0.2em;color:rgba(180,210,160,0.5)">DM SANS 300</span></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Unique Features</div>
+      <div class="theme-desc" style="margin-bottom:0;padding-bottom:0;border:none;font-size:0.78rem">
+        Sage-coloured polaroid border — dark green, not white.
+        SVG fractal noise layer simulates linen paper texture at 18% opacity.
+        Cream-on-sage contrast is WCAG AA compliant for all detail text.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── THEME 4: MIDNIGHT INDIGO ── -->
+  <div class="card-preview" id="preview-4">
+    <div class="polaroid-card card-midnight">
+      <div class="pol-frame">
+        <div class="pol-photo">
+          <!-- Nebula gradient + animated star field -->
+          <div class="stars" id="star-field"></div>
+        </div>
+        <div class="pol-footer">
+          <span class="pol-eyebrow">You are invited</span>
+          <span class="pol-names">Daniel &amp; Andrea</span>
+          <div class="pol-rule"></div>
+          <div class="pol-details">
+            <div class="pol-row">
+              <span class="pol-lbl">Date</span>
+              <span class="pol-val">Saturday, 19 Sep 2026</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Time</span>
+              <span class="pol-val">3:00 PM – 10:00 PM</span>
+            </div>
+            <div class="pol-sep"></div>
+            <div class="pol-row">
+              <span class="pol-lbl">Venue</span>
+              <span class="pol-val">Grand Hyatt Singapore</span>
+            </div>
+          </div>
+          <a class="pol-btn" href="#">RSVP</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar" id="sidebar-4">
+    <div class="theme-name">Midnight Indigo</div>
+    <div class="theme-tagline">Navy · Celestial · Luminous</div>
+    <div class="theme-desc">
+      A polaroid developed in moonlight. The "photo" is an animated star field — a window into
+      the night sky. Cinzel 300 gives the names a Roman letterpress authority.
+      DM Sans 300 in silver-white keeps details readable against the deep navy.
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Colour Tokens</div>
+      <div class="token-grid">
+        <div class="token"><div class="k">Frame</div><div class="v"><span class="swatch" style="background:#0e0f1e"></span>#0e0f1e</div></div>
+        <div class="token"><div class="k">Stars</div><div class="v"><span class="swatch" style="background:#ffffff;border-color:rgba(0,0,0,0.15)"></span>#ffffff</div></div>
+        <div class="token"><div class="k">Names</div><div class="v"><span class="swatch" style="background:#f0ebff"></span>rgba(240,235,255,.96)</div></div>
+        <div class="token"><div class="k">Accent</div><div class="v"><span class="swatch" style="background:#a096dc"></span>#a096dc indigo</div></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Typography</div>
+      <div class="font-row">
+        <div class="font-item"><span class="font-role">Names</span><span class="font-name" style="font-family:'Cinzel',serif;font-weight:300;color:rgba(240,235,255,0.9)">Cinzel 300</span></div>
+        <div class="font-item"><span class="font-role">Details</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-weight:300;color:rgba(220,215,255,0.7)">DM Sans 300</span></div>
+        <div class="font-item"><span class="font-role">Labels</span><span class="font-name" style="font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.65rem;letter-spacing:0.2em;color:rgba(160,150,220,0.5)">DM SANS 300</span></div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Unique Features</div>
+      <div class="theme-desc" style="margin-bottom:0;padding-bottom:0;border:none;font-size:0.78rem">
+        Star field replaces the photo — 28 CSS-animated stars with randomised size, opacity and twinkle timing.
+        Subtle purple nebula radial gradients add depth.
+        Navy polaroid border ties photo and footer into a seamless night scene.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.stage -->
+
+<!-- ── Thumbnail strip ──────────────────────────────── -->
+<div class="thumb-strip">
+
+  <button class="thumb-btn active" onclick="showTheme(1)">
+    <div class="thumb-mini">
+      <div class="thumb-photo" style="background:linear-gradient(145deg,#d6c8b4,#9a7c64)"></div>
+      <div class="thumb-footer" style="background:#fff">
+        <div class="thumb-name-line" style="background:rgba(0,0,0,0.15)"></div>
+      </div>
+    </div>
+    <span class="thumb-label">Classic</span>
+  </button>
+
+  <button class="thumb-btn" onclick="showTheme(2)">
+    <div class="thumb-mini">
+      <div class="thumb-photo" style="background:linear-gradient(155deg,#8aaa6e,#2c4420)"></div>
+      <div class="thumb-footer" style="background:#f3ead8">
+        <div class="thumb-name-line" style="background:rgba(30,58,30,0.2)"></div>
+      </div>
+    </div>
+    <span class="thumb-label">Garden</span>
+  </button>
+
+  <button class="thumb-btn" onclick="showTheme(3)">
+    <div class="thumb-mini">
+      <div class="thumb-photo" style="background:linear-gradient(150deg,#7a9268,#2c3c24)"></div>
+      <div class="thumb-footer" style="background:#3d4f3b">
+        <div class="thumb-name-line" style="background:rgba(180,210,160,0.25)"></div>
+      </div>
+    </div>
+    <span class="thumb-label">Sage</span>
+  </button>
+
+  <button class="thumb-btn" onclick="showTheme(4)">
+    <div class="thumb-mini">
+      <div class="thumb-photo" style="background:linear-gradient(145deg,#0e0f1e,#0a0b18)"></div>
+      <div class="thumb-footer" style="background:#0e0f1e">
+        <div class="thumb-name-line" style="background:rgba(160,150,220,0.2)"></div>
+      </div>
+    </div>
+    <span class="thumb-label">Midnight</span>
+  </button>
+
+</div>
+
+<script>
+  // ── Tab switcher ──────────────────────────────────────
+  function showTheme(n) {
+    document.querySelectorAll('.card-preview').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sidebar').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.thumb-btn').forEach(el => el.classList.remove('active'));
+
+    document.getElementById('preview-' + n).classList.add('active');
+    document.getElementById('sidebar-' + n).classList.add('active');
+    document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+    document.querySelectorAll('.thumb-btn')[n - 1].classList.add('active');
+  }
+
+  // ── Midnight Indigo — generate star field ─────────────
+  (function buildStars() {
+    const field = document.getElementById('star-field');
+    if (!field) return;
+    // 28 stars with randomised properties
+    const stars = [
+      [8, 12, 1.4, 0.75, 2.8, 0.0],  [92, 8,  1.0, 0.55, 3.5, 0.6],
+      [22, 35, 1.8, 0.85, 2.2, 1.1], [78, 22, 1.2, 0.62, 4.0, 0.3],
+      [45, 15, 2.0, 0.90, 2.5, 1.8], [65, 45, 1.0, 0.50, 3.8, 0.9],
+      [15, 60, 1.4, 0.70, 3.2, 2.2], [85, 70, 1.6, 0.80, 2.6, 0.4],
+      [55, 80, 1.2, 0.58, 4.2, 1.5], [30, 88, 1.0, 0.45, 3.0, 0.7],
+      [72, 55, 2.2, 0.92, 2.0, 2.8], [40, 52, 1.0, 0.50, 3.6, 1.2],
+      [18, 78, 1.6, 0.72, 2.9, 0.1], [88, 38, 1.2, 0.60, 4.1, 1.9],
+      [58, 28, 1.8, 0.82, 2.3, 0.8], [12, 45, 1.0, 0.48, 3.7, 2.5],
+      [95, 82, 1.4, 0.65, 2.7, 0.5], [35, 18, 2.4, 0.95, 1.9, 1.6],
+      [75, 90, 1.0, 0.52, 4.3, 0.2], [50, 65, 1.6, 0.76, 2.4, 2.1],
+      [28, 5,  1.2, 0.60, 3.4, 0.9], [82, 15, 1.8, 0.84, 2.1, 1.4],
+      [5,  88, 1.0, 0.46, 3.9, 0.6], [62, 72, 2.0, 0.88, 2.6, 2.4],
+      [42, 38, 1.2, 0.56, 4.0, 0.3], [90, 55, 1.4, 0.68, 2.8, 1.7],
+      [20, 22, 1.6, 0.78, 3.1, 0.0], [68, 8,  1.0, 0.50, 3.5, 2.0],
+    ];
+    stars.forEach(([lp, tp, sz, op, dur, del]) => {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.cssText = `left:${lp}%;top:${tp}%;width:${sz}px;height:${sz}px;--op:${op};--dur:${dur}s;--del:${del}s`;
+      field.appendChild(s);
+    });
+  })();
+</script>
+</body>
+</html>

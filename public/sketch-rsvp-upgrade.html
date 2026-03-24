@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSVP Page — Redesign Proposals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@300;400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=EB+Garamond:ital,wght@0,400;1,400&family=Playfair+Display:ital,wght@0,700;1,700&family=Sorts+Mill+Goudy:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: #0e0e0e; color: #fff; min-height: 100vh; }
+
+/* ── Header ── */
+.header {
+  padding: 28px 40px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: #0e0e0e;
+}
+.header h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 0.7rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.38);
+  margin-bottom: 4px;
+}
+.header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  font-style: italic;
+}
+.issues-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.issue-chip {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.5);
+}
+.issue-chip.fixed { border-color: rgba(140,200,120,0.4); color: rgba(140,200,120,0.8); }
+
+/* ── Theme tabs ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 40px;
+  background: #0e0e0e;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.tab {
+  padding: 14px 20px;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  white-space: nowrap;
+}
+.tab.active { color: rgba(255,255,255,0.85); border-bottom-color: rgba(255,255,255,0.6); }
+.tab:hover:not(.active) { color: rgba(255,255,255,0.55); }
+
+/* ── Change log sidebar ── */
+.layout { display: flex; flex-direction: column; }
+.annotation-bar {
+  background: #141414;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 14px 40px;
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.ann-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.45);
+}
+.ann-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Page preview wrapper ── */
+.preview-viewport {
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Theme page backgrounds ── */
+.theme-page {
+  display: none;
+  min-height: 600px;
+  padding: 60px 24px;
+  position: relative;
+  align-items: flex-start;
+  justify-content: center;
+}
+.theme-page.active { display: flex; }
+
+/* Theme backgrounds */
+.theme-page.polaroid_white { background: #ede8df; }
+.theme-page.garden_bloom   { background: #1a2e18; }
+.theme-page.sage_linen     { background: #222b20; }
+.theme-page.midnight_indigo{ background: #050714; }
+
+/* ── Desktop layout: side polaroids + center card ── */
+.desktop-layout {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 500px) 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+/* ── Side polaroid piles ── */
+.side-pile {
+  position: relative;
+  height: 520px;
+}
+.side-pile.left  { padding-left: 0; }
+.side-pile.right { padding-right: 0; }
+
+.side-polaroid {
+  position: absolute;
+  background: #fff;
+  border-radius: 2px;
+  filter: drop-shadow(0 8px 28px rgba(0,0,0,0.32));
+  width: 148px;
+}
+.side-polaroid .sp-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.side-polaroid .sp-caption {
+  padding: 7px 6px 12px;
+  font-family: 'Alex Brush', cursive;
+  font-size: 0.85rem;
+  color: rgba(0,0,0,0.55);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Left pile positions */
+.side-pile.left .sp-1 { top: 20px;  left: 10px;  transform: rotate(-8deg);  z-index: 1; }
+.side-pile.left .sp-2 { top: 160px; left: 40px;  transform: rotate(5deg);   z-index: 2; }
+.side-pile.left .sp-3 { top: 310px; left: 8px;   transform: rotate(-4deg);  z-index: 1; }
+
+/* Right pile positions */
+.side-pile.right .sp-1 { top: 60px;  right: 20px; transform: rotate(9deg);   z-index: 1; }
+.side-pile.right .sp-2 { top: 200px; right: 5px;  transform: rotate(-6deg);  z-index: 2; }
+.side-pile.right .sp-3 { top: 350px; right: 30px; transform: rotate(3deg);   z-index: 1; }
+
+/* Memory photo gradients */
+.grad-1  { background: linear-gradient(145deg,#d4a890,#b07855); }
+.grad-2  { background: linear-gradient(155deg,#8aaa6e,#4a7038); }
+.grad-3  { background: linear-gradient(135deg,#c4b090,#906840); }
+.grad-4  { background: linear-gradient(150deg,#a8c4d8,#6888a0); }
+.grad-5  { background: linear-gradient(160deg,#d0b8c8,#9870a0); }
+.grad-6  { background: linear-gradient(140deg,#c8d0a8,#8898608); }
+
+/* Fade out partially off-screen side polaroids slightly */
+.side-pile.left .sp-1,
+.side-pile.right .sp-1 { opacity: 0.75; }
+
+/* ── Center RSVP card ── */
+.rsvp-card {
+  border-radius: 2px;
+  padding: 10px 10px 0;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Per-theme card frames */
+.theme-page.polaroid_white  .rsvp-card { background: #ffffff; box-shadow: 0 28px 80px rgba(0,0,0,0.28), 0 4px 20px rgba(0,0,0,0.14); }
+.theme-page.garden_bloom    .rsvp-card { background: #f3ead8; box-shadow: 0 28px 80px rgba(0,0,0,0.45), 0 4px 20px rgba(15,40,15,0.25); }
+.theme-page.sage_linen      .rsvp-card { background: #3d4f3b; box-shadow: 0 28px 80px rgba(0,0,0,0.6),  0 4px 20px rgba(0,0,0,0.35); }
+.theme-page.midnight_indigo .rsvp-card { background: #0e0f1e; box-shadow: 0 28px 80px rgba(0,0,0,0.7),  0 4px 24px rgba(60,60,130,0.3); }
+
+/* ── Card photo section ── */
+.card-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  position: relative;
+}
+.theme-page.polaroid_white  .card-photo { background: linear-gradient(145deg,#d6c8b4,#9a7c64); }
+.theme-page.garden_bloom    .card-photo { background: linear-gradient(155deg,#8aaa6e,#2c4420); }
+.theme-page.sage_linen      .card-photo { background: linear-gradient(150deg,#7a9268,#2c3c24); }
+.theme-page.midnight_indigo .card-photo { background: linear-gradient(145deg,#0e0f1e,#0a0b18); }
+
+/* Photo vignette for atmosphere */
+.card-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.22) 100%);
+}
+
+/* Stars overlay — midnight only */
+.theme-page.midnight_indigo .card-photo { position: relative; }
+
+/* ── FIX 2: Info section — between photo and form (PROMINENT) ── */
+/* annotation marker */
+.fix-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.48rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 100px;
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  z-index: 10;
+  pointer-events: none;
+}
+.fix-badge.green { background: rgba(100,180,80,0.2); color: rgba(120,220,100,0.9); border: 1px solid rgba(100,180,80,0.3); }
+.fix-badge.blue  { background: rgba(80,120,220,0.2); color: rgba(100,160,255,0.9); border: 1px solid rgba(80,120,220,0.3); }
+.fix-badge.amber { background: rgba(220,160,60,0.2); color: rgba(255,190,80,0.9);  border: 1px solid rgba(220,160,60,0.3); }
+
+.card-info-section {
+  padding: 20px 22px 18px;
+  text-align: center;
+  position: relative;
+}
+
+/* Per-theme info section backgrounds (same as footer) */
+.theme-page.polaroid_white  .card-info-section { background: #ffffff; }
+.theme-page.garden_bloom    .card-info-section { background: #f3ead8; }
+.theme-page.sage_linen      .card-info-section { background: #3d4f3b; }
+.theme-page.midnight_indigo .card-info-section { background: #0e0f1e; }
+
+.couple-name {
+  line-height: 1.0;
+  margin-bottom: 14px;
+}
+/* Per theme couple name */
+.theme-page.polaroid_white  .couple-name { font-family: 'Alex Brush', cursive; font-size: 2.4rem; font-weight: 400; color: rgba(0,0,0,0.86); }
+.theme-page.garden_bloom    .couple-name { font-family: 'Playfair Display', serif; font-size: 2.1rem; font-weight: 700; font-style: italic; color: #1e3a1e; }
+.theme-page.sage_linen      .couple-name { font-family: 'Sorts Mill Goudy', serif; font-size: 2rem; font-weight: 400; font-style: italic; color: rgba(235,245,225,0.95); }
+.theme-page.midnight_indigo .couple-name { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 300; letter-spacing: 0.14em; color: rgba(240,235,255,0.96); }
+
+.info-rule { width: 28px; height: 1px; margin: 0 auto 12px; }
+.theme-page.polaroid_white  .info-rule { background: rgba(0,0,0,0.12); }
+.theme-page.garden_bloom    .info-rule { background: rgba(42,78,42,0.20); }
+.theme-page.sage_linen      .info-rule { background: rgba(180,210,160,0.22); }
+.theme-page.midnight_indigo .info-rule { background: rgba(160,150,220,0.22); }
+
+.detail-rows { display: flex; flex-direction: column; gap: 3px; }
+.detail-row { display: flex; align-items: baseline; gap: 10px; justify-content: center; }
+.detail-lbl {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 0.48rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  min-width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.detail-val {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  text-align: left;
+}
+.detail-sep { width: 20px; height: 1px; margin: 2px auto; }
+
+/* Per theme detail colors */
+.theme-page.polaroid_white  .detail-lbl { color: rgba(0,0,0,0.28); }
+.theme-page.polaroid_white  .detail-val { color: rgba(0,0,0,0.72); }
+.theme-page.polaroid_white  .detail-sep { background: rgba(0,0,0,0.10); }
+
+.theme-page.garden_bloom    .detail-lbl { color: rgba(42,78,42,0.45); }
+.theme-page.garden_bloom    .detail-val { color: rgba(30,58,30,0.82); }
+.theme-page.garden_bloom    .detail-sep { background: rgba(42,78,42,0.15); }
+
+.theme-page.sage_linen      .detail-lbl { color: rgba(180,210,160,0.38); }
+.theme-page.sage_linen      .detail-val { color: rgba(235,245,225,0.78); }
+.theme-page.sage_linen      .detail-sep { background: rgba(180,210,160,0.15); }
+
+.theme-page.midnight_indigo .detail-lbl { color: rgba(160,150,220,0.38); }
+.theme-page.midnight_indigo .detail-val { color: rgba(220,215,255,0.72); }
+.theme-page.midnight_indigo .detail-sep { background: rgba(160,150,220,0.15); }
+
+/* ── RSVP form section divider ── */
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px 0;
+  margin-bottom: 0;
+}
+.form-divider-line { flex: 1; height: 1px; }
+.form-divider-label {
+  font-size: 0.48rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+/* Per theme divider */
+.theme-page.polaroid_white  .form-divider-line  { background: rgba(0,0,0,0.09); }
+.theme-page.polaroid_white  .form-divider-label { color: rgba(0,0,0,0.28); }
+.theme-page.garden_bloom    .form-divider-line  { background: rgba(42,78,42,0.15); }
+.theme-page.garden_bloom    .form-divider-label { color: rgba(42,78,42,0.45); }
+.theme-page.sage_linen      .form-divider-line  { background: rgba(180,210,160,0.15); }
+.theme-page.sage_linen      .form-divider-label { color: rgba(180,210,160,0.38); }
+.theme-page.midnight_indigo .form-divider-line  { background: rgba(160,150,220,0.15); }
+.theme-page.midnight_indigo .form-divider-label { color: rgba(160,150,220,0.38); }
+
+/* ── Form content area ── */
+.card-form-section {
+  padding: 16px 22px 22px;
+}
+.theme-page.polaroid_white  .card-form-section { background: #ffffff; }
+.theme-page.garden_bloom    .card-form-section { background: #f3ead8; }
+.theme-page.sage_linen      .card-form-section { background: #3d4f3b; }
+.theme-page.midnight_indigo .card-form-section { background: #0e0f1e; }
+
+/* Guest greeting */
+.guest-greeting {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  text-align: center;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+.theme-page.polaroid_white  .guest-greeting { color: rgba(0,0,0,0.55); }
+.theme-page.garden_bloom    .guest-greeting { color: rgba(30,58,30,0.65); }
+.theme-page.sage_linen      .guest-greeting { color: rgba(235,245,225,0.55); }
+.theme-page.midnight_indigo .guest-greeting { color: rgba(220,215,255,0.5); }
+
+.guest-name-highlight {
+  font-style: italic;
+}
+.theme-page.polaroid_white  .guest-name-highlight { color: rgba(0,0,0,0.8); }
+.theme-page.garden_bloom    .guest-name-highlight { color: rgba(30,58,30,0.9); }
+.theme-page.sage_linen      .guest-name-highlight { color: rgba(235,245,225,0.9); }
+.theme-page.midnight_indigo .guest-name-highlight { color: rgba(240,235,255,0.9); }
+
+/* RSVP choice cards */
+.choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.choice-card {
+  border-radius: 2px;
+  padding: 8px 8px 0;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.choice-card:hover { transform: translateY(-2px); }
+.choice-card .cc-photo {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.choice-card .cc-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.52rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-align: center;
+  padding: 6px 4px 10px;
+  text-transform: uppercase;
+}
+
+/* Per theme choice cards */
+.theme-page.polaroid_white  .choice-card              { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+.theme-page.polaroid_white  .choice-card.selected     { box-shadow: 0 4px 18px rgba(0,0,0,0.2), 0 0 0 2px rgba(0,0,0,0.15); }
+.theme-page.polaroid_white  .choice-card .cc-photo    { background: rgba(0,0,0,0.05); }
+.theme-page.polaroid_white  .choice-card .cc-label    { color: rgba(0,0,0,0.55); }
+.theme-page.polaroid_white  .choice-card.attending    .cc-photo { background: rgba(60,140,80,0.12); }
+.theme-page.polaroid_white  .choice-card.declining    .cc-photo { background: rgba(180,60,60,0.10); }
+
+.theme-page.garden_bloom    .choice-card              { background: rgba(30,58,30,0.08); box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+.theme-page.garden_bloom    .choice-card .cc-photo    { background: rgba(30,58,30,0.08); }
+.theme-page.garden_bloom    .choice-card .cc-label    { color: rgba(30,58,30,0.65); }
+.theme-page.garden_bloom    .choice-card.attending    .cc-photo { background: rgba(42,78,42,0.18); }
+.theme-page.garden_bloom    .choice-card.declining    .cc-photo { background: rgba(120,60,40,0.14); }
+
+.theme-page.sage_linen      .choice-card              { background: rgba(255,255,255,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.25); }
+.theme-page.sage_linen      .choice-card .cc-photo    { background: rgba(255,255,255,0.05); }
+.theme-page.sage_linen      .choice-card .cc-label    { color: rgba(235,245,225,0.55); }
+.theme-page.sage_linen      .choice-card.attending    .cc-photo { background: rgba(180,210,160,0.14); }
+.theme-page.sage_linen      .choice-card.declining    .cc-photo { background: rgba(200,120,80,0.12); }
+
+.theme-page.midnight_indigo .choice-card              { background: rgba(255,255,255,0.04); box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+.theme-page.midnight_indigo .choice-card .cc-photo    { background: rgba(255,255,255,0.04); }
+.theme-page.midnight_indigo .choice-card .cc-label    { color: rgba(220,215,255,0.5); }
+.theme-page.midnight_indigo .choice-card.attending    .cc-photo { background: rgba(80,140,220,0.14); }
+.theme-page.midnight_indigo .choice-card.declining    .cc-photo { background: rgba(200,80,80,0.12); }
+
+/* Form fields */
+.form-field { margin-bottom: 10px; }
+.form-label {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.form-input, .form-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+/* Per theme inputs */
+.theme-page.polaroid_white  .form-label  { color: rgba(0,0,0,0.38); }
+.theme-page.polaroid_white  .form-input,
+.theme-page.polaroid_white  .form-select { background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.14); color: rgba(0,0,0,0.8); }
+
+.theme-page.garden_bloom    .form-label  { color: rgba(42,78,42,0.55); }
+.theme-page.garden_bloom    .form-input,
+.theme-page.garden_bloom    .form-select { background: rgba(30,58,30,0.06); border: 1px solid rgba(42,78,42,0.2); color: rgba(30,58,30,0.82); }
+
+.theme-page.sage_linen      .form-label  { color: rgba(180,210,160,0.45); }
+.theme-page.sage_linen      .form-input,
+.theme-page.sage_linen      .form-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(180,210,160,0.18); color: rgba(235,245,225,0.85); }
+
+.theme-page.midnight_indigo .form-label  { color: rgba(160,150,220,0.45); }
+.theme-page.midnight_indigo .form-input,
+.theme-page.midnight_indigo .form-select { background: rgba(255,255,255,0.05); border: 1px solid rgba(160,150,220,0.18); color: rgba(220,215,255,0.85); }
+
+/* Submit button */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  margin-top: 12px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+.submit-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+.theme-page.polaroid_white  .submit-btn { background: rgba(0,0,0,0.82); color: rgba(255,255,255,0.9); }
+.theme-page.garden_bloom    .submit-btn { background: rgba(30,58,30,0.85); color: rgba(235,245,220,0.92); }
+.theme-page.sage_linen      .submit-btn { background: rgba(180,210,160,0.15); border: 1px solid rgba(180,210,160,0.28); color: rgba(180,210,160,0.88); }
+.theme-page.midnight_indigo .submit-btn { background: rgba(100,90,180,0.25); border: 1px solid rgba(160,150,220,0.3); color: rgba(200,195,255,0.9); }
+
+/* ── Polaroid card footer caption ── */
+.card-footer-caption {
+  padding: 12px 16px 20px;
+  text-align: center;
+}
+.theme-page.polaroid_white  .card-footer-caption { background: #ffffff; }
+.theme-page.garden_bloom    .card-footer-caption { background: #f3ead8; }
+.theme-page.sage_linen      .card-footer-caption { background: #3d4f3b; }
+.theme-page.midnight_indigo .card-footer-caption { background: #0e0f1e; }
+
+.footer-tagline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.5rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.theme-page.polaroid_white  .footer-tagline { color: rgba(0,0,0,0.22); }
+.theme-page.garden_bloom    .footer-tagline { color: rgba(42,78,42,0.30); }
+.theme-page.sage_linen      .footer-tagline { color: rgba(180,210,160,0.25); }
+.theme-page.midnight_indigo .footer-tagline { color: rgba(160,150,220,0.25); }
+
+/* ── Annotation callouts ── */
+.callout {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+.callout-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: #000;
+}
+.callout-text { background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.85); padding: 4px 8px; border-radius: 4px; backdrop-filter: blur(4px); line-height: 1.4; }
+
+/* green dot */
+.callout.c1 .callout-dot { background: rgba(100,200,80,0.9); }
+.callout.c2 .callout-dot { background: rgba(100,160,255,0.9); }
+.callout.c3 .callout-dot { background: rgba(255,180,60,0.9); }
+
+/* Callout positions per layout */
+.callout.c1 { top: 14px; right: 8px; }
+.callout.c2 { top: calc(100% * 0.55); left: -210px; flex-direction: row-reverse; }
+.callout.c3 { top: 60px; left: -190px; flex-direction: row-reverse; }
+
+/* ── Mobile preview strip ── */
+.mobile-preview-strip {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 30px 40px;
+  background: #111;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.mobile-strip-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  padding: 30px 40px 8px;
+  background: #111;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.mobile-frame {
+  flex-shrink: 0;
+  width: 200px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.08);
+}
+.mobile-frame-bar {
+  height: 24px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-frame-bar-dot { width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); }
+.mobile-inner { padding: 10px 8px 0; }
+.mobile-inner .rsvp-card { box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important; }
+.mobile-inner .couple-name { font-size: 1.4rem !important; }
+.mobile-inner .detail-val { font-size: 0.62rem !important; }
+
+/* ── Stars for midnight ── */
+.star { position: absolute; border-radius: 50%; background: #fff; pointer-events: none; animation: twinkle var(--dur) var(--del) ease-in-out infinite; }
+@keyframes twinkle {
+  0%,100% { opacity: var(--op); transform: scale(1); }
+  50% { opacity: calc(var(--op) * 0.15); transform: scale(0.5); }
+}
+
+/* ── Linen noise ── */
+.linen-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ── Notes section ── */
+.notes {
+  padding: 28px 40px 40px;
+  background: #0e0e0e;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.note-card {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 18px;
+}
+.note-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.55rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  color: #000;
+}
+.note-title {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 6px;
+}
+.note-body {
+  font-size: 0.62rem;
+  font-weight: 300;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.4);
+}
+.note-card:nth-child(1) .note-num { background: rgba(100,200,80,0.9); }
+.note-card:nth-child(2) .note-num { background: rgba(100,160,255,0.9); }
+.note-card:nth-child(3) .note-num { background: rgba(255,180,60,0.9); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>Forever · RSVP Page</h1>
+  <h2>Redesign Proposals</h2>
+  <div class="issues-row">
+    <span class="issue-chip fixed">① Theme-matched backgrounds</span>
+    <span class="issue-chip fixed">② Wedding info above the form</span>
+    <span class="issue-chip fixed">③ Memory polaroids on desktop sides</span>
+  </div>
+</div>
+
+<!-- Theme tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTheme('polaroid_white',this)">Polaroid Classic</button>
+  <button class="tab" onclick="switchTheme('garden_bloom',this)">Garden Bloom</button>
+  <button class="tab" onclick="switchTheme('sage_linen',this)">Sage Linen</button>
+  <button class="tab" onclick="switchTheme('midnight_indigo',this)">Midnight Indigo</button>
+</div>
+
+<!-- Annotation bar -->
+<div class="annotation-bar">
+  <div class="ann-item"><div class="ann-dot" style="background:rgba(100,200,80,0.9)"></div> Page background matches couple's theme</div>
+  <div class="ann-item"><div class="ann-dot" style="background:rgba(100,160,255,0.9)"></div> Wedding info shown prominently before the form</div>
+  <div class="ann-item"><div class="ann-dot" style="background:rgba(255,180,60,0.9)"></div> Memory polaroids fill desktop sides</div>
+</div>
+
+<!-- ── POLAROID WHITE ── -->
+<div class="theme-page polaroid_white active" id="theme-polaroid_white">
+  <div class="desktop-layout">
+
+    <!-- Left pile ③ -->
+    <div class="side-pile left">
+      <div class="side-polaroid sp-1">
+        <div class="sp-photo grad-1"></div>
+        <div class="sp-caption">Paris, 2022</div>
+      </div>
+      <div class="side-polaroid sp-2">
+        <div class="sp-photo grad-2"></div>
+        <div class="sp-caption">First hike</div>
+      </div>
+      <div class="side-polaroid sp-3">
+        <div class="sp-photo grad-3"></div>
+        <div class="sp-caption">Santorini</div>
+      </div>
+    </div>
+
+    <!-- Center RSVP card -->
+    <div style="position:relative">
+      <div class="rsvp-card">
+        <!-- Photo ① -->
+        <div class="card-photo">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1">
+            <span style="font-size:2.5rem;opacity:0.18">📷</span>
+          </div>
+        </div>
+
+        <!-- ② Info section — ABOVE form, prominent -->
+        <div class="card-info-section" style="position:relative">
+          <div class="fix-badge blue">② fix — info above form</div>
+          <div class="couple-name">Daniel &amp; Andrea</div>
+          <div class="info-rule"></div>
+          <div class="detail-rows">
+            <div class="detail-row">
+              <span class="detail-lbl">Date</span>
+              <span class="detail-val">Saturday, 19 September 2026</span>
+            </div>
+            <div class="detail-sep"></div>
+            <div class="detail-row">
+              <span class="detail-lbl">Time</span>
+              <span class="detail-val">3:00 PM – 10:00 PM</span>
+            </div>
+            <div class="detail-sep"></div>
+            <div class="detail-row">
+              <span class="detail-lbl">Venue</span>
+              <span class="detail-val">Grand Hyatt Singapore, Singapore</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider before form -->
+        <div class="form-divider" style="padding-top:14px;padding-bottom:14px">
+          <div class="form-divider-line"></div>
+          <span class="form-divider-label">Your RSVP</span>
+          <div class="form-divider-line"></div>
+        </div>
+
+        <!-- Form section -->
+        <div class="card-form-section">
+          <p class="guest-greeting">Hi <span class="guest-name-highlight">Sarah</span>, we'd love to see you there.</p>
+          <div class="choice-grid">
+            <div class="choice-card attending selected">
+              <div class="cc-photo">🥂</div>
+              <div class="cc-label">Joyfully accepts</div>
+            </div>
+            <div class="choice-card declining">
+              <div class="cc-photo">🌸</div>
+              <div class="cc-label">Regretfully declines</div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Dietary preference</label>
+            <select class="form-select">
+              <option>No restrictions</option>
+              <option>Vegetarian</option>
+              <option>Halal</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email (for confirmation)</label>
+            <input class="form-input" type="email" placeholder="you@example.com" value="sarah@email.com">
+          </div>
+          <button class="submit-btn">Confirm my RSVP</button>
+        </div>
+
+        <!-- Minimal footer -->
+        <div class="card-footer-caption">
+          <span class="footer-tagline">foreverweddings.com / daniel-andrea</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right pile ③ -->
+    <div class="side-pile right">
+      <div class="side-polaroid sp-1">
+        <div class="sp-photo grad-4"></div>
+        <div class="sp-caption">Bali trip</div>
+      </div>
+      <div class="side-polaroid sp-2">
+        <div class="sp-photo grad-5"></div>
+        <div class="sp-caption">Christmas Eve</div>
+      </div>
+      <div class="side-polaroid sp-3">
+        <div class="sp-photo grad-6"></div>
+        <div class="sp-caption">The proposal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── GARDEN BLOOM ── -->
+<div class="theme-page garden_bloom" id="theme-garden_bloom">
+  <div class="desktop-layout">
+    <div class="side-pile left">
+      <div class="side-polaroid sp-1" style="background:#f3ead8">
+        <div class="sp-photo" style="background:linear-gradient(145deg,#8aaa6e,#2c4420)"></div>
+        <div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">Bali trip</div>
+      </div>
+      <div class="side-polaroid sp-2" style="background:#f3ead8">
+        <div class="sp-photo grad-3"></div>
+        <div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">Paris, 2022</div>
+      </div>
+      <div class="side-polaroid sp-3" style="background:#f3ead8">
+        <div class="sp-photo grad-1"></div>
+        <div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">Santorini</div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="rsvp-card">
+        <div class="card-photo">
+          <!-- Botanical SVG overlay -->
+          <svg style="position:absolute;bottom:0;right:0;opacity:0.18;pointer-events:none;z-index:2" width="110" height="110" viewBox="0 0 140 140" fill="none">
+            <path d="M10 130 C30 100, 50 80, 70 50" stroke="#1e3a1e" stroke-width="1.5" fill="none"/>
+            <path d="M40 95 C20 75, 10 55, 20 35" stroke="#1e3a1e" stroke-width="1" fill="none"/>
+            <ellipse cx="28" cy="108" rx="10" ry="5" fill="#2a5c2a" opacity="0.7" transform="rotate(-30 28 108)"/>
+            <circle cx="70" cy="48" r="7" fill="#8c3040" opacity="0.5"/>
+            <path d="M65 48 Q70 40 75 48 Q70 52 65 48" fill="#c04058" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="card-info-section">
+          <div class="couple-name">Daniel &amp; Andrea</div>
+          <div class="info-rule"></div>
+          <div class="detail-rows">
+            <div class="detail-row"><span class="detail-lbl">Date</span><span class="detail-val">Saturday, 19 September 2026</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Time</span><span class="detail-val">3:00 PM – 10:00 PM</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Venue</span><span class="detail-val">Grand Hyatt Singapore, Singapore</span></div>
+          </div>
+        </div>
+        <div class="form-divider" style="padding-top:14px;padding-bottom:14px">
+          <div class="form-divider-line"></div><span class="form-divider-label">Your RSVP</span><div class="form-divider-line"></div>
+        </div>
+        <div class="card-form-section">
+          <p class="guest-greeting">Hi <span class="guest-name-highlight">Sarah</span>, we'd love to see you there.</p>
+          <div class="choice-grid">
+            <div class="choice-card attending selected"><div class="cc-photo">🥂</div><div class="cc-label">Joyfully accepts</div></div>
+            <div class="choice-card declining"><div class="cc-photo">🌸</div><div class="cc-label">Regretfully declines</div></div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Dietary preference</label>
+            <select class="form-select"><option>No restrictions</option></select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email (for confirmation)</label>
+            <input class="form-input" type="email" value="sarah@email.com">
+          </div>
+          <button class="submit-btn">Confirm my RSVP</button>
+        </div>
+        <div class="card-footer-caption"><span class="footer-tagline">foreverweddings.com / daniel-andrea</span></div>
+      </div>
+    </div>
+    <div class="side-pile right">
+      <div class="side-polaroid sp-1" style="background:#f3ead8"><div class="sp-photo grad-5"></div><div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">First hike</div></div>
+      <div class="side-polaroid sp-2" style="background:#f3ead8"><div class="sp-photo grad-4"></div><div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">Christmas Eve</div></div>
+      <div class="side-polaroid sp-3" style="background:#f3ead8"><div class="sp-photo grad-2"></div><div class="sp-caption" style="font-family:'EB Garamond',serif;color:rgba(30,58,30,0.6)">The proposal</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SAGE LINEN ── -->
+<div class="theme-page sage_linen" id="theme-sage_linen">
+  <div class="desktop-layout">
+    <div class="side-pile left">
+      <div class="side-polaroid sp-1" style="background:#3d4f3b"><div class="sp-photo grad-2"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">Paris, 2022</div></div>
+      <div class="side-polaroid sp-2" style="background:#3d4f3b"><div class="sp-photo grad-1"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">First hike</div></div>
+      <div class="side-polaroid sp-3" style="background:#3d4f3b"><div class="sp-photo grad-4"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">Santorini</div></div>
+    </div>
+    <div style="position:relative">
+      <div class="rsvp-card" style="position:relative">
+        <div class="linen-noise"></div>
+        <div class="card-photo"></div>
+        <div class="card-info-section">
+          <div class="couple-name">Daniel &amp; Andrea</div>
+          <div class="info-rule"></div>
+          <div class="detail-rows">
+            <div class="detail-row"><span class="detail-lbl">Date</span><span class="detail-val">Saturday, 19 September 2026</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Time</span><span class="detail-val">3:00 PM – 10:00 PM</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Venue</span><span class="detail-val">Grand Hyatt Singapore, Singapore</span></div>
+          </div>
+        </div>
+        <div class="form-divider" style="padding-top:14px;padding-bottom:14px">
+          <div class="form-divider-line"></div><span class="form-divider-label">Your RSVP</span><div class="form-divider-line"></div>
+        </div>
+        <div class="card-form-section">
+          <p class="guest-greeting">Hi <span class="guest-name-highlight">Sarah</span>, we'd love to see you there.</p>
+          <div class="choice-grid">
+            <div class="choice-card attending selected"><div class="cc-photo">🥂</div><div class="cc-label">Joyfully accepts</div></div>
+            <div class="choice-card declining"><div class="cc-photo">🌸</div><div class="cc-label">Regretfully declines</div></div>
+          </div>
+          <div class="form-field"><label class="form-label">Dietary preference</label><select class="form-select"><option>No restrictions</option></select></div>
+          <div class="form-field"><label class="form-label">Email (for confirmation)</label><input class="form-input" type="email" value="sarah@email.com"></div>
+          <button class="submit-btn">Confirm my RSVP</button>
+        </div>
+        <div class="card-footer-caption"><span class="footer-tagline">foreverweddings.com / daniel-andrea</span></div>
+      </div>
+    </div>
+    <div class="side-pile right">
+      <div class="side-polaroid sp-1" style="background:#3d4f3b"><div class="sp-photo grad-5"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">Bali trip</div></div>
+      <div class="side-polaroid sp-2" style="background:#3d4f3b"><div class="sp-photo grad-3"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">Christmas Eve</div></div>
+      <div class="side-polaroid sp-3" style="background:#3d4f3b"><div class="sp-photo grad-6"></div><div class="sp-caption" style="color:rgba(235,245,225,0.55)">The proposal</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MIDNIGHT INDIGO ── -->
+<div class="theme-page midnight_indigo" id="theme-midnight_indigo">
+  <!-- Page starfield -->
+  <div id="page-stars" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0"></div>
+  <div class="desktop-layout" style="position:relative;z-index:1">
+    <div class="side-pile left">
+      <div class="side-polaroid sp-1" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(145deg,#1a1b30,#0a0b18)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">Paris, 2022</div></div>
+      <div class="side-polaroid sp-2" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(155deg,#1e1a2e,#0e0a1e)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">First hike</div></div>
+      <div class="side-polaroid sp-3" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(135deg,#141628,#080914)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">Santorini</div></div>
+    </div>
+    <div style="position:relative">
+      <div class="rsvp-card">
+        <!-- Photo: night sky + stars -->
+        <div class="card-photo" id="card-photo-mid" style="position:relative">
+          <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 30% 60%, rgba(80,60,140,0.22) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 75% 25%, rgba(40,60,120,0.18) 0%, transparent 55%);pointer-events:none"></div>
+          <div id="card-stars" style="position:absolute;inset:0;pointer-events:none"></div>
+        </div>
+        <div class="card-info-section">
+          <div class="couple-name">Daniel &amp; Andrea</div>
+          <div class="info-rule"></div>
+          <div class="detail-rows">
+            <div class="detail-row"><span class="detail-lbl">Date</span><span class="detail-val">Saturday, 19 September 2026</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Time</span><span class="detail-val">3:00 PM – 10:00 PM</span></div>
+            <div class="detail-sep"></div>
+            <div class="detail-row"><span class="detail-lbl">Venue</span><span class="detail-val">Grand Hyatt Singapore, Singapore</span></div>
+          </div>
+        </div>
+        <div class="form-divider" style="padding-top:14px;padding-bottom:14px">
+          <div class="form-divider-line"></div><span class="form-divider-label">Your RSVP</span><div class="form-divider-line"></div>
+        </div>
+        <div class="card-form-section">
+          <p class="guest-greeting">Hi <span class="guest-name-highlight">Sarah</span>, we'd love to see you there.</p>
+          <div class="choice-grid">
+            <div class="choice-card attending selected"><div class="cc-photo">🥂</div><div class="cc-label">Joyfully accepts</div></div>
+            <div class="choice-card declining"><div class="cc-photo">🌸</div><div class="cc-label">Regretfully declines</div></div>
+          </div>
+          <div class="form-field"><label class="form-label">Dietary preference</label><select class="form-select"><option>No restrictions</option></select></div>
+          <div class="form-field"><label class="form-label">Email (for confirmation)</label><input class="form-input" type="email" value="sarah@email.com"></div>
+          <button class="submit-btn">Confirm my RSVP</button>
+        </div>
+        <div class="card-footer-caption"><span class="footer-tagline">foreverweddings.com / daniel-andrea</span></div>
+      </div>
+    </div>
+    <div class="side-pile right">
+      <div class="side-polaroid sp-1" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(150deg,#1a1428,#0a0814)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">Bali trip</div></div>
+      <div class="side-polaroid sp-2" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(160deg,#10142a,#060910)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">Christmas Eve</div></div>
+      <div class="side-polaroid sp-3" style="background:#0e0f1e"><div class="sp-photo" style="background:linear-gradient(145deg,#181428,#08060e)"></div><div class="sp-caption" style="color:rgba(220,215,255,0.4)">The proposal</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Design notes -->
+<div class="notes">
+  <div class="note-card">
+    <div class="note-num">1</div>
+    <div class="note-title">Theme-matched backgrounds</div>
+    <div class="note-body">
+      Page background is derived from the couple's chosen card theme:
+      Polaroid Classic → warm linen <code style="color:rgba(255,255,255,0.6)">#ede8df</code>,
+      Garden Bloom → deep forest <code style="color:rgba(255,255,255,0.6)">#1a2e18</code>,
+      Sage Linen → dark sage <code style="color:rgba(255,255,255,0.6)">#222b20</code>,
+      Midnight → near-black navy <code style="color:rgba(255,255,255,0.6)">#050714</code>.
+      The current hardcoded <code style="color:rgba(255,255,255,0.6)">#0d0b08</code> is removed.
+      The side polaroid frames also match the theme.
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-num">2</div>
+    <div class="note-title">Info above the form</div>
+    <div class="note-body">
+      The invitation card structure is flipped: couple photo → name → date/time/venue → "Your RSVP" divider → form.
+      Guests see who, when and where <em>before</em> they have to fill anything in.
+      The "Your RSVP" divider makes the transition to the interactive section explicit.
+      The current design buries these details in the footer below the form.
+    </div>
+  </div>
+  <div class="note-card">
+    <div class="note-num">3</div>
+    <div class="note-title">Side memory polaroids</div>
+    <div class="note-body">
+      On desktop (&gt;900px), the page shows a 3-column grid: scattered memory polaroids on each side, RSVP card in the centre.
+      The side polaroids are pulled from the couple's memory library, randomly selected (up to 3 per side), scattered with light rotation offsets.
+      On mobile they hide and the card goes full-width — no layout change needed.
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Theme switcher ──
+function switchTheme(id, btn) {
+  document.querySelectorAll('.theme-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('theme-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Midnight stars (card photo) ──
+(function() {
+  const container = document.getElementById('card-stars');
+  if (!container) return;
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement('div');
+    const left = (i * 37 + 13) % 100;
+    const top  = (i * 53 + 7)  % 100;
+    const size = 1 + (i % 3) * 0.5;
+    const op   = 0.45 + (i % 4) * 0.14;
+    const dur  = 2 + (i % 5) * 0.6;
+    const del  = (i % 8) * 0.4;
+    s.className = 'star';
+    s.style.cssText = `left:${left}%;top:${top}%;width:${size}px;height:${size}px;--op:${op};--dur:${dur}s;animation-delay:${del}s`;
+    container.appendChild(s);
+  }
+})();
+
+// ── Page starfield for midnight ──
+(function() {
+  const container = document.getElementById('page-stars');
+  if (!container) return;
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    const size = (i % 3 === 0) ? 1.5 : 1;
+    const op   = 0.08 + (i % 5) * 0.04;
+    const dur  = 3 + (i % 7) * 0.8;
+    const del  = (i % 11) * 0.5;
+    s.className = 'star';
+    s.style.cssText = `left:${(i * 41 + 7) % 100}%;top:${(i * 61 + 13) % 100}%;width:${size}px;height:${size}px;--op:${op};--dur:${dur}s;animation-delay:${del}s`;
+    container.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>
