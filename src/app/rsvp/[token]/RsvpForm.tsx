@@ -28,31 +28,54 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
   // Page-aware color tokens — RsvpForm now renders on the theme page bg
   const isLight = invitationTheme === 'polaroid_white';
 
+  // Explicit high-contrast values per dark theme (CARD_THEMES colors are
+  // designed for polaroid card footers, not full-page backgrounds)
+  const greenText  = 'rgba(235,245,225,0.96)';
+  const greenLabel = 'rgba(180,210,160,0.90)';
+  const greenNote  = 'rgba(180,210,160,0.68)';
+  const greenBorder= 'rgba(180,210,160,0.28)';
+  const indigoText = 'rgba(220,215,255,0.96)';
+  const indigoLabel= 'rgba(160,150,220,0.90)';
+  const indigoNote = 'rgba(160,150,220,0.68)';
+  const indigoBorder='rgba(160,150,220,0.28)';
+
   const fc = {
     // form card surface
-    cardBg:      isLight ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.04)',
-    cardBorder:  isLight ? 'rgba(0,0,0,0.08)'       : t.ruleColor,
+    cardBg:      isLight ? 'rgba(255,255,255,0.72)'
+      : invitationTheme === 'midnight_indigo' ? 'rgba(14,15,30,0.60)'
+      : 'rgba(0,0,0,0.22)',
+    cardBorder:  isLight ? 'rgba(0,0,0,0.08)'
+      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
     // labels + inputs
-    label:       isLight ? 'rgba(0,0,0,0.44)'        : t.eyebrowColor,
-    value:       isLight ? 'rgba(0,0,0,0.82)'        : t.valueColor,
-    inputBg:     isLight ? 'rgba(0,0,0,0.04)'        : 'rgba(255,255,255,0.05)',
-    inputBorder: isLight ? 'rgba(0,0,0,0.12)'        : t.ruleColor,
-    inputText:   isLight ? 'rgba(0,0,0,0.80)'        : t.valueColor,
+    label:       isLight ? 'rgba(0,0,0,0.52)'
+      : invitationTheme === 'midnight_indigo' ? indigoLabel : greenLabel,
+    value:       isLight ? 'rgba(0,0,0,0.84)'
+      : invitationTheme === 'midnight_indigo' ? indigoText  : greenText,
+    inputBg:     isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
+    inputBorder: isLight ? 'rgba(0,0,0,0.14)'
+      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
+    inputText:   isLight ? 'rgba(0,0,0,0.82)'
+      : invitationTheme === 'midnight_indigo' ? indigoText  : greenText,
     // submit button — solid accent
     btnBg:    isLight
       ? '#c9964a'
       : invitationTheme === 'garden_bloom' ? '#6a8f58'
       : invitationTheme === 'sage_linen'   ? '#7a9268'
       : '#c9964a',   // midnight_indigo
-    btnText:  isLight ? '#ffffff' : (invitationTheme === 'garden_bloom' ? 'rgba(235,245,225,0.96)' : '#ffffff'),
+    btnText:  isLight ? '#ffffff' : (invitationTheme === 'garden_bloom' ? greenText : '#ffffff'),
     // inline toggle buttons (yes/no)
-    toggleBg:       isLight ? 'rgba(0,0,0,0.06)'    : 'rgba(255,255,255,0.06)',
-    toggleBorder:   isLight ? 'rgba(0,0,0,0.14)'    : t.ruleColor,
-    toggleActiveBg: isLight ? '#c9964a'              : t.btnBg,
-    toggleActiveText: isLight ? '#ffffff'            : t.btnColor,
-    toggleActiveBorder: isLight ? 'none'             : t.btnBorder,
+    toggleBg:           isLight ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.07)',
+    toggleBorder:       isLight ? 'rgba(0,0,0,0.14)'
+      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
+    toggleActiveBg:     isLight ? '#c9964a'
+      : invitationTheme === 'garden_bloom' ? '#6a8f58'
+      : invitationTheme === 'sage_linen'   ? '#7a9268'
+      : '#c9964a',
+    toggleActiveText:   isLight ? '#ffffff' : '#ffffff',
+    toggleActiveBorder: 'none',
     // sub-note text
-    note: isLight ? 'rgba(0,0,0,0.38)' : t.labelColor,
+    note: isLight ? 'rgba(0,0,0,0.42)'
+      : invitationTheme === 'midnight_indigo' ? indigoNote : greenNote,
     // edit response button
     editBg:     isLight ? 'rgba(0,0,0,0.06)'   : 'rgba(255,255,255,0.07)',
     editBorder: isLight ? 'rgba(0,0,0,0.12)'   : t.ruleColor,
