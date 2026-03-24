@@ -25,62 +25,104 @@ interface Props {
 export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, decliningPhotoUrl }: Props) {
   const t = CARD_THEMES[invitationTheme] ?? CARD_THEMES.polaroid_white;
 
-  // Page-aware color tokens — RsvpForm now renders on the theme page bg
-  const isLight = invitationTheme === 'polaroid_white';
-
-  // Explicit high-contrast values per dark theme (CARD_THEMES colors are
-  // designed for polaroid card footers, not full-page backgrounds)
-  const greenText  = 'rgba(235,245,225,0.96)';
-  const greenLabel = 'rgba(180,210,160,0.90)';
-  const greenNote  = 'rgba(180,210,160,0.68)';
-  const greenBorder= 'rgba(180,210,160,0.28)';
-  const indigoText = 'rgba(220,215,255,0.96)';
-  const indigoLabel= 'rgba(160,150,220,0.90)';
-  const indigoNote = 'rgba(160,150,220,0.68)';
-  const indigoBorder='rgba(160,150,220,0.28)';
-
-  const fc = {
-    // form card surface
-    cardBg:      isLight ? 'rgba(255,255,255,0.72)'
-      : invitationTheme === 'midnight_indigo' ? 'rgba(14,15,30,0.60)'
-      : 'rgba(0,0,0,0.22)',
-    cardBorder:  isLight ? 'rgba(0,0,0,0.08)'
-      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
-    // labels + inputs
-    label:       isLight ? 'rgba(0,0,0,0.52)'
-      : invitationTheme === 'midnight_indigo' ? indigoLabel : greenLabel,
-    value:       isLight ? 'rgba(0,0,0,0.84)'
-      : invitationTheme === 'midnight_indigo' ? indigoText  : greenText,
-    inputBg:     isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.08)',
-    inputBorder: isLight ? 'rgba(0,0,0,0.14)'
-      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
-    inputText:   isLight ? 'rgba(0,0,0,0.82)'
-      : invitationTheme === 'midnight_indigo' ? indigoText  : greenText,
-    // submit button — solid accent
-    btnBg:    isLight
-      ? '#c9964a'
-      : invitationTheme === 'garden_bloom' ? '#6a8f58'
-      : invitationTheme === 'sage_linen'   ? '#7a9268'
-      : '#c9964a',   // midnight_indigo
-    btnText:  isLight ? '#ffffff' : (invitationTheme === 'garden_bloom' ? greenText : '#ffffff'),
-    // inline toggle buttons (yes/no)
-    toggleBg:           isLight ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.07)',
-    toggleBorder:       isLight ? 'rgba(0,0,0,0.14)'
-      : invitationTheme === 'midnight_indigo' ? indigoBorder : greenBorder,
-    toggleActiveBg:     isLight ? '#c9964a'
-      : invitationTheme === 'garden_bloom' ? '#6a8f58'
-      : invitationTheme === 'sage_linen'   ? '#7a9268'
-      : '#c9964a',
-    toggleActiveText:   isLight ? '#ffffff' : '#ffffff',
-    toggleActiveBorder: 'none',
-    // sub-note text
-    note: isLight ? 'rgba(0,0,0,0.42)'
-      : invitationTheme === 'midnight_indigo' ? indigoNote : greenNote,
-    // edit response button
-    editBg:     isLight ? 'rgba(0,0,0,0.06)'   : 'rgba(255,255,255,0.07)',
-    editBorder: isLight ? 'rgba(0,0,0,0.12)'   : t.ruleColor,
-    editText:   isLight ? 'rgba(0,0,0,0.60)'   : t.labelColor,
+  // Per-theme explicit color tokens.
+  // garden_bloom + sage_linen are now LIGHT themes (design systems use light surfaces).
+  // Only midnight_indigo remains dark.
+  type FormColors = {
+    cardBg: string; cardBorder: string;
+    label: string; value: string;
+    inputBg: string; inputBorder: string; inputText: string;
+    btnBg: string; btnText: string;
+    toggleBg: string; toggleBorder: string;
+    toggleActiveBg: string; toggleActiveText: string;
+    toggleActiveBorder: string;
+    note: string;
+    editBg: string; editBorder: string; editText: string;
   };
+  const FORM_COLORS: Record<InvitationTheme, FormColors> = {
+    polaroid_white: {
+      cardBg:             'rgba(255,255,255,0.75)',
+      cardBorder:         'rgba(49,51,44,0.08)',
+      label:              '#65655b',
+      value:              '#31332c',
+      inputBg:            'rgba(49,51,44,0.04)',
+      inputBorder:        'rgba(49,51,44,0.12)',
+      inputText:          '#31332c',
+      btnBg:              '#5f5e5e',
+      btnText:            '#faf7f6',
+      toggleBg:           'rgba(49,51,44,0.06)',
+      toggleBorder:       'rgba(49,51,44,0.14)',
+      toggleActiveBg:     '#5f5e5e',
+      toggleActiveText:   '#faf7f6',
+      toggleActiveBorder: 'none',
+      note:               'rgba(49,51,44,0.44)',
+      editBg:             'rgba(49,51,44,0.06)',
+      editBorder:         'rgba(49,51,44,0.12)',
+      editText:           'rgba(49,51,44,0.60)',
+    },
+    garden_bloom: {
+      cardBg:             'rgba(255,255,255,0.68)',
+      cardBorder:         'rgba(123,85,86,0.12)',
+      label:              '#4f645b',
+      value:              'rgba(60,40,40,0.88)',
+      inputBg:            'rgba(123,85,86,0.04)',
+      inputBorder:        'rgba(123,85,86,0.14)',
+      inputText:          'rgba(60,40,40,0.88)',
+      btnBg:              '#7b5556',
+      btnText:            '#fffbf9',
+      toggleBg:           'rgba(123,85,86,0.06)',
+      toggleBorder:       'rgba(123,85,86,0.16)',
+      toggleActiveBg:     '#7b5556',
+      toggleActiveText:   '#fffbf9',
+      toggleActiveBorder: 'none',
+      note:               'rgba(79,100,91,0.58)',
+      editBg:             'rgba(123,85,86,0.06)',
+      editBorder:         'rgba(123,85,86,0.14)',
+      editText:           'rgba(79,100,91,0.68)',
+    },
+    sage_linen: {
+      cardBg:             'rgba(246,244,234,0.88)',
+      cardBorder:         'rgba(86,98,82,0.14)',
+      label:              '#65655b',
+      value:              '#38382f',
+      inputBg:            'rgba(56,56,47,0.04)',
+      inputBorder:        'rgba(86,98,82,0.18)',
+      inputText:          '#38382f',
+      btnBg:              '#566252',
+      btnText:            '#effce7',
+      toggleBg:           'rgba(86,98,82,0.06)',
+      toggleBorder:       'rgba(86,98,82,0.18)',
+      toggleActiveBg:     '#566252',
+      toggleActiveText:   '#effce7',
+      toggleActiveBorder: 'none',
+      note:               'rgba(108,99,88,0.60)',
+      editBg:             'rgba(86,98,82,0.06)',
+      editBorder:         'rgba(86,98,82,0.16)',
+      editText:           '#65655b',
+    },
+    midnight_indigo: {
+      cardBg:             'rgba(13,14,19,0.72)',
+      cardBorder:         'rgba(188,194,255,0.18)',
+      label:              'rgba(188,194,255,0.85)',
+      value:              'rgba(255,255,255,0.94)',
+      inputBg:            'rgba(255,255,255,0.06)',
+      inputBorder:        'rgba(188,194,255,0.22)',
+      inputText:          'rgba(255,255,255,0.92)',
+      btnBg:              '#e9c176',
+      btnText:            '#1a1b22',
+      toggleBg:           'rgba(188,194,255,0.07)',
+      toggleBorder:       'rgba(188,194,255,0.22)',
+      toggleActiveBg:     '#e9c176',
+      toggleActiveText:   '#1a1b22',
+      toggleActiveBorder: 'none',
+      note:               'rgba(188,194,255,0.58)',
+      editBg:             'rgba(188,194,255,0.07)',
+      editBorder:         'rgba(188,194,255,0.18)',
+      editText:           'rgba(188,194,255,0.68)',
+    },
+  };
+  const fc = FORM_COLORS[invitationTheme] ?? FORM_COLORS.polaroid_white;
+  const isDark = invitationTheme === 'midnight_indigo';
 
   const [status,            setStatus]            = useState<RsvpStatus>(guest.rsvp_status);
   const [plusOneAttending,  setPlusOneAttending]  = useState<boolean | null>(guest.plus_one_attending);
@@ -164,8 +206,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
     boxSizing:       'border-box',
   };
 
-  const arrowHex   = isLight ? 'A06428' : 'ffffff';
-  const arrowAlpha = isLight ? '0.65'   : '0.30';
+  const arrowHex   = !isDark ? 'A06428' : 'ffffff';
+  const arrowAlpha = !isDark ? '0.65'   : '0.30';
   const arrowSvg   = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23${arrowHex}' stroke-opacity='${arrowAlpha}' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
 
   const selectStyle: React.CSSProperties = {
@@ -195,7 +237,7 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
         {/* Large success polaroid */}
         <div style={{
           background:   t.frameBg,
-          boxShadow:    isLight
+          boxShadow:    !isDark
             ? '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)'
             : '0 8px 32px rgba(0,0,0,0.50), 0 2px 8px rgba(0,0,0,0.30)',
           borderRadius: 2,
@@ -347,10 +389,8 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
                   ? 'rotate(0deg) scale(1.04)'
                   : i === 0 ? 'rotate(-2deg)' : 'rotate(2deg)',
                 boxShadow:    isSelected
-                  ? (isLight
-                      ? '0 8px 24px rgba(0,0,0,0.22), 0 0 0 2px #c9964a'
-                      : `0 8px 28px rgba(0,0,0,0.55), 0 0 0 2px ${fc.btnBg}`)
-                  : '0 3px 12px rgba(0,0,0,0.30)',
+                  ? `0 8px ${isDark ? '28px rgba(0,0,0,0.55)' : '24px rgba(0,0,0,0.16)'}, 0 0 0 2px ${fc.btnBg}`
+                  : '0 3px 12px rgba(0,0,0,0.22)',
                 opacity:      isSelected ? 1 : 0.62,
                 transition:   'all 0.28s cubic-bezier(0.34,1.56,0.64,1)',
               }}
@@ -478,7 +518,7 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
             flexDirection:'column',
             gap:          14,
             border:       `1px solid ${fc.inputBorder}`,
-            background:   isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.02)',
+            background:   !isDark ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.02)',
           }}>
             <p style={labelStyle}>Will you be bringing a plus one?</p>
 
@@ -607,9 +647,9 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
             cursor:        saving ? 'not-allowed' : 'pointer',
             opacity:       saving ? 0.55 : 1,
             transition:    'opacity 0.2s ease, transform 0.15s ease',
-            boxShadow:     isLight
-              ? '0 4px 16px rgba(201,150,74,0.30)'
-              : '0 4px 16px rgba(0,0,0,0.30)',
+            boxShadow:     isDark
+              ? '0 4px 16px rgba(0,0,0,0.35)'
+              : '0 4px 16px rgba(0,0,0,0.12)',
           }}
         >
           {saving ? 'Saving…' : 'Confirm My Response →'}
