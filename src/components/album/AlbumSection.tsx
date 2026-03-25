@@ -407,29 +407,20 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
   const openAlbum = (idx: number) => { setOpenIdx(idx); setCurrentSpread(0); setMobilePageSide('left'); };
   const closeAlbum = () => { setOpenIdx(null); setFocusedMemIdx(null); };
 
-  // ── Scroll lock when album is open (iOS-compatible) ─────────────────────────
+  // ── Scroll lock when album is open ──────────────────────────────────────────
   useEffect(() => {
-    if (openIdx !== null) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.overflow = 'hidden';
-      document.body.style.width = '100%';
-    } else {
-      const scrollY = parseInt(document.body.style.top || '0', 10) * -1;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.overflow = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
-    }
+    if (openIdx === null) return;
+
+    // Block wheel/keyboard scroll on desktop
+    document.body.style.overflow = 'hidden';
+
+    // Block touch scroll on iOS (overflow:hidden alone is ignored by iOS Safari)
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    document.addEventListener('touchmove', prevent, { passive: false });
+
     return () => {
-      const scrollY = parseInt(document.body.style.top || '0', 10) * -1;
-      document.body.style.position = '';
-      document.body.style.top = '';
       document.body.style.overflow = '';
-      document.body.style.width = '';
-      if (scrollY) window.scrollTo(0, scrollY);
+      document.removeEventListener('touchmove', prevent);
     };
   }, [openIdx]);
 
