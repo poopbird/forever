@@ -131,14 +131,9 @@ function numSpreads(memories: Memory[]) {
 
 /** HTML string for the animated flipper faces (not interactive) */
 function buildFlipperHTML(mems: Memory[], baseIdx: number): string {
-  const slots = [...mems];
-  while (slots.length < PER_PAGE) slots.push(null as unknown as Memory);
-  return slots
+  return mems
     .map((m, i) => {
       const rot = POLAROID_ROTATIONS[i % 4];
-      if (!m) {
-        return `<div style="background:rgba(232,220,200,0.5);border:1.5px dashed rgba(180,160,130,0.6);border-radius:2px;"></div>`;
-      }
       const tapeColor = TAPE_COLORS[i % 4];
       const tapeStyle = `position:absolute;width:36px;height:13px;background:${tapeColor};background-image:linear-gradient(90deg,rgba(255,255,255,0.22) 0%,transparent 50%,rgba(255,255,255,0.18) 100%);box-shadow:0 1px 3px rgba(0,0,0,0.14);border-radius:1px;z-index:6;pointer-events:none;`;
       const tapeTL = `<div style="${tapeStyle}top:-5px;left:6px;transform:rotate(-45deg);"></div>`;
@@ -151,7 +146,7 @@ function buildFlipperHTML(mems: Memory[], baseIdx: number): string {
         : '';
       return `<div style="background:#fff;padding:7px 7px 34px;box-shadow:0 3px 14px rgba(0,0,0,0.22);display:flex;flex-direction:column;position:relative;transform:rotate(${rot}deg);border-radius:1px;">
         ${tapeTL}${tapeTR}
-        <div style="flex:1;background:#e8dece;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;">${img}</div>
+        <div style="aspect-ratio:1;background:#e8dece;display:flex;align-items:center;justify-content:center;overflow:hidden;">${img}</div>
         ${caption}
       </div>`;
     })
@@ -172,17 +167,7 @@ function PolaroidCard({
   const rot       = POLAROID_ROTATIONS[slotIndex % 4];
   const tapeColor = TAPE_COLORS[slotIndex % 4];
 
-  if (!memory) {
-    return (
-      <div
-        style={{
-          background: 'rgba(232,220,200,0.5)',
-          border: '1.5px dashed rgba(180,160,130,0.6)',
-          borderRadius: 2,
-        }}
-      />
-    );
-  }
+  if (!memory) return null;
 
   const tapeBase: CSSProperties = {
     position: 'absolute', width: 36, height: 13,
@@ -229,13 +214,12 @@ function PolaroidCard({
 
       <div
         style={{
-          flex: 1,
+          aspectRatio: '1',
           background: '#e8dece',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          minHeight: 0,
         }}
       >
         {memory.media_url ? (
@@ -283,25 +267,22 @@ function PolaroidGrid({
   baseIdx: number;
   onOpen: (absoluteIdx: number) => void;
 }) {
-  const slots = [...memories];
-  while (slots.length < PER_PAGE) slots.push(null as unknown as Memory);
   return (
     <div
       style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gridTemplateRows: '1fr 1fr',
         gap: 'clamp(14px, 3vw, 28px)',
-        height: '100%',
         padding: 'clamp(8px, 1.5vw, 16px)',
+        alignContent: 'start',
       }}
     >
-      {slots.map((m, i) => (
+      {memories.map((m, i) => (
         <PolaroidCard
-          key={m?.id ?? `empty-${baseIdx}-${i}`}
-          memory={m ?? null}
+          key={m.id}
+          memory={m}
           slotIndex={i}
-          onOpen={() => m && onOpen(baseIdx + i)}
+          onOpen={() => onOpen(baseIdx + i)}
         />
       ))}
     </div>
