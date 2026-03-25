@@ -25,7 +25,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
           <a href="/" className="btn-ghost text-sm">← Back</a>
         </div>
 
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col gap-6 md:flex-row md:gap-8 items-start">
           {/* Sidebar */}
           <SettingsSidebar />
 

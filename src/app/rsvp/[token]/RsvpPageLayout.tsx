@@ -426,12 +426,10 @@ export default function RsvpPageLayout({
           }}
         >
           {/* ── Desktop: 2-column grid ── */}
-          <div style={{
-            display:             'grid',
-            gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
-            gap:                 'clamp(40px,6vw,80px)',
-            alignItems:          'start',
-          }}>
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 items-start"
+            style={{ gap: 'clamp(40px,6vw,80px)' }}
+          >
             {/* ── LEFT: Form column ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
               {/* Heading block */}
