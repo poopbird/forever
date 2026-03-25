@@ -274,7 +274,8 @@ function PolaroidGrid({
         gridTemplateColumns: '1fr 1fr',
         gap: 'clamp(14px, 3vw, 28px)',
         padding: 'clamp(8px, 1.5vw, 16px)',
-        alignContent: 'start',
+        height: '100%',
+        alignContent: 'center',
       }}
     >
       {memories.map((m, i) => (
@@ -405,6 +406,16 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
 
   const openAlbum = (idx: number) => { setOpenIdx(idx); setCurrentSpread(0); setMobilePageSide('left'); };
   const closeAlbum = () => { setOpenIdx(null); setFocusedMemIdx(null); };
+
+  // ── Scroll lock when album is open ──────────────────────────────────────────
+  useEffect(() => {
+    if (openIdx !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [openIdx]);
 
   // ── Page flip ───────────────────────────────────────────────────────────────
   const doFlip = useCallback(
