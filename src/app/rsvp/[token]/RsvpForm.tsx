@@ -332,7 +332,7 @@ export default function RsvpForm({ guest, invitationTheme, attendingPhotoUrl, de
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
       {/* ── Guest greeting ───────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 20, textAlign: 'center' }}>
         <p style={{
           fontFamily:    '"DM Sans", sans-serif',
           fontWeight:    300,

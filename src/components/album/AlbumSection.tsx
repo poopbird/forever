@@ -407,14 +407,30 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
   const openAlbum = (idx: number) => { setOpenIdx(idx); setCurrentSpread(0); setMobilePageSide('left'); };
   const closeAlbum = () => { setOpenIdx(null); setFocusedMemIdx(null); };
 
-  // ── Scroll lock when album is open ──────────────────────────────────────────
+  // ── Scroll lock when album is open (iOS-compatible) ─────────────────────────
   useEffect(() => {
     if (openIdx !== null) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.overflow = 'hidden';
+      document.body.style.width = '100%';
     } else {
+      const scrollY = parseInt(document.body.style.top || '0', 10) * -1;
+      document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.overflow = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      const scrollY = parseInt(document.body.style.top || '0', 10) * -1;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.overflow = '';
+      document.body.style.width = '';
+      if (scrollY) window.scrollTo(0, scrollY);
+    };
   }, [openIdx]);
 
   // ── Page flip ───────────────────────────────────────────────────────────────
@@ -851,6 +867,7 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
             WebkitBackdropFilter: 'blur(16px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: isMobile ? 0 : 'clamp(8px, 2vh, 28px)',
+            overscrollBehavior: 'none',
           }}
         >
           <div
