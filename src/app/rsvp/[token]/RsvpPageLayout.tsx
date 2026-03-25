@@ -320,9 +320,32 @@ export default function RsvpPageLayout({
                   fontWeight:    400,
                   fontSize:      '0.78rem',
                   color:         pt.infoAccent,
-                  margin:        0,
+                  margin:        '0 0 12px',
                 }}>{weddingCity}</p>
               )}
+              <a
+                href={`https://maps.google.com/maps?q=${encodeURIComponent([weddingVenue, weddingCity].filter(Boolean).join(', '))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display:       'inline-flex',
+                  alignItems:    'center',
+                  gap:           6,
+                  fontFamily:    '"DM Sans", sans-serif',
+                  fontWeight:    500,
+                  fontSize:      '0.68rem',
+                  letterSpacing: '0.06em',
+                  color:         pt.infoAccent,
+                  border:        `1px solid ${pt.infoCardBorder}`,
+                  borderRadius:  4,
+                  padding:       '7px 12px',
+                  textDecoration: 'none',
+                  background:    pt.infoCardBg,
+                }}
+              >
+                <PinIcon color={pt.infoAccent} />
+                Get Directions
+              </a>
             </div>
           )}
         </div>
@@ -433,7 +456,7 @@ export default function RsvpPageLayout({
             {/* ── LEFT: Form column ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
               {/* Heading block */}
-              <div>
+              <div style={{ textAlign: 'center' }}>
                 <p style={{
                   fontFamily:    '"DM Sans", sans-serif',
                   fontWeight:    300,
