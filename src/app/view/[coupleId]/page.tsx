@@ -5,7 +5,7 @@ import LandingSection from '@/components/layout/LandingSection';
 import PolaroidHighlights from '@/components/highlights/PolaroidHighlights';
 import FilmReel from '@/components/timeline/FilmReel';
 import AlbumSection from '@/components/album/AlbumSection';
-import MemoryMap from '@/components/map/MemoryMap';
+import Globe from '@/components/globe/Globe';
 import KioskMode from '@/components/kiosk/KioskMode';
 import FaqPreview from '@/components/faq/FaqPreview';
 import type { Memory, CoupleAlbum, AlbumMemoryRow } from '@/types';
@@ -107,7 +107,10 @@ export default async function PublicView({ params, searchParams }: Params) {
 
       {mappable.length > 0 && (
         <section id="map">
-          <MemoryMap memories={mappable} />
+          <Globe
+            memories={mappable}
+            invitationTheme={invitationTheme}
+          />
         </section>
       )}
 

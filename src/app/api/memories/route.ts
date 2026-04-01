@@ -9,6 +9,23 @@ const ALLOWED_FIELDS = new Set([
   'location_name', 'lat', 'lng', 'show_on_map', 'milestone_label', 'dot_emoji',
 ]);
 
+async function resolveCountryCode(lat: number, lng: number): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=3`,
+      {
+        headers: { 'Accept-Language': 'en', 'User-Agent': 'Forever-WeddingApp/1.0' },
+        signal: AbortSignal.timeout(5000),
+      },
+    );
+    if (!res.ok) return null;
+    const d = await res.json();
+    return (d?.address?.country_code as string | undefined)?.toUpperCase() ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,11 +74,17 @@ export async function POST(request: Request) {
     Object.entries(body as Record<string, unknown>).filter(([k]) => ALLOWED_FIELDS.has(k)),
   );
 
+  // Resolve country_code server-side if coordinates present
+  const { lat, lng } = sanitised as { lat?: number; lng?: number };
+  const country_code = (lat != null && lng != null)
+    ? await resolveCountryCode(lat, lng)
+    : null;
+
   // Always inject couple_id server-side — never trust the client
   const adminSupabase = createAdminClient();
   const { data, error } = await adminSupabase
     .from('memories')
-    .insert({ ...sanitised, couple_id: coupleId })
+    .insert({ ...sanitised, couple_id: coupleId, ...(country_code ? { country_code } : {}) })
     .select()
     .single();
 

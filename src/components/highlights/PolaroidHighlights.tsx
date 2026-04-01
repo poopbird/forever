@@ -473,6 +473,14 @@ function FloatingInvitation({
   const [imgError, setImgError] = useState(false);
   const t = CARD_THEMES[cardTheme] ?? CARD_THEMES.polaroid_white;
 
+  // Per-theme ornament colour — used for the SVG flourish dividers
+  const ornamentColor: string = (
+    cardTheme === 'midnight_indigo' ? 'rgba(233,193,118,0.72)' :
+    cardTheme === 'garden_bloom'    ? 'rgba(123,85,86,0.52)'   :
+    cardTheme === 'sage_linen'      ? 'rgba(86,98,82,0.50)'    :
+                                      'rgba(49,51,44,0.42)'
+  );
+
   const hasDetails = weddingDate || weddingTimeStart || weddingVenue || weddingCity;
 
   async function handleSave(field: string, value: string) {
@@ -482,32 +490,29 @@ function FloatingInvitation({
     finally { setSaving(false); }
   }
 
-  // Shared style helpers
-  const lblStyle: React.CSSProperties = {
-    fontFamily:    '"DM Sans", sans-serif',
+  // ── Centered inline detail row styles ───────────────────────────────────────
+  // Each row: centred <p> with <span lbl>LABEL: </span><span val>value</span>
+  const centeredRowStyle: React.CSSProperties = {
+    textAlign:  'center',
+    lineHeight: 1.4,
+    margin:     0,
+  };
+  const newLblStyle: React.CSSProperties = {
+    fontFamily:    t.btnFont,
     fontWeight:    300,
-    fontSize:      '0.5rem',
-    letterSpacing: '0.3em',
+    fontSize:      '0.46rem',
+    letterSpacing: '0.28em',
     textTransform: 'uppercase',
     color:         t.labelColor,
-    minWidth:      36,
-    textAlign:     'right',
-    flexShrink:    0,
   };
-  const valStyle: React.CSSProperties = {
-    fontFamily:    '"DM Sans", sans-serif',
+  const newValStyle: React.CSSProperties = {
+    fontFamily:    t.btnFont,
     fontWeight:    400,
-    fontSize:      '0.72rem',
-    letterSpacing: '0.04em',
+    fontSize:      '0.74rem',
+    letterSpacing: '0.03em',
     color:         t.valueColor,
-    textAlign:     'left',
   };
-  const rowStyle: React.CSSProperties = {
-    display:     'flex',
-    alignItems:  'baseline',
-    gap:         8,
-    justifyContent: 'center',
-  };
+  // (kept for EditableField width fallback)
   const sepStyle: React.CSSProperties = {
     width:      28,
     height:     1,
@@ -563,7 +568,7 @@ function FloatingInvitation({
         <div style={{
           position:      'relative',
           width:         '100%',
-          aspectRatio:   '4 / 5',
+          aspectRatio:   '1 / 1',
           overflow:      'hidden',
           background:    t.photoFallback,
           zIndex:        1,
@@ -630,7 +635,7 @@ function FloatingInvitation({
         {/* ── Footer — couple name + wedding details ── */}
         <div style={{
           background:   t.footerBg,
-          padding:      '18px 20px 26px',
+          padding:      '14px 20px 18px',
           textAlign:    'center',
           position:     'relative',
           zIndex:       2,
@@ -649,7 +654,7 @@ function FloatingInvitation({
             letterSpacing: '0.4em',
             textTransform: 'uppercase',
             color:         t.eyebrowColor,
-            marginBottom:  8,
+            marginBottom:  6,
           }}>
             ✦ You are invited ✦
           </p>
@@ -663,77 +668,78 @@ function FloatingInvitation({
             letterSpacing: t.nameTracking,
             color:         t.nameColor,
             lineHeight:    1.0,
-            marginBottom:  12,
+            marginBottom:  10,
           }}>
             {coupleName}
           </div>
 
-          {/* Rule */}
-          <div style={{ width: 32, height: 1, background: t.ruleColor, margin: '0 auto 14px' }} />
+          {/* ── Top ornament divider ── */}
+          <svg width="160" height="18" viewBox="0 0 160 18" fill="none"
+            style={{ display: 'block', margin: '0 auto 10px' }}>
+            <line x1="2" y1="9" x2="58" y2="9" stroke={ornamentColor} strokeWidth="0.5"/>
+            <path d="M60 9 C63 4 67 4 70 9 C73 14 77 14 80 9" stroke={ornamentColor} strokeWidth="0.8" fill="none"/>
+            <circle cx="80" cy="9" r="2" fill={ornamentColor}/>
+            <path d="M80 9 C83 4 87 4 90 9 C93 14 97 14 100 9" stroke={ornamentColor} strokeWidth="0.8" fill="none"/>
+            <line x1="102" y1="9" x2="158" y2="9" stroke={ornamentColor} strokeWidth="0.5"/>
+          </svg>
 
           {/* Wedding details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
             {readOnly ? (
               <>
                 {weddingDate && (
-                  <div style={rowStyle}>
-                    <span style={lblStyle}>Date</span>
-                    <span style={valStyle}>{fmtDate(weddingDate)}</span>
-                  </div>
+                  <p style={centeredRowStyle}>
+                    <span style={newLblStyle}>Date&thinsp;&thinsp;</span>
+                    <span style={newValStyle}>{fmtDate(weddingDate)}</span>
+                  </p>
                 )}
                 {(weddingTimeStart || weddingTimeEnd) && (
-                  <>
-                    <div style={sepStyle} />
-                    <div style={rowStyle}>
-                      <span style={lblStyle}>Time</span>
-                      <span style={valStyle}>
-                        {weddingTimeStart ? fmt12h(weddingTimeStart.slice(0, 5)) : ''}
-                        {weddingTimeEnd   ? ` – ${fmt12h(weddingTimeEnd.slice(0, 5))}` : ''}
-                      </span>
-                    </div>
-                  </>
+                  <p style={centeredRowStyle}>
+                    <span style={newLblStyle}>Time&thinsp;&thinsp;</span>
+                    <span style={newValStyle}>
+                      {weddingTimeStart ? fmt12h(weddingTimeStart.slice(0, 5)) : ''}
+                      {weddingTimeEnd   ? ` – ${fmt12h(weddingTimeEnd.slice(0, 5))}` : ''}
+                    </span>
+                  </p>
                 )}
                 {(weddingVenue || weddingCity) && (
-                  <>
-                    <div style={sepStyle} />
-                    <div style={rowStyle}>
-                      <span style={lblStyle}>Venue</span>
-                      <span style={valStyle}>
-                        {weddingVenue ?? ''}{weddingCity ? `, ${weddingCity}` : ''}
-                      </span>
-                    </div>
-                  </>
+                  <p style={centeredRowStyle}>
+                    <span style={newLblStyle}>Venue&thinsp;&thinsp;</span>
+                    <span style={newValStyle}>
+                      {weddingVenue ?? ''}{weddingCity ? `, ${weddingCity}` : ''}
+                    </span>
+                  </p>
                 )}
                 {!hasDetails && (
-                  <p style={{ fontSize: '0.72rem', color: t.eyebrowColor, opacity: 0.5 }}>Details coming soon</p>
+                  <p style={{ ...centeredRowStyle, ...newLblStyle, opacity: 0.4 }}>Details coming soon</p>
                 )}
               </>
             ) : (
               <>
-                <div style={rowStyle}>
-                  <span style={lblStyle}>Date</span>
-                  <div style={{ flex: 1, maxWidth: 200, textAlign: 'left' }}>
-                    <EditableField
-                      type="date"
-                      value={weddingDate ?? ''}
-                      placeholder="Choose date"
-                      displayValue={weddingDate ? fmtDate(weddingDate) : ''}
-                      onSave={v => handleSave('wedding_date', v)}
-                      style={{ ...valStyle, textAlign: 'left' }}
-                    />
-                  </div>
+                {/* Date — editable */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ ...newLblStyle, display: 'block', marginBottom: 2 }}>Date</p>
+                  <EditableField
+                    type="date"
+                    value={weddingDate ?? ''}
+                    placeholder="Choose date"
+                    displayValue={weddingDate ? fmtDate(weddingDate) : ''}
+                    onSave={v => handleSave('wedding_date', v)}
+                    style={newValStyle}
+                  />
                 </div>
                 <div style={sepStyle} />
-                <div style={rowStyle}>
-                  <span style={lblStyle}>Time</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, textAlign: 'left' }}>
+                {/* Time — editable */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ ...newLblStyle, display: 'block', marginBottom: 2 }}>Time</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
                     <EditableField
                       type="time"
                       value={weddingTimeStart?.slice(0, 5) ?? ''}
                       placeholder="Start"
                       displayValue={weddingTimeStart ? fmt12h(weddingTimeStart.slice(0, 5)) : ''}
                       onSave={v => handleSave('wedding_time_start', v)}
-                      style={{ ...valStyle, minWidth: 60 }}
+                      style={{ ...newValStyle, minWidth: 60 }}
                     />
                     <span style={{ color: t.valueColor, opacity: 0.5 }}>–</span>
                     <EditableField
@@ -742,30 +748,29 @@ function FloatingInvitation({
                       placeholder="End"
                       displayValue={weddingTimeEnd ? fmt12h(weddingTimeEnd.slice(0, 5)) : ''}
                       onSave={v => handleSave('wedding_time_end', v)}
-                      style={{ ...valStyle, minWidth: 60 }}
+                      style={{ ...newValStyle, minWidth: 60 }}
                     />
                   </div>
                 </div>
                 <div style={sepStyle} />
-                <div style={rowStyle}>
-                  <span style={lblStyle}>Venue</span>
-                  <div style={{ flex: 1, maxWidth: 200, textAlign: 'left' }}>
-                    <EditableField
-                      value={weddingVenue ?? ''}
-                      placeholder="Venue name"
-                      onSave={v => handleSave('wedding_venue', v)}
-                      style={{ ...valStyle, textAlign: 'left', display: 'block' }}
-                    />
-                    <EditableField
-                      value={weddingCity ?? ''}
-                      placeholder="City"
-                      onSave={v => handleSave('wedding_city', v)}
-                      style={{ ...valStyle, textAlign: 'left', fontSize: '0.65rem', opacity: 0.7, display: 'block' }}
-                    />
-                  </div>
+                {/* Venue — editable */}
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ ...newLblStyle, display: 'block', marginBottom: 2 }}>Venue</p>
+                  <EditableField
+                    value={weddingVenue ?? ''}
+                    placeholder="Venue name"
+                    onSave={v => handleSave('wedding_venue', v)}
+                    style={{ ...newValStyle, display: 'block' }}
+                  />
+                  <EditableField
+                    value={weddingCity ?? ''}
+                    placeholder="City"
+                    onSave={v => handleSave('wedding_city', v)}
+                    style={{ ...newValStyle, fontSize: '0.65rem', opacity: 0.7, display: 'block' }}
+                  />
                 </div>
                 {!hasDetails && (
-                  <p style={{ fontSize: '0.52rem', color: t.eyebrowColor, opacity: 0.5, letterSpacing: '0.14em', marginTop: 6 }}>
+                  <p style={{ ...centeredRowStyle, ...newLblStyle, opacity: 0.4, marginTop: 4 }}>
                     ✎ Click any field to edit
                   </p>
                 )}
@@ -773,28 +778,15 @@ function FloatingInvitation({
             )}
           </div>
 
-          {/* RSVP button */}
-          {rsvpEnabled && coupleId && (
-            <a
-              href={`/rsvp/lookup?couple_id=${coupleId}`}
-              style={{
-                display:       'inline-block',
-                fontFamily:    t.btnFont,
-                fontStyle:     t.btnStyle ?? 'normal',
-                fontSize:      '0.6rem',
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                color:         t.btnColor,
-                border:        t.btnBorder,
-                borderRadius:  '100px',
-                padding:       '8px 22px',
-                background:    t.btnBg,
-                textDecoration:'none',
-              }}
-            >
-              ✦ RSVP
-            </a>
-          )}
+          {/* ── Bottom ornament divider ── */}
+          <svg width="160" height="18" viewBox="0 0 160 18" fill="none"
+            style={{ display: 'block', margin: '0 auto' }}>
+            <line x1="2" y1="9" x2="58" y2="9" stroke={ornamentColor} strokeWidth="0.5"/>
+            <path d="M60 9 C63 4 67 4 70 9 C73 14 77 14 80 9" stroke={ornamentColor} strokeWidth="0.8" fill="none"/>
+            <circle cx="80" cy="9" r="2" fill={ornamentColor}/>
+            <path d="M80 9 C83 4 87 4 90 9 C93 14 97 14 100 9" stroke={ornamentColor} strokeWidth="0.8" fill="none"/>
+            <line x1="102" y1="9" x2="158" y2="9" stroke={ornamentColor} strokeWidth="0.5"/>
+          </svg>
         </div>
       </div>
     </motion.div>

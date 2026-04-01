@@ -366,7 +366,8 @@ export default function AlbumSection({ memories, readOnly, albumConfigs, albumMe
   useEffect(() => {
     if (!shelfRef.current) return;
     const measure = () => {
-      const w = shelfRef.current!.offsetWidth;
+      if (!shelfRef.current) return;
+      const w = shelfRef.current.offsetWidth;
       const n = albums.length;
       const coverTotal = n * COVER_W + Math.max(0, n - 1) * BOOK_GAP;
       setIsSpineMode(coverTotal > w);

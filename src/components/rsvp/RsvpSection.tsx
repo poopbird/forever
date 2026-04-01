@@ -115,7 +115,7 @@ export default function RsvpSection({
   // Selection + send invite
   const [selected,     setSelected]     = useState<Set<string>>(new Set());
   const [sendModal,    setSendModal]    = useState(false);
-  const [sendChannel,  setSendChannel]  = useState<'email' | 'whatsapp' | 'both' | null>(null);
+  const [sendChannel,  setSendChannel]  = useState<'email'>('email');
   const [sendMsg,      setSendMsg]      = useState('');
   const [sending,      setSending]      = useState(false);
   const [editTemplate, setEditTemplate] = useState('');
@@ -445,7 +445,7 @@ export default function RsvpSection({
   // ── Open send invite modal ─────────────────────────────────────────────────
   function openSendModal() {
     setEditTemplate(msgTemplate);
-    setSendChannel(null);
+    setSendChannel('email');
     setSendMsg('');
     setShowSendPreview(false);
     setSendModal(true);
@@ -453,7 +453,6 @@ export default function RsvpSection({
 
   // ── Send invite ────────────────────────────────────────────────────────────
   async function handleSendInvite() {
-    if (!sendChannel) { setSendMsg('Please choose a channel.'); return; }
     setSending(true); setSendMsg('');
 
     const selectedIds = Array.from(selected);
@@ -469,24 +468,15 @@ export default function RsvpSection({
 
     let sent = 0, skipped = 0;
 
-    if (sendChannel === 'email' || sendChannel === 'both') {
-      const res = await fetch('/api/email/invite', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ guestIds: selectedIds }),
-      });
-      if (res.ok) {
-        const d = await res.json();
-        sent    += d.sent ?? 0;
-        skipped += d.skipped ?? 0;
-      }
-    }
-
-    // WhatsApp channel — placeholder until Meta API built
-    if (sendChannel === 'whatsapp' || sendChannel === 'both') {
-      setSendMsg('WhatsApp sending coming in Phase 3.');
-      setSending(false);
-      return;
+    const res = await fetch('/api/email/invite', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ guestIds: selectedIds }),
+    });
+    if (res.ok) {
+      const d = await res.json();
+      sent    += d.sent ?? 0;
+      skipped += d.skipped ?? 0;
     }
 
     // Update local state for invite_sent_at
@@ -692,7 +682,7 @@ export default function RsvpSection({
         <div className="flex flex-col gap-2">
           <label className={labelCls}>Invite message</label>
           <p className="font-sans text-xs text-ink-light -mt-1">
-            Used when sending invites via email or WhatsApp. Click a variable to insert it.
+            Used when sending invite emails. Click a variable to insert it.
           </p>
 
           {/* Variable chips */}
@@ -1157,29 +1147,8 @@ export default function RsvpSection({
             </div>
 
             <p className="font-sans text-sm text-ink-light">
-              Sending to <strong className="text-ink">{selected.size} guest(s)</strong>.
-              Choose your channel:
+              Sending email invite to <strong className="text-ink">{selected.size} guest(s)</strong>.
             </p>
-
-            {/* Channel picker */}
-            <div className="flex gap-2">
-              {([
-                { id: 'email',    label: '✉ Email' },
-                { id: 'whatsapp', label: '💬 WhatsApp' },
-                { id: 'both',     label: '✉ + 💬 Both' },
-              ] as const).map(c => (
-                <button key={c.id} type="button"
-                  onClick={() => setSendChannel(c.id)}
-                  className="flex-1 rounded-xl py-2.5 font-sans text-sm transition-all"
-                  style={{
-                    border:     sendChannel === c.id ? '1px solid #C9964A' : '1px solid #e8e0d0',
-                    background: sendChannel === c.id ? 'rgba(201,150,74,0.1)' : 'transparent',
-                    color:      sendChannel === c.id ? '#9a7840' : '#4A3728',
-                  }}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
 
             {/* Message editor */}
             <div className="flex flex-col gap-2">
